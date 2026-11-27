@@ -1,0 +1,36 @@
+{
+  "name": "MNEMOSCIENCES — Les sciences à travers la mémoire",
+  "short_name": "MNEMOSCIENCES",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f1eee7",
+  "theme_color": "#9c7a4a",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "captures/capture-ordinateur.png",
+      "sizes": "1300x900",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Les changements d'état de l'eau"
+    },
+    {
+      "src": "captures/capture-telephone.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "MNEMOSCIENCES sur téléphone"
+    }
+  ]
+}
