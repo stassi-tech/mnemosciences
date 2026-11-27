@@ -1,13 +1,13 @@
-/* MNEMOSCIENCES — service worker (v11)
+/* MNEMOSCIENCES — service worker (v12)
    Pourquoi ce fichier : sans lui, le navigateur va chercher l'application sur internet à chaque ouverture.
    Avec lui, il en garde une copie sur l'appareil (la « réserve ») et s'en sert quand il n'y a pas de réseau.
    Règle :
    - pages, app.js, style.css : on essaie d'abord internet (pour avoir la dernière version), sinon la réserve ;
    - images et bibliothèques Firebase : la réserve d'abord (elles ne changent pas), sinon internet.
    À chaque nouvelle version, changer VERSION ci-dessous : l'ancienne réserve est alors effacée. */
-const VERSION = 'mnemosciences-v11';
+const VERSION = 'mnemosciences-v12';
 const FICHIERS = [
-  './', 'index.html', 'index.html?v=11', 'app.js?v=11', 'style.css?v=11', 'manifest.json',
+  './', 'index.html', 'index.html?v=12', 'app.js?v=12', 'style.css?v=12', 'manifest.json',
   'fiche-matiere.html', 'fiche-vivant.html', 'fiche-technique.html',
   'icons/icone.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',
   'assets/accueil.jpg',

@@ -969,3 +969,17 @@ body[data-ambiance] .home-mode-button .desc { color:inherit; opacity:.85; }
 
 /* le sorcier s'efface pour laisser voir la figure (v9 de MNEMOMATHS, v10 de MNEMOSCIENCES) */
 .character-stage.part { opacity:0; transform:translateY(30px); transition:opacity .35s, transform .35s; }
+
+/* Menu ☰ sur smartphone (comme dans Mnemart) : en portrait (largeur ≤ 640 px) et en paysage
+   (téléphone tactile de hauteur ≤ 500 px), le bandeau ne garde que ←, 🏠, le volume et ☰. */
+.hamburger-button { display:none; }
+.hamburger-menu { position:absolute; top:calc(100% + 6px); right:10px; z-index:320; background:#fffdf9; border:1px solid #ded8cc; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.18); min-width:250px; max-height:calc(100vh - 70px); overflow-y:auto; padding:8px; font-family:Arial,sans-serif; }
+.hamburger-menu.hidden { display:none; }
+.hamburger-item { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:12px 14px; border-radius:6px; border:0; background:transparent; cursor:pointer; font-family:Arial,sans-serif; font-size:.95rem; color:#24313f; }
+.hamburger-icone { width:24px; text-align:center; flex:0 0 auto; }
+@media (hover:hover) { .hamburger-item:hover { background:#f7f2ea; } }
+@media (max-width:640px), (pointer:coarse) and (max-height:500px) {
+  #hamburger-button { display:inline-block; }
+  #global-topbar .global-topbar-button.dans-le-menu { display:none !important; }
+  .topbar-zone-center { gap:14px; }
+}
