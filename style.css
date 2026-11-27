@@ -960,3 +960,9 @@ body[data-ambiance] .home-mode-button .desc { color:inherit; opacity:.85; }
 .mm-prog .mm-boucle { list-style:none; margin:2px 0 2px .4em; padding-left:.9em; border-left:3px solid #ffe066; }
 .tab-num .virg { border-left:4px solid var(--wrong); }
 .home-mode-button.quiz .label strong { color:#ffe066; }
+
+/* MNEMOSCIENCES v5 : les illustrations du CE, dans le style de MNEMOGRAM (scènes en couleurs posées sur l'ardoise) */
+.illus-ce { display:block; }
+.illus-ce .illus-svg { display:block; width:min(100%,360px); height:auto; max-height:38vh; margin:4px auto 0; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.35); }
+.illus-ce .illus-svg[viewBox^="0 0 6"], .illus-ce .illus-svg[viewBox^="0 0 9"], .illus-ce .illus-svg[viewBox^="0 0 12"] { width:min(100%,600px); }
+@media (max-width:700px) { .illus-ce .illus-svg { max-height:30vh; } }

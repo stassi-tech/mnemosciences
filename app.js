@@ -11,8 +11,10 @@
    v1 : l'ossature (copie de MNEMOMATHS), les personnages, la mosaïque, et tout le CE1 – CE2.
    v2 : tout le CM1 – CM2 (matériaux, mélanges, énergies, trajectoires, classification, digestion, respiration, puberté, algorithmes avec le lutin, réseaux, climat…).
    v3 : tout le 6e – 5e (masse et volume, vitesse, circuits en série et en dérivation, modèle particulaire, lumière, cellule, photosynthèse, effort, boucles et conditions, chaînes d'énergie et d'information, structures, ordinateur…).
-   v4 : tout le 4e – 3e (combustions, loi d'Ohm, son, atomes et pH, poids, énergie ; tectonique, hormones, système nerveux, génétique, évolution, immunologie ; objets connectés, simulation, cartes programmables, cybersécurité…) : tout le programme est construit. */
-const APP_VERSION = 'v4';
+   v4 : tout le 4e – 3e (combustions, loi d'Ohm, son, atomes et pH, poids, énergie ; tectonique, hormones, système nerveux, génétique, évolution, immunologie ; objets connectés, simulation, cartes programmables, cybersécurité…) : tout le programme est construit.
+   v5 : chaque question de banque du CE a son illustration, dans le style de MNEMOGRAM (sa bibliothèque de dessins est reprise, complétée de dessins scientifiques).
+   v6 : les quiz de cours du CE illustrés aussi ; au CM, des schémas à la craie par notion (sans légende qui donnerait la réponse). */
+const APP_VERSION = 'v6';
 
 const $ = (id) => document.getElementById(id);
 const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -878,7 +880,10 @@ function genBanque(B, notion) {
   };
 }
 function depuisBanque(x, notion) {
-  const base = { enonce: x.q, explication: x.e, notion, voix: x.v, figure: typeof x.fig === 'function' ? x.fig() : x.fig, court: x.q.replace(/<[^>]+>/g, '').slice(0, 90) };
+  /* les questions du CE sans schéma reçoivent une scène dessinée dans le style de MNEMOGRAM */
+  const sc = !x.fig && typeof SCENES_CE !== 'undefined' ? (SCENES_CE[`${x.q}|${x.r}`] || SCENES_CE[x.q]) : null;
+  const figure = typeof x.fig === 'function' ? x.fig() : x.fig || (sc ? `<span class="illus-ce">${ILLUS.svgIllus(sc, x.q.replace(/<[^>]+>/g, ''))}</span>` : (typeof schemaPour === 'function' ? schemaPour(x.q, notion) || undefined : undefined));
+  const base = { enonce: x.q, explication: x.e, notion, voix: x.v, figure, court: x.q.replace(/<[^>]+>/g, '').slice(0, 90) };
   if (typeof x.r === 'number') return { ...base, saisie: { type: 'nombre', bonne: x.r, unite: x.u, neg: x.r < 0, tol: x.tol }, rep: `${fmtN(x.r)}${x.u ? ` ${x.u}` : ''}` };
   return { ...base, choix: shuffle([x.r, ...x.f]).map((v) => ({ v, html: v })), bonne: x.r, rep: x.r };
 }
@@ -2465,7 +2470,10 @@ const QUIZ = {
 const NOTION_QUIZ = { 'ce-matiere': 'Cours CE : matière, mouvement, énergie', 'ce-vivant': 'Cours CE : le vivant', 'ce-technique': 'Cours CE : objets techniques et Terre' };
 function questionsQuiz(cle, n) {
   return shuffle(QUIZ[cle]).slice(0, n).map((x) => {
-    const base = { enonce: `<span class="mm-cours">Question de cours</span>${x.q.replace(/…/, '<span class="mm-trou">…</span>')}`, voix: x.v || (typeof x.r === 'number' ? x.q : x.q.replace(/…/g, '')), explication: x.e, notion: NOTION_QUIZ[cle], court: x.q.replace(/<[^>]+>/g, '') };
+    /* une illustration quand le quiz en a une (CE : scènes dans le style de MNEMOGRAM ; autres niveaux : schémas à la craie) */
+    const sc = typeof SCENES_QUIZ_CE !== 'undefined' ? SCENES_QUIZ_CE[x.q] : null;
+    const figure = sc ? `<span class="illus-ce">${ILLUS.svgIllus(sc, x.q.replace(/<[^>]+>/g, ''))}</span>` : (typeof schemaQuiz === 'function' ? schemaQuiz(cle, x.q) || undefined : undefined);
+    const base = { figure, enonce: `<span class="mm-cours">Question de cours</span>${x.q.replace(/…/, '<span class="mm-trou">…</span>')}`, voix: x.v || (typeof x.r === 'number' ? x.q : x.q.replace(/…/g, '')), explication: x.e, notion: NOTION_QUIZ[cle], court: x.q.replace(/<[^>]+>/g, '') };
     if (typeof x.r === 'number') return { ...base, saisie: { type: 'nombre', bonne: x.r, unite: x.u, neg: x.r < 0 }, rep: fmtN(x.r) };
     return { ...base, choix: shuffle([x.r, ...x.f]).map((v) => ({ v, html: v })), bonne: x.r, rep: x.r };
   });
@@ -2679,6 +2687,834 @@ Object.assign(QUIZ, {
   ],
 });
 Object.assign(NOTION_QUIZ, { '43-matiere': 'Cours 4e – 3e : physique-chimie', '43-vivant': 'Cours 4e – 3e : SVT', '43-technique': 'Cours 4e – 3e : technologie' });
+/* ============================================================
+   MNEMOSCIENCES — ILLUSTRATIONS DU CE (style de MNEMOGRAM)
+   La bibliothèque de dessins est reprise telle quelle de MNEMOGRAM (illustrations.js, v110) :
+   personnages, animaux, objets, décors ; on y ajoute les dessins propres aux sciences.
+   ------------------------------------------------------------ */
+const ILLUS = (function () {
+  const K = '#2b2118';                      /* couleur du trait */
+  const ST = `stroke="${K}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"`;
+  const H = 240, SOL = 198;                 /* hauteur d'un moment, ligne du sol */
+  const PEAUX = { c: '#ffd9b8', m: '#e8b48a', f: '#b77b4f', t: '#8a5a3a' };
+
+  /* ---------- PERSONNAGES ---------- */
+  /* p : { peau, ch (court, long, tresses, chignon, boucle, chauve, couettes), cc, haut, bas, jupe, taille (1 enfant, 1.3 adulte, .7 bébé),
+          bras (bas, haut, tend, deux), visage (sourit, rit, peur, triste, dort, crie), acc : [lunettes, chapeau, tablier, casquette, toque, nez, barbe, moustache, bonnet] } */
+  function personne(p) {
+    const t = p.taille || 1, peau = PEAUX[p.peau || 'c'] || p.peau, cc = p.cc || '#6b3a1e';
+    const jambe = 24 * t, corps = 28 * t, r = 11 + (t > 1.1 ? 1 : 0), yc = -jambe - corps - r + 2;
+    let s = '';
+    /* jambes */
+    s += `<path d="M-6 ${-jambe} L-7 -2 M6 ${-jambe} L7 -2" fill="none" ${ST} stroke-width="5" stroke="${p.bas || '#3b4a6b'}"/>`;
+    s += `<path d="M-11 -1 L-3 -1 M3 -1 L11 -1" fill="none" ${ST} stroke-width="4"/>`;
+    /* corps */
+    if (p.jupe) s += `<path d="M-10 ${-jambe - corps} Q0 ${-jambe - corps - 3} 10 ${-jambe - corps} L16 ${-jambe + 2} Q0 ${-jambe + 6} -16 ${-jambe + 2} Z" fill="${p.haut || '#ff8fd0'}" ${ST}/>`;
+    else s += `<path d="M-11 ${-jambe - corps} Q0 ${-jambe - corps - 3} 11 ${-jambe - corps} L12 ${-jambe + 1} Q0 ${-jambe + 4} -12 ${-jambe + 1} Z" fill="${p.haut || '#3a7bd5'}" ${ST}/>`;
+    if ((p.acc || []).includes('tablier')) s += `<path d="M-7 ${-jambe - corps + 8} L7 ${-jambe - corps + 8} L8 ${-jambe} L-8 ${-jambe} Z" fill="#fff" ${ST}/>`;
+    /* bras */
+    const ya = -jambe - corps + 5, b = p.bras || 'bas';
+    const bras = {
+      bas: `M-11 ${ya} L-17 ${ya + 22} M11 ${ya} L17 ${ya + 22}`,
+      haut: `M-11 ${ya} L-20 ${ya - 20} M11 ${ya} L20 ${ya - 20}`,
+      tend: `M-11 ${ya} L-17 ${ya + 22} M11 ${ya} L30 ${ya + 4}`,
+      deux: `M-11 ${ya} L-28 ${ya + 4} M11 ${ya} L28 ${ya + 4}`,
+      leve: `M-11 ${ya} L-17 ${ya + 22} M11 ${ya} L18 ${ya - 22}`,
+    }[b] || '';
+    s += `<path d="${bras}" fill="none" ${ST} stroke-width="5" stroke="${p.haut || '#3a7bd5'}"/>`;
+    /* tête */
+    const ch = p.ch || 'court';
+    if (ch === 'long' || ch === 'tresses' || ch === 'couettes') s += `<path d="M-13 ${yc} Q-15 ${yc + 18} -10 ${yc + 20} L10 ${yc + 20} Q15 ${yc + 18} 13 ${yc} Z" fill="${cc}" ${ST}/>`;
+    s += `<circle cx="0" cy="${yc}" r="${r}" fill="${peau}" ${ST}/>`;
+    if (ch !== 'chauve') {
+      const top = {
+        court: `M-${r} ${yc - 1} Q-${r} ${yc - r - 6} 0 ${yc - r - 3} Q${r} ${yc - r - 6} ${r} ${yc - 1} Q${r - 2} ${yc - 7} 2 ${yc - 8} Q-${r - 2} ${yc - 8} -${r} ${yc - 1} Z`,
+        long: `M-${r + 1} ${yc + 2} Q-${r + 2} ${yc - r - 5} 0 ${yc - r - 3} Q${r + 2} ${yc - r - 5} ${r + 1} ${yc + 2} Q${r - 3} ${yc - 8} 0 ${yc - 7} Q-${r - 3} ${yc - 8} -${r + 1} ${yc + 2} Z`,
+        boucle: `M-${r + 2} ${yc} q-3 -8 3 -12 q0 -7 8 -6 q4 -6 10 -1 q7 -1 7 6 q5 4 1 12 q-6 -7 -14 -7 q-9 0 -15 8 Z`,
+        chignon: `M-${r} ${yc - 1} Q-${r} ${yc - r - 5} 0 ${yc - r - 3} Q${r} ${yc - r - 5} ${r} ${yc - 1} Q0 ${yc - 9} -${r} ${yc - 1} Z`,
+      };
+      const d = top[ch === 'tresses' || ch === 'couettes' ? 'long' : ch] || top.court;
+      s += `<path d="${d}" fill="${cc}" ${ST}/>`;
+      if (ch === 'chignon') s += `<circle cx="0" cy="${yc - r - 6}" r="6" fill="${cc}" ${ST}/>`;
+      if (ch === 'couettes') s += `<circle cx="-${r + 5}" cy="${yc - 2}" r="5" fill="${cc}" ${ST}/><circle cx="${r + 5}" cy="${yc - 2}" r="5" fill="${cc}" ${ST}/>`;
+      if (ch === 'tresses') s += `<path d="M-${r} ${yc + 6} l-3 16 M${r} ${yc + 6} l3 16" fill="none" ${ST} stroke-width="5" stroke="${cc}"/>`;
+    }
+    /* visage */
+    const v = p.visage || 'sourit';
+    if (v === 'dort') s += `<path d="M-6 ${yc} q2 2 4 0 M2 ${yc} q2 2 4 0" fill="none" ${ST} stroke-width="1.5"/>`;
+    else s += `<circle cx="-4" cy="${yc - 1}" r="1.6" fill="${K}"/><circle cx="4" cy="${yc - 1}" r="1.6" fill="${K}"/>`;
+    const bouche = { sourit: `M-4 ${yc + 5} Q0 ${yc + 8} 4 ${yc + 5}`, rit: `M-5 ${yc + 4} Q0 ${yc + 11} 5 ${yc + 4} Z`, triste: `M-4 ${yc + 7} Q0 ${yc + 4} 4 ${yc + 7}`, dort: `M-2 ${yc + 6} L2 ${yc + 6}` }[v];
+    if (v === 'peur' || v === 'crie') s += `<ellipse cx="0" cy="${yc + 6}" rx="2.5" ry="${v === 'crie' ? 4 : 3}" fill="${K}"/>`;
+    else s += `<path d="${bouche}" fill="${v === 'rit' ? '#c0392b' : 'none'}" ${ST} stroke-width="1.5"/>`;
+    /* accessoires */
+    const A = p.acc || [];
+    if (A.includes('lunettes')) s += `<circle cx="-4" cy="${yc - 1}" r="3.5" fill="none" ${ST} stroke-width="1.2"/><circle cx="4" cy="${yc - 1}" r="3.5" fill="none" ${ST} stroke-width="1.2"/>`;
+    if (A.includes('moustache')) s += `<path d="M-5 ${yc + 3} Q0 ${yc + 1} 5 ${yc + 3}" fill="none" ${ST} stroke-width="2.5" stroke="${cc}"/>`;
+    if (A.includes('barbe')) s += `<path d="M-${r} ${yc + 2} Q0 ${yc + r + 10} ${r} ${yc + 2} Q0 ${yc + 9} -${r} ${yc + 2} Z" fill="${cc}" ${ST}/>`;
+    if (A.includes('nez')) s += `<circle cx="0" cy="${yc + 2}" r="3.5" fill="#ff3b3b" ${ST} stroke-width="1"/>`;
+    if (A.includes('chapeau')) s += `<path d="M-${r + 7} ${yc - r + 1} L${r + 7} ${yc - r + 1} M-8 ${yc - r + 1} L-7 ${yc - r - 12} L7 ${yc - r - 12} L8 ${yc - r + 1}" fill="${p.chapeau || '#2b2118'}" ${ST}/>`;
+    if (A.includes('casquette')) s += `<path d="M-${r} ${yc - 4} Q0 ${yc - r - 8} ${r} ${yc - 4} Z M${r - 2} ${yc - 5} L${r + 9} ${yc - 3}" fill="${p.chapeau || '#e74c3c'}" ${ST}/>`;
+    if (A.includes('bonnet')) s += `<path d="M-${r} ${yc - 3} Q0 ${yc - r - 12} ${r} ${yc - 3} Z" fill="${p.chapeau || '#e74c3c'}" ${ST}/><circle cx="0" cy="${yc - r - 8}" r="3.5" fill="#fff" ${ST} stroke-width="1"/>`;
+    if (A.includes('toque')) s += `<path d="M-8 ${yc - r + 2} L-8 ${yc - r - 6} q-6 -10 4 -10 q4 -6 8 0 q10 0 4 10 L8 ${yc - r + 2} Z" fill="#fff" ${ST}/>`;
+    if (A.includes('couronne')) s += `<path d="M-8 ${yc - r} L-8 ${yc - r - 9} L-4 ${yc - r - 4} L0 ${yc - r - 10} L4 ${yc - r - 4} L8 ${yc - r - 9} L8 ${yc - r} Z" fill="#ffd23f" ${ST}/>`;
+    return s;
+  }
+  /* personnages récurrents */
+  const PERSOS = {
+    leo: { peau: 'c', ch: 'court', cc: '#6b3a1e', haut: '#3a7bd5', bas: '#2b3a55' },
+    lina: { peau: 'm', ch: 'couettes', cc: '#2b2118', haut: '#ff7eb6', jupe: true, bas: '#7a4fa0' },
+    maman: { peau: 'c', ch: 'long', cc: '#e0a52a', haut: '#2fb67c', jupe: true, taille: 1.3, bas: '#2f6f5a' },
+    papa: { peau: 'c', ch: 'court', cc: '#2b2118', haut: '#e85d3a', taille: 1.35, bas: '#3b4a6b' },
+    mamie: { peau: 'c', ch: 'chignon', cc: '#d9d9d9', haut: '#9b59b6', jupe: true, taille: 1.25, acc: ['lunettes'] },
+    papi: { peau: 'c', ch: 'chauve', cc: '#d9d9d9', haut: '#8d6e63', taille: 1.3, acc: ['moustache', 'lunettes'] },
+    maitresse: { peau: 'f', ch: 'chignon', cc: '#2b2118', haut: '#f39c12', jupe: true, taille: 1.3, acc: ['lunettes'] },
+    tom: { peau: 'f', ch: 'boucle', cc: '#2b2118', haut: '#27ae60', bas: '#34495e' },
+    hugo: { peau: 'c', ch: 'court', cc: '#e0a52a', haut: '#c0392b', bas: '#2c3e50' },
+    soeur: { peau: 'c', ch: 'tresses', cc: '#c0702a', haut: '#9b59b6', jupe: true, taille: .9 },
+    frere: { peau: 'c', ch: 'court', cc: '#c0702a', haut: '#f1c40f', bas: '#2980b9', taille: .85 },
+    bebe: { peau: 'c', ch: 'chauve', haut: '#f9e79f', taille: .6 },
+    fermier: { peau: 'm', ch: 'court', cc: '#6b3a1e', haut: '#2980b9', taille: 1.35, acc: ['chapeau'], chapeau: '#d4a24c', bas: '#5d4037' },
+    clown: { peau: 'c', ch: 'boucle', cc: '#ff6b00', haut: '#f1c40f', taille: 1.3, acc: ['nez'], bas: '#e74c3c' },
+    magicien: { peau: 'c', ch: 'court', cc: '#2b2118', haut: '#2c3e50', taille: 1.35, acc: ['chapeau', 'moustache'] },
+    marchand: { peau: 'f', ch: 'court', cc: '#2b2118', haut: '#ecf0f1', taille: 1.35, acc: ['casquette', 'tablier'], chapeau: '#3498db' },
+    gardien: { peau: 't', ch: 'court', cc: '#2b2118', haut: '#6d8b3a', taille: 1.35, acc: ['casquette'], chapeau: '#556b2f' },
+    cuisinier: { peau: 'c', ch: 'court', cc: '#6b3a1e', haut: '#fff', taille: 1.35, acc: ['toque'] },
+    fille: { peau: 'f', ch: 'long', cc: '#2b2118', haut: '#e67e22', jupe: true },
+    garcon: { peau: 't', ch: 'court', cc: '#2b2118', haut: '#16a085', bas: '#2c3e50' },
+    zoe: { peau: 'c', ch: 'long', cc: '#c0392b', haut: '#1abc9c', jupe: true },
+  };
+
+  /* ---------- ANIMAUX (tournés vers la droite, pieds au point d'origine) ---------- */
+  const oeil = (x, y) => `<circle cx="${x}" cy="${y}" r="1.8" fill="${K}"/>`;
+  const quad = (c, l, h, tete, queue) => `<path d="M${-l / 2} ${-6} L${-l / 2} -2 M${-l / 2 + 8} -6 L${-l / 2 + 8} -2 M${l / 2 - 8} -6 L${l / 2 - 8} -2 M${l / 2} -6 L${l / 2} -2" fill="none" ${ST} stroke-width="4"/><ellipse cx="0" cy="${-6 - h / 2}" rx="${l / 2 + 4}" ry="${h / 2}" fill="${c}" ${ST}/>${queue || ''}${tete}`;
+  const ANIMAUX = {
+    chat: (c = '#f39c12') => quad(c, 30, 14, `<circle cx="20" cy="-24" r="9" fill="${c}" ${ST}/><path d="M14 -30 l2 -9 l5 6 M22 -32 l4 -8 l3 8" fill="${c}" ${ST}/>${oeil(23, -25)}<path d="M28 -22 l8 -1 M28 -20 l8 2" fill="none" ${ST} stroke-width="1"/>`, `<path d="M-19 -14 Q-32 -22 -26 -36" fill="none" ${ST} stroke-width="4" stroke="${c}"/>`),
+    chien: (c = '#c8874b') => quad(c, 36, 16, `<circle cx="24" cy="-28" r="10" fill="${c}" ${ST}/><path d="M18 -34 q-6 4 -4 14" fill="#8a5a2e" ${ST}/>${oeil(27, -30)}<circle cx="34" cy="-27" r="2.5" fill="${K}"/>`, `<path d="M-22 -16 Q-30 -26 -26 -32" fill="none" ${ST} stroke-width="4" stroke="${c}"/>`),
+    lapin: (c = '#ecf0f1') => `<ellipse cx="0" cy="-12" rx="14" ry="11" fill="${c}" ${ST}/><circle cx="12" cy="-24" r="8" fill="${c}" ${ST}/><path d="M9 -30 q-2 -18 3 -18 q4 2 1 18 M14 -30 q4 -16 8 -14 q2 4 -4 15" fill="${c}" ${ST}/>${oeil(15, -25)}<circle cx="-14" cy="-14" r="4" fill="#fff" ${ST}/>`,
+    vache: () => quad('#fff', 50, 24, `<path d="M26 -36 q8 -4 16 4 q2 12 -6 14 q-8 0 -12 -6 Z" fill="#fff" ${ST}/><path d="M28 -38 l-4 -6 M38 -36 l4 -6" fill="none" ${ST}/><ellipse cx="40" cy="-21" rx="5" ry="4" fill="#f5b7b1" ${ST}/>${oeil(32, -31)}`, `<circle cx="-8" cy="-22" r="5" fill="${K}"/><circle cx="8" cy="-14" r="4" fill="${K}"/><path d="M-27 -24 Q-34 -14 -30 -6" fill="none" ${ST}/>`),
+    cochon: () => quad('#f8b6c4', 36, 18, `<circle cx="22" cy="-22" r="10" fill="#f8b6c4" ${ST}/><ellipse cx="31" cy="-20" rx="4" ry="5" fill="#f19cb0" ${ST}/>${oeil(22, -25)}<path d="M16 -30 l3 -6 l4 5" fill="#f8b6c4" ${ST}/>`, `<path d="M-22 -18 q-6 -2 -4 -8 q4 0 2 4" fill="none" ${ST} stroke-width="1.5"/>`),
+    poule: (c = '#c0703a') => `<path d="M-4 -2 L-4 -8 M4 -2 L4 -8" fill="none" ${ST} stroke-width="2"/><ellipse cx="0" cy="-16" rx="13" ry="10" fill="${c}" ${ST}/><circle cx="10" cy="-26" r="6" fill="${c}" ${ST}/><path d="M8 -32 l2 -4 l2 4 l2 -3 l1 4" fill="#e74c3c" ${ST} stroke-width="1"/><path d="M16 -26 l5 2 l-5 2 Z" fill="#f1c40f" ${ST} stroke-width="1"/>${oeil(11, -27)}`,
+    coq: () => `<path d="M-4 -2 L-4 -10 M4 -2 L4 -10" fill="none" ${ST} stroke-width="2"/><path d="M-12 -18 Q-26 -34 -18 -44 Q-12 -30 -6 -26" fill="#1e8449" ${ST}/><ellipse cx="0" cy="-18" rx="13" ry="10" fill="#d35400" ${ST}/><circle cx="10" cy="-30" r="7" fill="#d35400" ${ST}/><path d="M6 -37 l3 -6 l3 5 l3 -5 l1 6" fill="#e74c3c" ${ST} stroke-width="1"/><path d="M17 -30 l6 2 l-6 2 Z" fill="#f1c40f" ${ST} stroke-width="1"/>${oeil(11, -31)}`,
+    canard: () => `<ellipse cx="0" cy="-8" rx="14" ry="8" fill="#fff" ${ST}/><circle cx="10" cy="-20" r="7" fill="#27ae60" ${ST}/><path d="M16 -20 l8 1 l-8 3 Z" fill="#f39c12" ${ST} stroke-width="1"/>${oeil(11, -22)}`,
+    mouton: () => quad('#fdfefe', 34, 20, `<ellipse cx="22" cy="-22" rx="7" ry="9" fill="#2b2118" ${ST}/>${'<circle cx="24" cy="-24" r="1.5" fill="#fff"/>'}`, `<path d="M-18 -26 q4 -8 10 -4 q4 -8 10 -2 q6 -6 10 2" fill="#fdfefe" ${ST}/>`),
+    cheval: () => quad('#a0522d', 50, 20, `<path d="M20 -24 L30 -52 Q40 -56 46 -46 L38 -40 L32 -28 Z" fill="#a0522d" ${ST}/><path d="M28 -50 Q20 -40 22 -28" fill="none" ${ST} stroke-width="5" stroke="#2b2118"/>${oeil(36, -48)}`, `<path d="M-28 -24 Q-38 -16 -34 -4" fill="none" ${ST} stroke-width="5" stroke="#2b2118"/>`),
+    oiseau: (c = '#3498db') => `<ellipse cx="0" cy="-6" rx="8" ry="6" fill="${c}" ${ST}/><circle cx="7" cy="-11" r="4.5" fill="${c}" ${ST}/><path d="M11 -11 l5 1 l-5 2 Z" fill="#f39c12" stroke="${K}" stroke-width="1"/><path d="M-4 -8 q-2 -8 6 -6" fill="none" ${ST} stroke-width="1.5"/>${oeil(8, -12)}`,
+    lion: () => quad('#e6a23c', 44, 20, `<circle cx="28" cy="-34" r="16" fill="#a0521d" ${ST}/><circle cx="30" cy="-33" r="10" fill="#f0b858" ${ST}/>${oeil(33, -35)}<path d="M33 -28 q3 2 6 0" fill="none" ${ST} stroke-width="1.5"/>`, `<path d="M-26 -18 Q-36 -10 -34 -2" fill="none" ${ST} stroke-width="3"/>`),
+    singe: () => `<path d="M-6 -2 L-6 -14 M6 -2 L6 -14 M-10 -26 L-20 -14 M10 -26 L20 -36" fill="none" ${ST} stroke-width="5" stroke="#8d5524"/><ellipse cx="0" cy="-22" rx="11" ry="12" fill="#8d5524" ${ST}/><circle cx="0" cy="-42" r="10" fill="#8d5524" ${ST}/><ellipse cx="1" cy="-40" rx="7" ry="6" fill="#e0ac69" ${ST}/>${oeil(-2, -42)}${oeil(4, -42)}<path d="M-4 -37 q4 3 8 0" fill="none" ${ST} stroke-width="1.5"/><path d="M-12 -10 Q-28 -4 -24 -26" fill="none" ${ST} stroke-width="3" stroke="#8d5524"/>`,
+    girafe: () => `<path d="M-14 -2 L-14 -30 M-6 -2 L-6 -30 M10 -2 L10 -30 M18 -2 L18 -30" fill="none" ${ST} stroke-width="4" stroke="#f4c542"/><ellipse cx="2" cy="-36" rx="22" ry="11" fill="#f4c542" ${ST}/><path d="M14 -40 L26 -96 L34 -94 L24 -38 Z" fill="#f4c542" ${ST}/><ellipse cx="34" cy="-98" rx="11" ry="7" fill="#f4c542" ${ST}/><path d="M28 -104 l-2 -8 M34 -104 l1 -8" fill="none" ${ST}/>${oeil(34, -100)}<circle cx="-6" cy="-38" r="4" fill="#a0522d"/><circle cx="8" cy="-34" r="3.5" fill="#a0522d"/><circle cx="21" cy="-62" r="3" fill="#a0522d"/><circle cx="25" cy="-82" r="3" fill="#a0522d"/>`,
+    elephant: () => quad('#95a5a6', 56, 32, `<circle cx="30" cy="-40" r="16" fill="#95a5a6" ${ST}/><path d="M42 -34 Q52 -20 46 -6" fill="none" ${ST} stroke-width="7" stroke="#95a5a6"/><ellipse cx="22" cy="-40" rx="9" ry="13" fill="#7f8c8d" ${ST}/>${oeil(36, -45)}`, ''),
+    ours: () => quad('#6e4b2a', 46, 26, `<circle cx="28" cy="-36" r="13" fill="#6e4b2a" ${ST}/><circle cx="22" cy="-48" r="5" fill="#6e4b2a" ${ST}/><circle cx="34" cy="-48" r="5" fill="#6e4b2a" ${ST}/><ellipse cx="35" cy="-32" rx="5" ry="4" fill="#c69c6d" ${ST}/>${oeil(30, -39)}`, ''),
+    serpent: () => `<path d="M-30 -6 Q-20 -18 -8 -6 Q4 6 14 -6 Q20 -14 26 -14" fill="none" ${ST} stroke-width="9" stroke="#27ae60"/><path d="M-30 -6 Q-20 -18 -8 -6 Q4 6 14 -6 Q20 -14 26 -14" fill="none" stroke="#2b2118" stroke-width="1" stroke-dasharray="2 6"/><circle cx="28" cy="-15" r="6" fill="#27ae60" ${ST}/>${oeil(30, -17)}<path d="M33 -14 l6 0 l3 -2 M39 -14 l3 2" fill="none" stroke="#e74c3c" stroke-width="1.5"/>`,
+    pingouin: () => `<ellipse cx="0" cy="-18" rx="11" ry="17" fill="#2b2118" ${ST}/><ellipse cx="2" cy="-16" rx="7" ry="12" fill="#fff"/><circle cx="2" cy="-36" r="8" fill="#2b2118" ${ST}/><circle cx="4" cy="-37" r="2" fill="#fff"/><path d="M9 -35 l6 2 l-6 2 Z" fill="#f39c12"/><path d="M-6 -1 l5 0 M3 -1 l6 0" fill="none" stroke="#f39c12" stroke-width="3"/>`,
+    ecureuil: () => `<path d="M-6 -6 Q-26 -14 -18 -34 Q-10 -46 -4 -34 Q-12 -24 -4 -14" fill="#d35400" ${ST}/><ellipse cx="4" cy="-12" rx="8" ry="10" fill="#e67e22" ${ST}/><circle cx="8" cy="-26" r="6" fill="#e67e22" ${ST}/><path d="M6 -31 l1 -5 l3 4" fill="#e67e22" ${ST} stroke-width="1"/>${oeil(10, -27)}`,
+    biche: () => quad('#c68642', 38, 16, `<path d="M16 -18 L24 -40 L30 -40 L26 -18 Z" fill="#c68642" ${ST}/><ellipse cx="30" cy="-42" rx="8" ry="6" fill="#c68642" ${ST}/><path d="M24 -46 l-4 -7 M28 -47 l0 -8" fill="none" ${ST}/>${oeil(31, -44)}`, `<circle cx="-14" cy="-20" r="2" fill="#fff"/><circle cx="-4" cy="-24" r="2" fill="#fff"/>`),
+    souris: () => `<ellipse cx="0" cy="-6" rx="9" ry="6" fill="#bdc3c7" ${ST}/><circle cx="7" cy="-10" r="4" fill="#bdc3c7" ${ST}/><circle cx="5" cy="-15" r="3" fill="#f5b7b1" ${ST} stroke-width="1"/>${oeil(9, -10)}<path d="M-9 -5 Q-18 -2 -20 -10" fill="none" ${ST} stroke-width="1.5"/>`,
+    renard: () => quad('#e67e22', 36, 14, `<path d="M16 -22 L34 -22 L22 -36 Z M18 -30 l1 -10 l6 6 M24 -32 l5 -8 l2 9" fill="#e67e22" ${ST}/>${oeil(24, -27)}`, `<path d="M-20 -12 Q-38 -14 -34 -28 Q-26 -18 -20 -16" fill="#e67e22" ${ST}/><path d="M-34 -28 l-2 4 l4 0 Z" fill="#fff"/>`),
+    chouette: () => `<ellipse cx="0" cy="-16" rx="12" ry="16" fill="#8e6e53" ${ST}/><circle cx="-5" cy="-24" r="6" fill="#fff36b" ${ST}/><circle cx="5" cy="-24" r="6" fill="#fff36b" ${ST}/>${oeil(-5, -24)}${oeil(5, -24)}<path d="M-2 -19 l2 4 l2 -4 Z" fill="#f39c12" stroke="${K}" stroke-width="1"/><path d="M-10 -32 l-2 -6 l6 3 M10 -32 l2 -6 l-6 3" fill="#8e6e53" ${ST}/>`,
+    poisson: (c = '#ff8a1f') => `<path d="M-14 -8 Q0 -20 12 -8 Q0 4 -14 -8 Z M-14 -8 l-8 -6 l0 12 Z" fill="${c}" ${ST}/>${oeil(5, -10)}`,
+    crabe: () => `<ellipse cx="0" cy="-8" rx="12" ry="7" fill="#e74c3c" ${ST}/><path d="M-10 -12 l-8 -8 M10 -12 l8 -8 M-8 -4 l-6 4 M8 -4 l6 4" fill="none" ${ST} stroke-width="2"/><circle cx="-18" cy="-22" r="4" fill="#e74c3c" ${ST}/><circle cx="18" cy="-22" r="4" fill="#e74c3c" ${ST}/>${oeil(-3, -12)}${oeil(3, -12)}`,
+    dragon: () => `<path d="M-40 -10 Q-60 -20 -54 -40 Q-44 -24 -32 -22" fill="#2ecc71" ${ST}/><ellipse cx="-6" cy="-24" rx="32" ry="18" fill="#2ecc71" ${ST}/><path d="M-14 -38 Q-30 -76 4 -64 Q-6 -52 -2 -40 Z" fill="#27ae60" ${ST}/><path d="M-20 -6 L-20 -2 M10 -6 L10 -2" fill="none" ${ST} stroke-width="6"/><path d="M18 -30 L34 -54 Q52 -60 58 -48 L50 -40 L36 -36 Z" fill="#2ecc71" ${ST}/>${oeil(46, -50)}<path d="M38 -58 l-2 -8 l6 4" fill="#f1c40f" ${ST} stroke-width="1"/><path d="M-30 -42 l4 -8 l4 8 M-16 -44 l4 -8 l4 8 M-2 -42 l4 -8 l4 8" fill="#f1c40f" ${ST} stroke-width="1"/>`,
+    chevreau: () => quad('#fdfefe', 30, 14, `<path d="M16 -18 L22 -32 L30 -30 L26 -18 Z" fill="#fdfefe" ${ST}/><path d="M22 -34 l-2 -6 M26 -34 l2 -6" fill="none" ${ST}/>${oeil(26, -28)}`, ''),
+    loup: () => quad('#7f8c8d', 44, 18, `<path d="M20 -26 L46 -24 L28 -40 Z M22 -36 l0 -10 l7 6 M28 -38 l5 -8 l2 9" fill="#7f8c8d" ${ST}/>${oeil(30, -32)}<path d="M38 -24 l2 3 l2 -3 l2 3" fill="none" ${ST} stroke-width="1" stroke="#fff"/>`, `<path d="M-26 -18 Q-40 -16 -38 -30" fill="none" ${ST} stroke-width="5" stroke="#7f8c8d"/>`),
+    fourmi: () => `<circle cx="-6" cy="-4" r="3" fill="${K}"/><circle cx="0" cy="-4" r="2.5" fill="${K}"/><circle cx="5" cy="-5" r="2.5" fill="${K}"/><path d="M-4 -2 l-3 3 M0 -2 l0 3 M3 -2 l3 3" stroke="${K}" stroke-width="1"/>`,
+  };
+
+  /* ---------- OBJETS ---------- */
+  const OBJETS = {
+    arbre: (c = '#2fb46a') => `<path d="M-6 0 L-5 -50 L5 -50 L6 0 Z" fill="#8a5a2e" ${ST}/><path d="M-36 -54 Q-44 -86 -16 -92 Q-6 -112 16 -98 Q42 -100 38 -72 Q48 -50 22 -46 Q0 -38 -18 -46 Q-38 -42 -36 -54 Z" fill="${c}" ${ST}/>`,
+    pommier: () => OBJETS.arbre() + '<circle cx="-18" cy="-66" r="4" fill="#e74c3c" stroke="#2b2118"/><circle cx="12" cy="-80" r="4" fill="#e74c3c" stroke="#2b2118"/><circle cx="20" cy="-58" r="4" fill="#e74c3c" stroke="#2b2118"/>',
+    sapin: () => `<path d="M-4 0 L-4 -12 L4 -12 L4 0 Z" fill="#8a5a2e" ${ST}/><path d="M0 -80 L-22 -44 L-12 -44 L-28 -12 L28 -12 L12 -44 L22 -44 Z" fill="#1e7a46" ${ST}/>`,
+    buisson: () => `<path d="M-24 0 Q-30 -20 -12 -22 Q-4 -34 10 -24 Q28 -24 24 0 Z" fill="#3cb371" ${ST}/>`,
+    fleur: (c = '#ff5a8a') => `<path d="M0 0 L0 -18" fill="none" ${ST} stroke="#2e8b57"/><circle cx="-4" cy="-22" r="4" fill="${c}" ${ST} stroke-width="1.2"/><circle cx="4" cy="-22" r="4" fill="${c}" ${ST} stroke-width="1.2"/><circle cx="0" cy="-26" r="4" fill="${c}" ${ST} stroke-width="1.2"/><circle cx="0" cy="-18" r="4" fill="${c}" ${ST} stroke-width="1.2"/><circle cx="0" cy="-22" r="2.5" fill="#ffd23f"/>`,
+    fleurs: () => [-14, 0, 14].map((x, i) => `<g transform="translate(${x} 0)">${OBJETS.fleur(['#ff5a8a', '#ffd23f', '#9b59b6'][i])}</g>`).join(''),
+    maison: (c = '#fff1d6') => `<path d="M-40 0 L-40 -50 L40 -50 L40 0 Z" fill="${c}" ${ST}/><path d="M-48 -48 L0 -86 L48 -48 Z" fill="#e74c3c" ${ST}/><path d="M-10 0 L-10 -28 L10 -28 L10 0" fill="#8a4b20" ${ST}/><path d="M-32 -40 L-18 -40 L-18 -26 L-32 -26 Z M18 -40 L32 -40 L32 -26 L18 -26 Z" fill="#7ad0ff" ${ST}/>`,
+    grange: () => `<path d="M-46 0 L-46 -56 L0 -84 L46 -56 L46 0 Z" fill="#c0392b" ${ST}/><path d="M-16 0 L-16 -36 L16 -36 L16 0 Z" fill="#7b241c" ${ST}/><path d="M-16 -36 L16 0 M16 -36 L-16 0" stroke="#f5e6c8" stroke-width="2"/><path d="M-8 -64 L8 -64 L8 -50 L-8 -50 Z" fill="#f5e6c8" ${ST}/>`,
+    niche: () => `<path d="M-20 0 L-20 -24 L0 -40 L20 -24 L20 0 Z" fill="#d68910" ${ST}/><path d="M-8 0 Q-8 -16 0 -16 Q8 -16 8 0 Z" fill="${K}"/>`,
+    cage: () => `<path d="M-34 0 L-34 -60 L34 -60 L34 0 Z" fill="none" ${ST}/>` + [-22, -11, 0, 11, 22].map((x) => `<path d="M${x} 0 L${x} -60" ${ST}/>`).join(''),
+    table: (c = '#c98a4b') => `<path d="M-40 -34 L40 -34 L40 -28 L-40 -28 Z" fill="${c}" ${ST}/><path d="M-34 -28 L-34 0 M34 -28 L34 0" ${ST} stroke-width="4"/>`,
+    lit: () => `<path d="M-44 -8 L-44 -40 M44 -8 L44 -24" ${ST} stroke-width="5"/><path d="M-44 -24 L44 -24 L44 -10 L-44 -10 Z" fill="#7ad0ff" ${ST}/><ellipse cx="-30" cy="-28" rx="11" ry="6" fill="#fff" ${ST}/>`,
+    tableau: () => `<path d="M-60 -50 L60 -50 L60 -110 L-60 -110 Z" fill="#1f4d3a" stroke="#8a5a2e" stroke-width="6"/><path d="M-46 -92 l30 0 M-46 -80 l50 0 M-46 -68 l40 0" stroke="#fff" stroke-width="2"/>`,
+    pupitre: () => `<path d="M-22 -26 L22 -26 L22 -20 L-22 -20 Z" fill="#c98a4b" ${ST}/><path d="M-18 -20 L-18 0 M18 -20 L18 0" ${ST} stroke-width="3"/>`,
+    livre: (c = '#e74c3c') => `<path d="M-12 0 L12 0 L12 -8 L-12 -8 Z" fill="${c}" ${ST}/><path d="M-10 -8 L-10 -1 L10 -1" fill="#fff" stroke="none"/>`,
+    livreOuvert: () => `<path d="M-14 -4 Q-7 -9 0 -6 Q7 -9 14 -4 L14 4 Q7 0 0 3 Q-7 0 -14 4 Z" fill="#fff" ${ST}/><path d="M0 -6 L0 3" ${ST} stroke-width="1"/>`,
+    ballon: (c = '#e74c3c') => `<circle cx="0" cy="-9" r="9" fill="${c}" ${ST}/><path d="M-9 -9 Q0 -14 9 -9 M0 -18 Q-4 -9 0 0" fill="none" stroke="#fff" stroke-width="2"/>`,
+    ballonFete: (c = '#e74c3c') => `<ellipse cx="0" cy="-40" rx="10" ry="12" fill="${c}" ${ST}/><path d="M0 -28 Q4 -14 0 0" fill="none" ${ST} stroke-width="1"/>`,
+    valise: (c = '#ff5a5a') => `<path d="M-20 0 L20 0 L20 -28 L-20 -28 Z" fill="${c}" ${ST}/><path d="M-6 -28 Q0 -38 6 -28" fill="none" ${ST}/>`,
+    voiture: (c = '#ff8a1f') => `<path d="M-44 -10 L-40 -26 Q-30 -28 -20 -40 L16 -40 L28 -26 L44 -22 L46 -10 Z" fill="${c}" ${ST}/><path d="M-16 -36 L-2 -36 L-2 -26 L-26 -26 Z M4 -36 L14 -36 L22 -26 L4 -26 Z" fill="#cfefff" ${ST}/><circle cx="-26" cy="-8" r="9" fill="${K}"/><circle cx="-26" cy="-8" r="3" fill="#ccc"/><circle cx="28" cy="-8" r="9" fill="${K}"/><circle cx="28" cy="-8" r="3" fill="#ccc"/>`,
+    autobus: () => `<path d="M-56 -8 L-56 -50 L52 -50 L58 -30 L58 -8 Z" fill="#f1c40f" ${ST}/>` + [-48, -26, -4, 18].map((x) => `<path d="M${x} -44 L${x + 18} -44 L${x + 18} -30 L${x} -30 Z" fill="#cfefff" ${ST} stroke-width="1.5"/>`).join('') + `<circle cx="-34" cy="-8" r="9" fill="${K}"/><circle cx="36" cy="-8" r="9" fill="${K}"/>`,
+    train: () => `<path d="M-70 -10 L-70 -50 L-10 -50 L-10 -10 Z M-4 -10 L-4 -50 L56 -50 L66 -30 L66 -10 Z" fill="#2e86de" ${ST}/>` + [-62, -38, 4, 28].map((x) => `<path d="M${x} -44 L${x + 18} -44 L${x + 18} -30 L${x} -30 Z" fill="#cfefff" ${ST} stroke-width="1.5"/>`).join('') + [-58, -22, 8, 50].map((x) => `<circle cx="${x}" cy="-8" r="7" fill="${K}"/>`).join(''),
+    avion: () => `<path d="M-50 -20 Q-50 -32 -30 -32 L40 -32 Q56 -30 58 -22 Q56 -16 40 -14 L-30 -14 Q-46 -14 -50 -20 Z" fill="#ecf0f1" ${ST}/><path d="M-6 -22 L-22 4 L-8 4 L14 -22 Z M-40 -30 L-52 -48 L-42 -48 L-28 -30 Z" fill="#3498db" ${ST}/>` + [10, 22, 34].map((x) => `<circle cx="${x}" cy="-24" r="3" fill="#7ad0ff" stroke="${K}"/>`).join(''),
+    bateau: (c = '#fff8e6') => `<path d="M-30 -8 Q0 4 30 -8 L24 4 Q0 12 -24 4 Z" fill="#8a4b20" ${ST}/><path d="M0 -8 L0 -52" ${ST}/><path d="M2 -50 Q24 -30 2 -12 Z" fill="${c}" ${ST}/>`,
+    caravelle: () => OBJETS.bateau(),
+    parasol: () => `<path d="M0 0 L0 -52" ${ST} stroke-width="3"/><path d="M-30 -48 Q0 -76 30 -48 Z" fill="#ff5a5a" ${ST}/><path d="M-10 -66 L-6 -48 M10 -66 L6 -48" stroke="#fff" stroke-width="5"/>`,
+    chateauSable: () => `<path d="M-22 0 L-22 -24 L-14 -24 L-14 -30 L-8 -30 L-8 -24 L8 -24 L8 -30 L14 -30 L14 -24 L22 -24 L22 0 Z" fill="#f5cd79" ${ST}/><path d="M-4 0 Q-4 -10 0 -10 Q4 -10 4 0" fill="#c8a25a"/><path d="M0 -30 L0 -42 L8 -38 L0 -36" fill="#e74c3c" ${ST} stroke-width="1"/>`,
+    gateau: (n = 4) => `<path d="M-26 0 L-26 -20 L26 -20 L26 0 Z" fill="#8b4513" ${ST}/><path d="M-26 -20 Q-20 -14 -13 -20 Q-6 -14 0 -20 Q7 -14 13 -20 Q20 -14 26 -20" fill="#fff" ${ST}/>` + Array.from({ length: n }, (_, i) => { const x = -18 + i * 36 / Math.max(1, n - 1); return `<path d="M${x} -20 L${x} -32" stroke="#3498db" stroke-width="3"/><path d="M${x} -33 q-3 -4 0 -8 q3 4 0 8" fill="#f39c12"/>`; }).join(''),
+    cadeau: (c = '#9b59b6') => `<path d="M-14 0 L14 0 L14 -22 L-14 -22 Z" fill="${c}" ${ST}/><path d="M0 0 L0 -22 M-14 -11 L14 -11" stroke="#ffd23f" stroke-width="3"/><path d="M0 -22 q-10 -10 -10 0 Z M0 -22 q10 -10 10 0 Z" fill="#ffd23f" ${ST} stroke-width="1"/>`,
+    panier: () => `<path d="M-18 -14 L18 -14 L14 0 L-14 0 Z" fill="#d4a24c" ${ST}/><path d="M-14 -14 Q0 -34 14 -14" fill="none" ${ST}/>`,
+    nappe: () => `<path d="M-50 0 L50 0 L40 -14 L-40 -14 Z" fill="#ff6b6b" ${ST}/><path d="M-30 -14 L-36 0 M-10 -14 L-12 0 M10 -14 L12 0 M30 -14 L36 0" stroke="#fff" stroke-width="2"/>`,
+    casserole: () => `<path d="M-18 0 L18 0 L18 -20 L-18 -20 Z" fill="#7f8c8d" ${ST}/><path d="M18 -16 L40 -18" ${ST} stroke-width="4"/><path d="M-10 -24 q2 -8 0 -14 M0 -24 q2 -8 0 -14 M10 -24 q2 -8 0 -14" fill="none" stroke="#bdc3c7" stroke-width="2"/>`,
+    poele: () => `<ellipse cx="0" cy="-4" rx="22" ry="6" fill="#34495e" ${ST}/><ellipse cx="0" cy="-6" rx="16" ry="4" fill="#f5cd79"/><path d="M20 -6 L44 -12" ${ST} stroke-width="4"/>`,
+    crepe: () => `<ellipse cx="0" cy="-30" rx="14" ry="5" fill="#f5cd79" ${ST}/>`,
+    saladier: () => `<path d="M-22 -18 Q0 6 22 -18 Z" fill="#7ad0ff" ${ST}/>`,
+    oeufs: () => `<ellipse cx="-8" cy="-6" rx="5" ry="6" fill="#fff8e6" ${ST} stroke-width="1.5"/><ellipse cx="4" cy="-6" rx="5" ry="6" fill="#fff8e6" ${ST} stroke-width="1.5"/>`,
+    carte: () => `<path d="M-18 -4 L-6 -8 L6 -4 L18 -8 L18 8 L6 12 L-6 8 L-18 12 Z" fill="#f9e79f" ${ST}/><path d="M-10 4 Q0 -2 8 2" fill="none" stroke="#e74c3c" stroke-width="2" stroke-dasharray="3 2"/><path d="M8 -1 l4 4 M12 -1 l-4 4" stroke="#e74c3c" stroke-width="2"/>`,
+    enveloppe: () => `<path d="M-14 -2 L14 -2 L14 16 L-14 16 Z" fill="#fff" ${ST}/><path d="M-14 -2 L0 8 L14 -2" fill="none" ${ST}/>`,
+    pont: () => `<path d="M-40 -12 Q0 -34 40 -12 L40 -6 Q0 -28 -40 -6 Z" fill="#a0522d" ${ST}/><path d="M-30 -18 L-30 -30 M0 -26 L0 -38 M30 -18 L30 -30 M-30 -30 Q0 -44 30 -30" fill="none" ${ST}/>`,
+    ruisseau: () => `<path d="M-80 0 Q-40 -10 0 -2 Q40 6 80 -4 L80 10 Q40 18 0 10 Q-40 2 -80 12 Z" fill="#5dade2" ${ST}/>`,
+    cabane: () => `<path d="M-30 0 L-30 -40 L30 -40 L30 0 Z" fill="#c98a4b" ${ST}/><path d="M-38 -38 L0 -64 L38 -38 Z" fill="#8a5a2e" ${ST}/><path d="M-30 -28 L30 -28 M-30 -14 L30 -14" stroke="${K}" stroke-width="1"/><path d="M-8 0 L-8 -24 L8 -24 L8 0" fill="#5d4037" ${ST}/>`,
+    echelle: () => `<path d="M-8 0 L-8 -60 M8 0 L8 -60 M-8 -10 L8 -10 M-8 -22 L8 -22 M-8 -34 L8 -34 M-8 -46 L8 -46" fill="none" ${ST} stroke="#8a5a2e" stroke-width="3"/>`,
+    marteau: () => `<path d="M0 0 L0 -20" ${ST} stroke="#8a5a2e" stroke-width="4"/><path d="M-8 -24 L8 -24 L8 -18 L-8 -18 Z" fill="#7f8c8d" ${ST}/>`,
+    pinceau: () => `<path d="M0 0 L0 -18" ${ST} stroke="#c98a4b" stroke-width="4"/><path d="M-4 -18 L4 -18 L2 -26 L-2 -26 Z" fill="#3498db" ${ST} stroke-width="1"/>`,
+    boite: (c = '#3498db') => `<path d="M-16 0 L16 0 L16 -20 L-16 -20 Z" fill="${c}" ${ST}/>`,
+    balancoire: () => `<path d="M-30 0 L-20 -70 L20 -70 L30 0" fill="none" ${ST} stroke="#c0392b" stroke-width="4"/><path d="M-6 -70 L-6 -24 M6 -70 L6 -24" ${ST} stroke-width="1.5"/><path d="M-10 -24 L10 -24" ${ST} stroke-width="4"/>`,
+    toboggan: () => `<path d="M-30 0 L-30 -56 L-18 -56 M-30 -20 L-18 -20 M-30 -38 L-18 -38 M-18 0 L-18 -56" fill="none" ${ST} stroke-width="3"/><path d="M-18 -56 Q10 -40 30 0 L20 0 Q4 -34 -18 -46 Z" fill="#f1c40f" ${ST}/>`,
+    robot: () => `<path d="M-14 -10 L14 -10 L14 -36 L-14 -36 Z" fill="#bdc3c7" ${ST}/><path d="M-10 -36 L10 -36 L10 -54 L-10 -54 Z" fill="#d5dbdb" ${ST}/><circle cx="-4" cy="-46" r="2.5" fill="#3498db"/><circle cx="4" cy="-46" r="2.5" fill="#3498db"/><path d="M0 -54 L0 -60" ${ST}/><circle cx="0" cy="-62" r="3" fill="#e74c3c" ${ST} stroke-width="1"/><circle cx="-8" cy="-5" r="5" fill="${K}"/><circle cx="8" cy="-5" r="5" fill="${K}"/>`,
+    glace: (c = '#ff9ff3') => `<path d="M-7 -14 L0 4 L7 -14 Z" fill="#f5cd79" ${ST}/><circle cx="0" cy="-18" r="7" fill="${c}" ${ST}/>`,
+    chariotGlaces: () => `<path d="M-30 -14 L30 -14 L30 -46 L-30 -46 Z" fill="#fff" ${ST}/><path d="M-34 -46 Q0 -70 34 -46 Z" fill="#ff9ff3" ${ST}/><circle cx="-18" cy="-8" r="7" fill="${K}"/><circle cx="18" cy="-8" r="7" fill="${K}"/><path d="M-18 -30 l10 0 M2 -30 l14 0" stroke="#e74c3c" stroke-width="3"/>`,
+    bonhommeNeige: () => `<circle cx="0" cy="-14" r="15" fill="#fff" ${ST}/><circle cx="0" cy="-38" r="10" fill="#fff" ${ST}/>${oeil(-3, -40)}${oeil(3, -40)}<path d="M0 -37 l8 2 l-8 1 Z" fill="#f39c12"/><path d="M-8 -48 L8 -48 L6 -62 L-6 -62 Z" fill="${K}"/>`,
+    chapiteau: () => `<path d="M-60 0 L-60 -40 L60 -40 L60 0 Z" fill="#fff" ${ST}/><path d="M-36 0 L-36 -40 M-12 0 L-12 -40 M12 0 L12 -40 M36 0 L36 -40" stroke="#e74c3c" stroke-width="10"/><path d="M-66 -38 L0 -86 L66 -38 Z" fill="#e74c3c" ${ST}/><path d="M0 -86 L0 -98 L12 -94 L0 -90" fill="#f1c40f" ${ST} stroke-width="1"/><path d="M-12 0 Q0 -24 12 0" fill="${K}"/>`,
+    rideau: () => `<path d="M-80 0 L-80 -150 L-40 -150 Q-50 -80 -60 0 Z M80 0 L80 -150 L40 -150 Q50 -80 60 0 Z" fill="#c0392b" ${ST}/><path d="M-80 -150 L80 -150 L80 -136 Q0 -126 -80 -136 Z" fill="#922b21" ${ST}/>`,
+    scene: () => `<path d="M-90 0 L90 0 L90 -14 L-90 -14 Z" fill="#8a5a2e" ${ST}/>`,
+    chapeauMagique: () => `<path d="M-12 0 L-10 -24 L10 -24 L12 0 Z M-18 0 L18 0" fill="${K}" ${ST}/><path d="M-4 -24 q-4 -14 0 -16 q4 2 2 16 M2 -24 q4 -14 8 -12 q0 4 -6 13" fill="#fff" ${ST} stroke-width="1"/>`,
+    squelette: () => `<g fill="none" ${ST} stroke="#efe6cf" stroke-width="5"><path d="M-60 -40 Q-20 -80 30 -60 Q50 -54 60 -76"/><path d="M-30 -56 L-30 0 M-14 -64 L-14 0 M10 -64 L10 0 M24 -60 L24 0"/><path d="M-54 -46 l-6 12 M-44 -52 l-6 12 M-4 -66 l-2 12 M16 -64 l0 12"/></g><g fill="none" ${ST} stroke-width="1.6"><path d="M-60 -40 Q-20 -80 30 -60 Q50 -54 60 -76"/><path d="M-30 -56 L-30 0 M-14 -64 L-14 0 M10 -64 L10 0 M24 -60 L24 0"/></g><path d="M56 -78 L74 -82 L76 -70 L60 -68 Z" fill="#efe6cf" ${ST}/><path d="M64 -70 l2 4 l2 -4 l2 4" stroke="${K}" fill="none" stroke-width="1"/>`,
+    vitrine: () => `<path d="M-22 0 L-22 -40 L22 -40 L22 0 Z" fill="#d6eaf8" ${ST}/><path d="M-14 -34 L-4 -24" stroke="#fff" stroke-width="3"/>`,
+    banc: () => `<path d="M-30 -14 L30 -14 L30 -10 L-30 -10 Z M-30 -26 L30 -26 L30 -22 L-30 -22 Z" fill="#a0522d" ${ST}/><path d="M-24 -10 L-24 0 M24 -10 L24 0" ${ST} stroke-width="3"/>`,
+    etagere: () => `<path d="M-40 0 L-40 -90 L40 -90 L40 0 Z" fill="#a0522d" ${ST}/><path d="M-40 -30 L40 -30 M-40 -60 L40 -60" ${ST}/>` + [[-34, -60, '#e74c3c'], [-26, -60, '#3498db'], [-18, -60, '#f1c40f'], [-8, -60, '#27ae60'], [10, -30, '#9b59b6'], [18, -30, '#e67e22'], [26, -30, '#3498db'], [-30, -30, '#1abc9c'], [8, -60, '#e74c3c'], [16, -60, '#f39c12']].map(([x, y, c]) => `<path d="M${x} ${y} L${x + 7} ${y} L${x + 7} ${y - 22} L${x} ${y - 22} Z" fill="${c}" stroke="${K}" stroke-width="1"/>`).join(''),
+    etal: () => `<path d="M-50 -30 L50 -30 L50 0 L-50 0 Z" fill="#c98a4b" ${ST}/><path d="M-56 -60 L56 -60 L50 -46 L-50 -46 Z" fill="#e74c3c" ${ST}/><path d="M-36 -60 L-32 -46 M-12 -60 L-10 -46 M12 -60 L10 -46 M36 -60 L32 -46" stroke="#fff" stroke-width="6"/><path d="M-50 -46 L-50 -30 M50 -46 L50 -30" ${ST}/>` + [-38, -28, -18].map((x) => `<circle cx="${x}" cy="-35" r="6" fill="#e74c3c" ${ST} stroke-width="1"/>`).join('') + [0, 10, 20].map((x) => `<path d="M${x} -40 q4 -2 6 2 q-2 6 -6 6 q-4 -2 0 -8 Z" fill="#e74c3c" ${ST} stroke-width="1"/>`).join('') + `<path d="M28 -30 L46 -30 L46 -40 Z" fill="#f4d03f" ${ST} stroke-width="1"/>`,
+    champignon: () => `<path d="M-4 0 L-4 -10 L4 -10 L4 0 Z" fill="#fff" ${ST}/><path d="M-14 -10 Q0 -30 14 -10 Z" fill="#e74c3c" ${ST}/><circle cx="-4" cy="-17" r="2" fill="#fff"/><circle cx="5" cy="-15" r="2" fill="#fff"/>`,
+    lampe: () => `<path d="M-6 0 L6 0 L6 -16 L-6 -16 Z" fill="#7f8c8d" ${ST}/><path d="M-8 -16 L8 -16 L4 -24 L-4 -24 Z" fill="#f1c40f" ${ST}/><path d="M10 -20 L60 -40 L60 0 Z" fill="#fff36b" opacity=".45"/>`,
+    cartes: () => `<path d="M-12 -2 L0 -2 L0 -18 L-12 -18 Z" fill="#fff" ${ST} stroke-width="1.5" transform="rotate(-12)"/><path d="M0 -2 L12 -2 L12 -18 L0 -18 Z" fill="#fff" ${ST} stroke-width="1.5" transform="rotate(10)"/><path d="M-6 -12 l2 -3 l2 3 l-2 3 Z" fill="#e74c3c"/><path d="M5 -9 l2 -3 l2 3 l-2 3 Z" fill="#e74c3c" transform="rotate(10)"/>`,
+    velo: () => `<circle cx="-22" cy="-14" r="14" fill="none" ${ST}/><circle cx="22" cy="-14" r="14" fill="none" ${ST}/><path d="M-22 -14 L-4 -38 L16 -38 L22 -14 M-4 -38 L0 -14 L16 -38 M-8 -42 L2 -42 M16 -38 L14 -48 L22 -50" fill="none" ${ST} stroke="#e74c3c" stroke-width="3"/>`,
+    poupee: () => `<path d="M-8 0 L-10 -16 L10 -16 L8 0 Z" fill="#ff7eb6" ${ST}/><circle cx="0" cy="-22" r="6" fill="#ffd9b8" ${ST}/><path d="M-6 -24 q6 -10 12 0" fill="#f1c40f" ${ST} stroke-width="1"/>`,
+    rocher: () => `<path d="M-30 0 Q-34 -20 -14 -26 Q4 -34 20 -22 Q34 -14 30 0 Z" fill="#95a5a6" ${ST}/>`,
+    grotte: () => `<path d="M-70 0 Q-74 -70 0 -76 Q70 -70 70 0 Z" fill="#7f8c8d" ${ST}/><path d="M-30 0 Q-30 -44 0 -44 Q30 -44 30 0 Z" fill="${K}"/>`,
+    nuage: () => `<path d="M-30 0 Q-34 -14 -18 -16 Q-12 -30 4 -24 Q16 -32 26 -20 Q38 -18 32 0 Z" fill="#fff" ${ST}/>`,
+    soleil: () => `<circle cx="0" cy="0" r="16" fill="#ffd23f" ${ST}/>` + [0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<path d="M0 -22 L0 -30" ${ST} transform="rotate(${a})"/>`).join(''),
+    lune: () => `<path d="M0 -18 A18 18 0 1 0 0 18 A11 18 0 1 1 0 -18 Z" fill="#fff36b" ${ST}/>`,
+    reveil: () => `<circle cx="0" cy="-12" r="11" fill="#e74c3c" ${ST}/><circle cx="0" cy="-12" r="8" fill="#fff"/><path d="M0 -12 L0 -18 M0 -12 L4 -10" ${ST} stroke-width="1.5"/><path d="M-12 -20 l4 -4 M12 -20 l-4 -4" ${ST}/>`,
+    cloche: () => `<path d="M-12 0 Q-12 -22 0 -24 Q12 -22 12 0 Z" fill="#f1c40f" ${ST}/><circle cx="0" cy="2" r="3" fill="${K}"/>`,
+    billes: () => ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f'].map((c, i) => `<circle cx="${-12 + i * 8}" cy="-4" r="3.5" fill="${c}" ${ST} stroke-width="1"/>`).join(''),
+    corde: () => `<path d="M-22 -2 Q0 30 22 -2" fill="none" stroke="#e74c3c" stroke-width="2.5"/>`,
+    tracteur: () => `<path d="M-30 -14 L-30 -34 L4 -34 L4 -50 L24 -50 L24 -14 Z" fill="#27ae60" ${ST}/><path d="M8 -46 L20 -46 L20 -34 L8 -34 Z" fill="#cfefff" ${ST}/><circle cx="12" cy="-14" r="16" fill="${K}"/><circle cx="12" cy="-14" r="6" fill="#f1c40f"/><circle cx="-22" cy="-10" r="10" fill="${K}"/><circle cx="-22" cy="-10" r="4" fill="#f1c40f"/>`,
+    foin: () => `<path d="M-22 0 Q-24 -26 0 -28 Q24 -26 22 0 Z" fill="#f4d03f" ${ST}/><path d="M-12 -6 l4 -12 M0 -4 l0 -16 M10 -6 l-2 -14" stroke="#c9a227" stroke-width="1.5"/>`,
+    mare: () => `<ellipse cx="0" cy="-2" rx="54" ry="10" fill="#5dade2" ${ST}/>`,
+    seau: () => `<path d="M-10 -18 L10 -18 L8 0 L-8 0 Z" fill="#3498db" ${ST}/><path d="M-10 -18 Q0 -30 10 -18" fill="none" ${ST} stroke-width="1.5"/>`,
+    ble: () => [-12, -4, 4, 12].map((x) => `<path d="M${x} 0 L${x} -26" stroke="#c9a227" stroke-width="2"/><ellipse cx="${x}" cy="-30" rx="3" ry="6" fill="#f4d03f" ${ST} stroke-width="1"/>`).join(''),
+    pain: () => `<ellipse cx="0" cy="-8" rx="20" ry="9" fill="#d4a24c" ${ST}/><path d="M-10 -12 l4 6 M0 -14 l4 6 M10 -12 l4 6" stroke="${K}" stroke-width="1.5"/>`,
+    porte: () => `<path d="M-18 0 L-18 -70 L18 -70 L18 0 Z" fill="#8a4b20" ${ST}/><circle cx="10" cy="-34" r="2.5" fill="#f1c40f"/>`,
+    fenetre: () => `<path d="M-24 -50 L24 -50 L24 -90 L-24 -90 Z" fill="#7ad0ff" ${ST}/><path d="M0 -50 L0 -90 M-24 -70 L24 -70" ${ST} stroke-width="2"/>`,
+    tele: () => `<path d="M-24 -20 L24 -20 L24 -52 L-24 -52 Z" fill="#34495e" ${ST}/><path d="M-20 -24 L20 -24 L20 -48 L-20 -48 Z" fill="#85c1e9"/><path d="M-10 -20 L-14 0 M10 -20 L14 0" ${ST}/>`,
+    saut: () => `<path d="M-6 0 Q0 -20 6 0" fill="none" ${ST} stroke-dasharray="3 3"/>`,
+    bougie: () => `<path d="M-3 0 L3 0 L3 -14 L-3 -14 Z" fill="#fff" ${ST}/><path d="M0 -15 q-3 -4 0 -8 q3 4 0 8" fill="#f39c12"/>`,
+    pommeDePin: () => `<ellipse cx="0" cy="-8" rx="6" ry="9" fill="#8a5a2e" ${ST}/><path d="M-5 -10 l10 0 M-5 -5 l10 0" stroke="#5d4037"/>`,
+    olives: () => `<path d="M-14 0 L14 0 L12 -10 L-12 -10 Z" fill="#fff" ${ST}/>` + [-8, 0, 8].map((x) => `<ellipse cx="${x}" cy="-13" rx="4" ry="3" fill="#556b2f" stroke="${K}" stroke-width="1"/>`).join(''),
+    fromage: () => `<path d="M-16 0 L16 0 L16 -12 L-16 -2 Z" fill="#f4d03f" ${ST}/><circle cx="-2" cy="-4" r="2" fill="#c9a227"/><circle cx="8" cy="-6" r="1.8" fill="#c9a227"/>`,
+    pastille: (c = '#f1c40f') => `<circle cx="0" cy="-6" r="6" fill="${c}" ${ST} stroke-width="1"/>`,
+    sac: (c = '#2980b9') => `<path d="M-12 0 L12 0 L12 -22 Q0 -28 -12 -22 Z" fill="${c}" ${ST}/><path d="M-6 -14 L6 -14 L6 -6 L-6 -6 Z" fill="none" ${ST} stroke-width="1"/>`,
+    manteau: () => `<path d="M-12 0 L-14 -30 L-6 -34 L0 -30 L6 -34 L14 -30 L12 0 Z" fill="#c0392b" ${ST}/>`,
+    chaussures: () => `<path d="M-14 0 L-14 -6 Q-8 -10 -2 -6 L-2 0 Z M2 0 L2 -6 Q8 -10 14 -6 L14 0 Z" fill="#6e4b2a" ${ST}/>`,
+    tasse: () => `<path d="M-8 0 L8 0 L10 -14 L-10 -14 Z" fill="#fff" ${ST}/><path d="M10 -12 q8 2 0 8" fill="none" ${ST}/><path d="M-4 -18 q2 -4 0 -8 M4 -18 q2 -4 0 -8" stroke="#bdc3c7" fill="none" stroke-width="2"/>`,
+    bol: () => `<path d="M-12 -12 Q0 8 12 -12 Z" fill="#3498db" ${ST}/>`,
+    skis: () => `<path d="M-30 -2 L30 -6 M-30 4 L30 0" ${ST} stroke="#e74c3c" stroke-width="4"/>`,
+    chalet: () => `<path d="M-40 0 L-40 -40 L40 -40 L40 0 Z" fill="#a0522d" ${ST}/><path d="M-50 -38 L0 -76 L50 -38 Z" fill="#fff" ${ST}/><path d="M-26 -30 L-10 -30 L-10 -16 L-26 -16 Z M10 -30 L26 -30 L26 -16 L10 -16 Z" fill="#f9e79f" ${ST}/>`,
+    tourniquet: () => `<ellipse cx="0" cy="-8" rx="30" ry="7" fill="#e74c3c" ${ST}/><path d="M0 -8 L0 -30 M-20 -24 L20 -24" ${ST} stroke-width="3"/>`,
+    pelle: () => `<path d="M0 0 L0 -36" ${ST} stroke="#8a5a2e" stroke-width="3"/><path d="M-6 0 L6 0 L4 10 L-4 10 Z" fill="#7f8c8d" ${ST}/>`,
+    radis: () => [-10, 0, 10].map((x) => `<circle cx="${x}" cy="-4" r="4" fill="#e74c3c" ${ST} stroke-width="1"/><path d="M${x} -8 l-3 -8 M${x} -8 l3 -8" stroke="#27ae60" stroke-width="2"/>`).join(''),
+    tomates: () => `<path d="M0 0 L0 -50" stroke="#8a5a2e" stroke-width="2"/><path d="M0 -10 l-10 -6 M0 -26 l10 -6 M0 -40 l-8 -6" stroke="#27ae60" stroke-width="2"/>` + [[-10, -14], [10, -30], [-8, -44]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="#e74c3c" ${ST} stroke-width="1"/>`).join(''),
+    feuilles: () => [[-12, -2, '#e67e22'], [0, -6, '#d35400'], [12, -2, '#f1c40f']].map(([x, y, c]) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="3" fill="${c}" ${ST} stroke-width="1"/>`).join(''),
+    portail: () => `<path d="M-30 0 L-30 -40 M30 0 L30 -40 M-30 -36 L30 -36 M-30 -8 L30 -8" fill="none" ${ST} stroke-width="3"/>` + [-18, -6, 6, 18].map((x) => `<path d="M${x} -8 L${x} -36" ${ST} stroke-width="2"/>`).join(''),
+    ciseaux: () => `<circle cx="-6" cy="-4" r="4" fill="none" ${ST} stroke="#e74c3c"/><circle cx="6" cy="-4" r="4" fill="none" ${ST} stroke="#e74c3c"/><path d="M-4 -7 L8 -24 M4 -7 L-8 -24" ${ST} stroke-width="2"/>`,
+    planche: () => `<path d="M-40 -6 L40 -10 L40 -2 L-40 2 Z" fill="#d4a24c" ${ST}/>`,
+    bouteille: () => `<path d="M-5 0 L5 0 L5 -16 L2 -20 L2 -26 L-2 -26 L-2 -20 L-5 -16 Z" fill="#f39c12" ${ST}/>`,
+    boussole: () => `<circle cx="0" cy="-8" r="8" fill="#fff" ${ST}/><path d="M0 -14 l2 6 l-2 6 l-2 -6 Z" fill="#e74c3c"/>`,
+    lac: () => `<ellipse cx="0" cy="-4" rx="80" ry="14" fill="#5dade2" ${ST}/>`,
+    lacGele: () => `<ellipse cx="0" cy="-4" rx="70" ry="12" fill="#d6eaf8" ${ST}/><path d="M-30 -6 l16 -2 M10 -4 l20 -2" stroke="#fff" stroke-width="2"/>`,
+    rails: () => `<path d="M-100 0 L100 0 M-100 -4 L100 -4" stroke="#7f8c8d" stroke-width="2"/>`,
+    tableauNoir: () => OBJETS.tableau(),
+    nid: () => `<path d="M-12 0 Q0 8 12 0 Q10 -8 0 -6 Q-10 -8 -12 0 Z" fill="#8a5a2e" ${ST}/>`,
+    os: () => `<path d="M-10 -4 L10 -4" stroke="#fff" stroke-width="5"/><circle cx="-11" cy="-6" r="3" fill="#fff" ${ST} stroke-width="1"/><circle cx="-11" cy="-2" r="3" fill="#fff" ${ST} stroke-width="1"/><circle cx="11" cy="-6" r="3" fill="#fff" ${ST} stroke-width="1"/><circle cx="11" cy="-2" r="3" fill="#fff" ${ST} stroke-width="1"/>`,
+    gamelle: () => `<path d="M-12 0 L12 0 L10 -8 L-10 -8 Z" fill="#e74c3c" ${ST}/><path d="M-8 -8 q8 -6 16 0" fill="#8a5a2e"/>`,
+    biscuit: () => `<circle cx="0" cy="-5" r="5" fill="#d4a24c" ${ST} stroke-width="1"/>`,
+    assiette: () => `<ellipse cx="0" cy="-2" rx="14" ry="4" fill="#fff" ${ST}/>`,
+    verre: () => `<path d="M-5 0 L5 0 L6 -14 L-6 -14 Z" fill="#fff" ${ST} stroke-width="1.5"/>`,
+    baguette: () => `<path d="M0 0 L14 -24" stroke="${K}" stroke-width="2.5"/><path d="M14 -24 l2 -6 l2 6 l6 0 l-5 4 l2 6 l-5 -4 l-5 4 l2 -6 l-5 -4 Z" fill="#ffd23f" ${ST} stroke-width="1"/>`,
+    appareilPhoto: () => `<path d="M-10 0 L10 0 L10 -12 L-10 -12 Z" fill="#34495e" ${ST}/><circle cx="0" cy="-6" r="4" fill="#85c1e9" ${ST} stroke-width="1"/>`,
+    bulles: () => `<circle cx="0" cy="-6" r="3" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="6" cy="-14" r="2.5" fill="none" stroke="#fff" stroke-width="1.5"/>`,
+    ville: () => [[-90, 60, '#f5b7b1'], [-50, 90, '#aed6f1'], [-10, 70, '#f9e79f'], [30, 100, '#d7bde2'], [70, 66, '#a9dfbf']].map(([x, h, c]) => `<path d="M${x} 0 L${x + 36} 0 L${x + 36} -${h} L${x} -${h} Z" fill="${c}" ${ST}/>` + `<path d="M${x + 8} -${h - 12} l8 0 l0 10 l-8 0 Z M${x + 20} -${h - 12} l8 0 l0 10 l-8 0 Z" fill="#fff" stroke="${K}" stroke-width="1"/>`).join(''),
+    gare: () => `<path d="M-70 0 L-70 -60 L70 -60 L70 0 Z" fill="#f5e6c8" ${ST}/><path d="M-78 -58 L0 -86 L78 -58 Z" fill="#7f8c8d" ${ST}/><circle cx="0" cy="-70" r="8" fill="#fff" ${ST}/><path d="M0 -70 L0 -76 M0 -70 L4 -68" stroke="${K}" stroke-width="1.5"/>`,
+    piscine: () => `<path d="M-100 0 L100 0 L100 -30 L-100 -30 Z" fill="#48c9f0" ${ST}/><path d="M-90 -20 q10 -4 20 0 t20 0 M10 -14 q10 -4 20 0 t20 0" fill="none" stroke="#fff" stroke-width="2"/><path d="M-100 -30 L100 -30" stroke="#fff" stroke-width="4"/>`,
+    lunettesSoleil: () => `<circle cx="-7" cy="-5" r="5" fill="${K}"/><circle cx="7" cy="-5" r="5" fill="${K}"/><path d="M-2 -6 L2 -6" stroke="${K}" stroke-width="2"/>`,
+    plongeoir: () => `<path d="M-4 0 L-4 -40 L4 -40 L4 0 Z" fill="#bdc3c7" ${ST}/><path d="M-4 -40 L40 -42 L40 -38 L-4 -36 Z" fill="#3498db" ${ST}/>`,
+  };
+
+  /* ---------- DÉCORS (fond d'un moment, largeur w) ---------- */
+  const DECORS = {
+    jardin: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#9fdcff"/><path d="M0 ${SOL - 10} Q${w / 2} ${SOL - 24} ${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#7ccf5b" ${ST}/>`,
+    parc: (w) => DECORS.jardin(w),
+    ferme: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#b8e6ff"/><path d="M0 ${SOL - 30} Q${w / 3} ${SOL - 60} ${w * .7} ${SOL - 36} Q${w * .9} ${SOL - 30} ${w} ${SOL - 40} L${w} ${H} L0 ${H} Z" fill="#a9d86e" ${ST}/><path d="M0 ${SOL - 8} L${w} ${SOL - 8} L${w} ${H} L0 ${H} Z" fill="#8bc34a"/>`,
+    maison: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#fff1c9"/><path d="M0 ${SOL - 6} L${w} ${SOL - 6} L${w} ${H} L0 ${H} Z" fill="#c98a4b" ${ST}/><path d="M0 ${SOL - 70} L${w} ${SOL - 70}" stroke="#f5d79e" stroke-width="3"/>`,
+    cuisine: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#e8f8f5"/>` + Array.from({ length: Math.ceil(w / 20) }, (_, i) => `<path d="M${i * 20} 90 L${i * 20} ${SOL - 6}" stroke="#d1f2eb" stroke-width="1"/>`).join('') + `<path d="M0 90 L${w} 90" stroke="#a3e4d7" stroke-width="2"/><path d="M0 ${SOL - 6} L${w} ${SOL - 6} L${w} ${H} L0 ${H} Z" fill="#d7ccc8" ${ST}/>`,
+    classe: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#fdebd0"/><path d="M0 ${SOL - 6} L${w} ${SOL - 6} L${w} ${H} L0 ${H} Z" fill="#b9770e" ${ST}/>`,
+    plage: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#87d5ff"/><path d="M0 120 L${w} 120 L${w} ${SOL - 16} L0 ${SOL - 16} Z" fill="#2e86de"/><path d="M0 130 q12 -5 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0" fill="none" stroke="#fff" stroke-width="2"/><path d="M0 ${SOL - 20} Q${w / 2} ${SOL - 30} ${w} ${SOL - 18} L${w} ${H} L0 ${H} Z" fill="#f7dc8f" ${ST}/>`,
+    mer: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#87d5ff"/><path d="M0 110 L${w} 110 L${w} ${H} L0 ${H} Z" fill="#2e86de" ${ST}/><path d="M0 140 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0" fill="none" stroke="#fff" stroke-width="2"/>`,
+    foret: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#cdeccd"/><path d="M0 ${SOL - 10} L${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#6fae4b" ${ST}/>` + [.12, .45, .8].map((f) => `<g transform="translate(${w * f} ${SOL - 40}) scale(.8)">${OBJETS.sapin()}</g>`).join(''),
+    nuit: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#1b2a49"/><path d="M0 ${SOL - 10} L${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#24452e" ${ST}/>` + [[.1, 20], [.3, 40], [.55, 18], [.75, 50], [.9, 26]].map(([f, y]) => `<circle cx="${w * f}" cy="${y}" r="1.8" fill="#fff"/>`).join(''),
+    neige: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#cfe6f5"/><path d="M0 ${SOL - 20} Q${w / 2} ${SOL - 40} ${w} ${SOL - 18} L${w} ${H} L0 ${H} Z" fill="#fff" ${ST}/>` + [[.1, 30], [.25, 70], [.4, 20], [.6, 60], [.75, 30], [.9, 80], [.5, 110], [.15, 120]].map(([f, y]) => `<circle cx="${w * f}" cy="${y}" r="3" fill="#fff" stroke="#9fb8c8" stroke-width=".8"/>`).join(''),
+    cirque: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#3b1f4a"/><path d="M0 0 L${w / 2} 60 L${w} 0" fill="#e74c3c" opacity=".55"/><path d="M0 ${SOL - 6} L${w} ${SOL - 6} L${w} ${H} L0 ${H} Z" fill="#d68910" ${ST}/><ellipse cx="${w / 2}" cy="${SOL}" rx="${w * .42}" ry="14" fill="#f5cba7" ${ST}/>`,
+    theatre: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#2c1a35"/><path d="M0 ${SOL - 20} L${w} ${SOL - 20} L${w} ${H} L0 ${H} Z" fill="#8a5a2e" ${ST}/><path d="M0 0 L${w * .2} 0 Q${w * .14} 90 ${w * .06} ${SOL - 20} L0 ${SOL - 20} Z M${w} 0 L${w * .8} 0 Q${w * .86} 90 ${w * .94} ${SOL - 20} L${w} ${SOL - 20} Z" fill="#c0392b" ${ST}/>`,
+    zoo: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#b8e6ff"/><path d="M0 ${SOL - 10} L${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#d4b483" ${ST}/>`,
+    musee: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#efe6d4"/><path d="M0 ${SOL - 6} L${w} ${SOL - 6} L${w} ${H} L0 ${H} Z" fill="#b89b72" ${ST}/><path d="M${w * .1} 30 L${w * .3} 30 L${w * .3} 70 L${w * .1} 70 Z" fill="#fff" stroke="#8a6d3b" stroke-width="3"/><circle cx="${w * .2}" cy="50" r="9" fill="#7fb3d5"/>`,
+    rue: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#aee1ff"/><g transform="translate(${w / 2} ${SOL - 12})">${OBJETS.ville()}</g><path d="M0 ${SOL - 12} L${w} ${SOL - 12} L${w} ${H} L0 ${H} Z" fill="#95a5a6" ${ST}/>`,
+    route: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#aee1ff"/><path d="M0 ${SOL - 40} Q${w / 2} ${SOL - 70} ${w} ${SOL - 44} L${w} ${H} L0 ${H} Z" fill="#7ccf5b" ${ST}/><path d="M0 ${SOL - 14} L${w} ${SOL - 14} L${w} ${SOL + 14} L0 ${SOL + 14} Z" fill="#7f8c8d" ${ST}/><path d="M6 ${SOL} L${w} ${SOL}" stroke="#fff" stroke-width="3" stroke-dasharray="14 10"/>`,
+    piscine: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#e8f8f5"/><path d="M0 ${SOL - 50} L${w} ${SOL - 50} L${w} ${H} L0 ${H} Z" fill="#48c9f0" ${ST}/><path d="M10 ${SOL - 30} q10 -4 20 0 t20 0 t20 0 M${w / 2} ${SOL - 10} q10 -4 20 0 t20 0" fill="none" stroke="#fff" stroke-width="2"/>`,
+    bibliotheque: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#fbeee6"/><g transform="translate(${w * .25} ${SOL - 6})">${OBJETS.etagere()}</g><g transform="translate(${w * .78} ${SOL - 6})">${OBJETS.etagere()}</g><path d="M0 ${SOL - 6} L${w} ${SOL - 6} L${w} ${H} L0 ${H} Z" fill="#a04000" ${ST}/>`,
+    marche: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#aee1ff"/><path d="M0 ${SOL - 10} L${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#d5d8dc" ${ST}/>`,
+    montagne: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#b8e6ff"/><path d="M0 ${SOL - 40} L${w * .3} 50 L${w * .55} ${SOL - 60} L${w * .8} 40 L${w} ${SOL - 50} L${w} ${H} L0 ${H} Z" fill="#fff" ${ST}/><path d="M${w * .22} 80 L${w * .3} 50 L${w * .38} 80 M${w * .72} 70 L${w * .8} 40 L${w * .88} 70" fill="none" stroke="#9fb8c8" stroke-width="2"/>`,
+    ciel: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#9fdcff"/>`,
+    gare: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#d6eaf8"/><path d="M0 ${SOL - 10} L${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#bfc9ca" ${ST}/>`,
+    grotte: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#b8e6ff"/><path d="M0 ${SOL - 10} L${w} ${SOL - 10} L${w} ${H} L0 ${H} Z" fill="#a9d86e" ${ST}/>`,
+    lac: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#b8e6ff"/><path d="M0 ${SOL - 50} L${w} ${SOL - 50} L${w} ${H} L0 ${H} Z" fill="#7ccf5b" ${ST}/><ellipse cx="${w * .6}" cy="${SOL - 30}" rx="${w * .38}" ry="16" fill="#5dade2" ${ST}/>`,
+    reve: (w) => `<rect x="0" y="0" width="${w}" height="${H}" fill="#c9b8ff"/>` + [[.15, 40], [.5, 26], [.85, 50]].map(([f, y]) => `<g transform="translate(${w * f} ${y})">${OBJETS.nuage()}</g>`).join(''),
+  };
+
+  /* ---------- BULLES ---------- */
+  function bulle(txt, o = {}) {
+    const n = String(txt).length, w = Math.max(22, n * 7.5 + 14), h = 22, dx = o.gauche ? -w + 6 : -6;
+    return `<path d="M${dx} ${-h} L${dx + w} ${-h} L${dx + w} 0 L${o.gauche ? -2 : 10} 0 L${o.gauche ? -8 : 2} 8 L${o.gauche ? -10 : 4} 0 L${dx} 0 Z" fill="#fff" ${ST} stroke-width="1.6"/><text x="${dx + w / 2}" y="-6" text-anchor="middle" font-family="Comic Sans MS, Chalkboard SE, cursive" font-size="14" font-weight="bold" fill="${K}">${String(txt).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text>`;
+  }
+
+  /* ---------- UN ÉLÉMENT ---------- */
+  /* [nom, x (0..100 % de la largeur du moment), y (px, défaut : le sol), échelle, options] */
+  function element(it, w) {
+    const [nom, xp, y0, s0, o0] = it, x = (xp / 100) * w, y = y0 == null ? SOL : y0, s = s0 || 1, o = o0 || {};
+    let corps = '';
+    if (PERSOS[nom] || nom === 'perso') corps = personne(Object.assign({}, PERSOS[nom] || {}, o));
+    else if (ANIMAUX[nom]) corps = ANIMAUX[nom](o.c);
+    else if (OBJETS[nom]) corps = OBJETS[nom](o.c != null ? o.c : o.n);
+    else if (nom === 'bulle') return `<g transform="translate(${x} ${y})">${bulle(o.t, o)}</g>`;
+    else if (nom === 'texte') return `<text x="${x}" y="${y}" text-anchor="middle" font-family="Comic Sans MS, Chalkboard SE, cursive" font-size="${o.taille || 22}" font-weight="bold" fill="${o.c || K}">${o.t}</text>`;
+    else if (nom === 'pluie') {
+      if (!xp) return Array.from({ length: 14 }, (_, i) => `<path d="M${(i * 37) % w} ${(i * 53) % 150} l-4 12" stroke="#5dade2" stroke-width="2"/>`).join('');
+      /* la pluie vue par la fenêtre (posée au même x que la fenêtre) */
+      return [[-14, -84], [4, -80], [-6, -68], [14, -66], [-16, -60], [8, -56]].map(([dx, dy]) => `<path d="M${x + dx} ${SOL + dy} l-3 8" stroke="#1f5fa8" stroke-width="2"/>`).join('');
+    }
+    else if (nom === 'notes') return `<g transform="translate(${x} ${y})"><path d="M0 0 l0 -16 l8 -2 l0 16" fill="none" ${ST}/><circle cx="-2" cy="0" r="3" fill="${K}"/><circle cx="6" cy="-2" r="3" fill="${K}"/><path d="M18 -10 l0 -14" ${ST}/><circle cx="16" cy="-10" r="3" fill="${K}"/></g>`;
+    else if (nom === 'zzz') return `<text x="${x}" y="${y}" font-family="Comic Sans MS, cursive" font-size="16" font-weight="bold" fill="#5d6d7e">z z z</text>`;
+    else if (nom === 'mouvement') return `<path d="M${x} ${y} l-18 0 M${x} ${y + 8} l-12 0 M${x} ${y - 8} l-12 0" stroke="${K}" stroke-width="2"/>`;
+    else if (nom === 'eclairs') return `<path d="M${x} ${y} l-8 18 l8 0 l-8 18" fill="none" stroke="#f1c40f" stroke-width="4"/>`;
+    else if (nom === 'feu') return `<g transform="translate(${x} ${y})"><path d="M0 0 Q20 -14 44 -6 Q30 0 44 8 Q20 14 0 0 Z" fill="#ff6b00" ${ST}/><path d="M4 0 Q18 -6 30 -2 Q20 2 30 4 Q16 6 4 0 Z" fill="#ffd23f"/></g>`;
+    else if (nom === 'coeur') return `<path d="M${x} ${y} c-6 -8 -16 -2 -8 6 l8 8 l8 -8 c8 -8 -2 -14 -8 -6 Z" fill="#e74c3c" ${ST} stroke-width="1"/>`;
+    else return '';
+    const flip = o.flip ? ' scale(-1 1)' : '';
+    return `<g transform="translate(${x} ${y}) scale(${s})${flip}">${corps}</g>`;
+  }
+
+  /* ---------- UNE SCÈNE : 1 à 3 moments ---------- */
+  /* scene = { moments: [ { decor, el: [...], titre } ] } */
+  function svgScene(scene) {
+    const M = scene.moments || [scene], n = M.length, W = 600, G = 8, w = (W - G * (n - 1)) / n;
+    let s = '';
+    M.forEach((m, i) => {
+      const x0 = i * (w + G), id = `c${Math.random().toString(36).slice(2, 7)}`;
+      s += `<clipPath id="${id}"><rect x="0" y="0" width="${w}" height="${H}" rx="10"/></clipPath><g transform="translate(${x0} 0)"><g clip-path="url(#${id})">${(DECORS[m.decor] || DECORS.jardin)(w)}${(m.el || []).map((it) => element(it, w)).join('')}</g><rect x="1" y="1" width="${w - 2}" height="${H - 2}" rx="10" fill="none" ${ST} stroke-width="3"/>${n > 1 ? `<circle cx="18" cy="${H - 18}" r="12" fill="#fff" ${ST}/><text x="18" y="${H - 13}" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="14" font-weight="bold" fill="${K}">${i + 1}</text>` : ''}</g>`;
+      if (i < n - 1) s += `<path d="M${x0 + w - 6} ${H / 2} l${G + 10} 0" stroke="${K}" stroke-width="3" marker-end="url(#fl)"/>`;
+    });
+    return `<svg class="illus-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${(scene.alt || '').replace(/"/g, '&quot;')}"><defs><marker id="fl" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${K}"/></marker></defs>${s}</svg>`;
+  }
+
+  
+  /* ============================================================
+     MNEMOSCIENCES — AJOUTS À LA BIBLIOTHÈQUE DE MNEMOGRAM
+     Mêmes règles : origine au pied de l'objet (y négatif vers le haut), trait sombre K, aplats vifs.
+     ============================================================ */
+  Object.assign(ANIMAUX, {
+    papillon: (c = '#ff8a1f') => `<path d="M0 -20 Q-18 -38 -20 -22 Q-20 -12 0 -18 Q-16 -10 -12 -2 Q-6 2 0 -16 Z" fill="${c}" ${ST}/><path d="M0 -20 Q18 -38 20 -22 Q20 -12 0 -18 Q16 -10 12 -2 Q6 2 0 -16 Z" fill="${c}" ${ST}/><path d="M0 -24 L0 -8" ${ST} stroke-width="3"/><path d="M0 -24 q-3 -6 -6 -7 M0 -24 q3 -6 6 -7" fill="none" ${ST} stroke-width="1.2"/><circle cx="-11" cy="-24" r="2.5" fill="#fff"/><circle cx="11" cy="-24" r="2.5" fill="#fff"/>`,
+    chenille: (c = '#7ccf3a') => [-20, -12, -4, 4, 12].map((x) => `<circle cx="${x}" cy="-6" r="6" fill="${c}" ${ST} stroke-width="1.6"/>`).join('') + `<circle cx="20" cy="-8" r="7" fill="${c}" ${ST}/>${oeil(22, -10)}<path d="M18 -15 l-2 -5 M22 -15 l2 -5" ${ST} stroke-width="1.2"/>`,
+    chrysalide: () => `<path d="M0 -40 L0 -32" ${ST}/><path d="M0 -32 Q10 -22 6 -8 Q0 2 -6 -8 Q-10 -22 0 -32 Z" fill="#b5a33c" ${ST}/><path d="M-5 -20 q5 3 10 0 M-5 -13 q5 3 10 0" fill="none" ${ST} stroke-width="1"/>`,
+    tetard: () => `<ellipse cx="0" cy="-6" rx="7" ry="5.5" fill="#3d3d3d" ${ST}/><path d="M-6 -6 Q-14 -12 -22 -4 Q-14 -6 -6 -4" fill="#3d3d3d" ${ST} stroke-width="1.4"/><circle cx="3" cy="-8" r="1.6" fill="#fff"/>`,
+    grenouille: (c = '#4caf50') => `<ellipse cx="0" cy="-10" rx="15" ry="10" fill="${c}" ${ST}/><circle cx="-7" cy="-20" r="5" fill="${c}" ${ST}/><circle cx="7" cy="-20" r="5" fill="${c}" ${ST}/><circle cx="-7" cy="-21" r="2" fill="${K}"/><circle cx="7" cy="-21" r="2" fill="${K}"/><path d="M-6 -10 q6 4 12 0" fill="none" ${ST} stroke-width="1.4"/><path d="M-14 -4 l-8 4 l10 0 M14 -4 l8 4 l-10 0" fill="${c}" ${ST} stroke-width="1.6"/>`,
+    abeille: () => `<ellipse cx="0" cy="-10" rx="11" ry="7" fill="#ffd23f" ${ST}/><path d="M-3 -17 l0 14 M4 -16 l0 12" ${ST} stroke-width="3"/><ellipse cx="-4" cy="-20" rx="6" ry="4" fill="#e8f8ff" ${ST} stroke-width="1.2" transform="rotate(-25 -4 -20)"/><ellipse cx="4" cy="-21" rx="6" ry="4" fill="#e8f8ff" ${ST} stroke-width="1.2" transform="rotate(25 4 -21)"/>${oeil(8, -11)}`,
+    coccinelle: () => `<path d="M-12 -2 Q-12 -20 0 -20 Q12 -20 12 -2 Z" fill="#e74c3c" ${ST}/><path d="M0 -20 L0 -2" ${ST} stroke-width="1.4"/><circle cx="-6" cy="-12" r="2.4" fill="${K}"/><circle cx="6" cy="-12" r="2.4" fill="${K}"/><circle cx="-5" cy="-6" r="2" fill="${K}"/><circle cx="5" cy="-6" r="2" fill="${K}"/><circle cx="13" cy="-6" r="4" fill="${K}"/>`,
+    escargot: () => `<path d="M-18 0 L16 0 Q22 0 22 -6 L22 -12" fill="#d7b68a" ${ST}/><path d="M18 -12 l-2 -8 M22 -12 l3 -8" ${ST} stroke-width="1.2"/><circle cx="-2" cy="-14" r="12" fill="#c0702a" ${ST}/><path d="M-2 -14 m-6 0 a6 6 0 1 1 6 6 a3 3 0 1 1 -2 -4" fill="none" ${ST} stroke-width="1.4"/>`,
+    herisson: () => `<path d="M-20 0 Q-22 -22 0 -24 Q16 -24 20 -8 L28 -4 L20 0 Z" fill="#8d6e63" ${ST}/>` + [-16, -10, -4, 2, 8].map((x) => `<path d="M${x} -20 l-4 -8 l8 4" fill="#5d4037" ${ST} stroke-width="1"/>`).join('') + `${oeil(18, -8)}<circle cx="28" cy="-4" r="1.6" fill="${K}"/>`,
+    ver: () => `<path d="M-20 -2 Q-12 -10 -4 -2 Q4 6 12 -2 Q16 -6 20 -4" fill="none" stroke="#d98880" stroke-width="6" stroke-linecap="round"/>`,
+    poussin: () => `<circle cx="0" cy="-8" r="8" fill="#ffe066" ${ST}/><circle cx="6" cy="-16" r="5" fill="#ffe066" ${ST}/><path d="M10 -16 l5 1 l-5 2 Z" fill="#f39c12"/>${oeil(7, -17)}`,
+    puceron: () => [[-8, -3], [0, -6], [8, -3], [4, 0]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="3" ry="2" fill="#8bd35a" ${ST} stroke-width="1"/>`).join(''),
+  });
+
+  const flacon = (picto) => {
+    let p = '';
+    if (picto === 'flamme') p = `<path d="M0 -14 Q-6 -20 -2 -28 Q2 -24 3 -30 Q8 -22 4 -14 Z" fill="${K}"/>`;
+    if (picto === 'tete') p = `<circle cx="0" cy="-24" r="5" fill="${K}"/><path d="M-6 -16 l12 4 M6 -16 l-12 4" ${ST} stroke-width="2"/><circle cx="-2" cy="-25" r="1.4" fill="#fff"/><circle cx="2" cy="-25" r="1.4" fill="#fff"/>`;
+    if (picto === 'corrosif') p = `<path d="M-6 -30 l4 0 l0 4 M2 -30 l4 0 l0 4" ${ST} stroke-width="1.5"/><path d="M-4 -24 l0 3 M4 -24 l0 3" stroke="${K}" stroke-width="1.6"/><path d="M-8 -16 L8 -16 L8 -12 L-8 -12 Z" fill="${K}"/>`;
+    return `<path d="M-12 0 L12 0 L12 -34 Q12 -40 6 -40 L6 -46 L-6 -46 L-6 -40 Q-12 -40 -12 -34 Z" fill="#e8f6f3" ${ST}/><rect x="-7" y="-50" width="14" height="5" fill="#e74c3c" ${ST} stroke-width="1.4"/>`
+      + (picto ? `<g><path d="M0 -36 L10 -22 L0 -8 L-10 -22 Z" fill="#fff" stroke="#e74c3c" stroke-width="2.4"/><g transform="translate(0 -22) scale(.55) translate(0 22)">${p}</g></g>` : '');
+  };
+
+  Object.assign(OBJETS, {
+    glacon: () => `<path d="M-12 0 L10 0 L14 -20 L-8 -22 Z" fill="#d6f1ff" ${ST}/><path d="M-8 -22 L-4 -26 L18 -24 L14 -20 M10 0 L16 -4 L18 -24" fill="#aedcf5" ${ST}/><path d="M-6 -16 l4 -2" stroke="#fff" stroke-width="2"/>`,
+    flaque: () => `<ellipse cx="0" cy="-2" rx="26" ry="5" fill="#85c1e9" ${ST} stroke-width="1.6"/>`,
+    verreEau: (c = '#5dade2') => `<path d="M-9 0 L9 0 L11 -26 L-11 -26 Z" fill="#fff" ${ST}/><path d="M-8.5 -2 L8.5 -2 L10 -18 L-10 -18 Z" fill="${c}" opacity=".85"/>`,
+    brique: (c = '#fff') => `<path d="M-10 0 L10 0 L10 -30 L0 -38 L-10 -30 Z" fill="${c}" ${ST}/><path d="M-10 -30 L10 -30" ${ST} stroke-width="1.4"/><text x="0" y="-12" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="8" font-weight="bold" fill="#3498db">LAIT</text>`,
+    miel: () => `<path d="M-12 0 L12 0 L13 -22 L-13 -22 Z" fill="#f5b041" ${ST}/><path d="M-14 -22 L14 -22 L14 -27 L-14 -27 Z" fill="#c0702a" ${ST}/><path d="M-6 -22 q0 6 2 4 q2 -2 2 2" fill="#f5b041" ${ST} stroke-width="1"/><text x="0" y="-8" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="8" font-weight="bold" fill="${K}">MIEL</text>`,
+    tasSable: () => `<path d="M-26 0 Q-10 -22 0 -22 Q12 -22 26 0 Z" fill="#f4d58d" ${ST}/>` + [[-8, -10], [4, -14], [10, -6], [-2, -4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#b9770e"/>`).join(''),
+    sacFarine: () => `<path d="M-14 0 L14 0 L12 -30 L-12 -30 Z" fill="#fdfefe" ${ST}/><path d="M-12 -30 L-8 -36 L8 -36 L12 -30" fill="#fdfefe" ${ST}/><text x="0" y="-12" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="7" font-weight="bold" fill="#c0702a">FARINE</text>`,
+    beurre: () => `<path d="M-16 0 L16 0 L16 -10 L-16 -10 Z" fill="#fff" ${ST}/><path d="M-12 -10 L10 -10 L12 -18 L-10 -18 Z" fill="#ffe680" ${ST}/>`,
+    chocolat: () => `<path d="M-16 0 L16 0 L16 -20 L-16 -20 Z" fill="#6e3b1f" ${ST}/><path d="M-16 -10 L16 -10 M-5 0 L-5 -20 M5 0 L5 -20" stroke="#4a2511" stroke-width="1.5"/>`,
+    pierre: () => `<path d="M-16 0 Q-20 -12 -8 -16 Q4 -22 14 -12 Q20 -4 16 0 Z" fill="#a6acaf" ${ST}/><path d="M-6 -10 l6 -2" stroke="#d5d8dc" stroke-width="2"/>`,
+    regle: () => `<path d="M-30 0 L30 0 L30 -8 L-30 -8 Z" fill="#d4a24c" ${ST}/>` + Array.from({ length: 11 }, (_, i) => `<path d="M${-27 + i * 5.4} -8 l0 ${i % 2 ? 3 : 5}" stroke="${K}" stroke-width="1"/>`).join(''),
+    frigo: () => `<path d="M-18 0 L18 0 L18 -70 L-18 -70 Z" fill="#ecf0f1" ${ST}/><path d="M-18 -48 L18 -48" ${ST}/><path d="M12 -60 l0 6 M12 -40 l0 10" ${ST} stroke-width="3"/><text x="0" y="-55" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="7" fill="#3498db">❄</text>`,
+    vapeur: () => [-8, 0, 8].map((x) => `<path d="M${x} 0 q-5 -6 0 -12 q5 -6 0 -12" fill="none" stroke="#aeb6bf" stroke-width="2.4" stroke-linecap="round"/>`).join(''),
+    gouttes: () => [[-8, -4], [2, -10], [10, -2], [-2, 0]].map(([x, y]) => `<path d="M${x} ${y} q-3 4 0 6 q3 -2 0 -6 Z" fill="#5dade2" ${ST} stroke-width="1"/>`).join(''),
+    filLinge: () => `<path d="M-40 -50 L-40 0 M40 -50 L40 0" ${ST} stroke-width="3"/><path d="M-40 -46 Q0 -40 40 -46" fill="none" ${ST} stroke-width="1.4"/><path d="M-26 -44 L-10 -43 L-12 -22 L-24 -22 Z" fill="#e74c3c" ${ST} stroke-width="1.6"/><path d="M4 -42 L24 -43 L22 -26 L6 -26 Z" fill="#3498db" ${ST} stroke-width="1.6"/>`,
+    seringue: () => `<path d="M-24 -6 L16 -6 L16 -16 L-24 -16 Z" fill="#e8f6f3" ${ST}/><path d="M16 -11 L26 -11" ${ST} stroke-width="3"/><path d="M-24 -11 L-36 -11 M-36 -18 L-36 -4" ${ST} stroke-width="3"/><path d="M-12 -16 l0 4 M-4 -16 l0 4 M4 -16 l0 4" stroke="${K}" stroke-width="1"/>`,
+    parachute: () => `<path d="M-30 -60 Q0 -96 30 -60 Q15 -66 0 -60 Q-15 -66 -30 -60 Z" fill="#e74c3c" ${ST}/><path d="M-30 -60 L-4 -22 M30 -60 L4 -22 M0 -60 L0 -22" ${ST} stroke-width="1"/><circle cx="0" cy="-18" r="4" fill="${PEAUX.c}" ${ST} stroke-width="1.4"/><path d="M0 -14 L0 -4 M0 -4 l-4 4 M0 -4 l4 4 M-5 -12 l10 0" ${ST} stroke-width="1.6"/>`,
+    eolienne: () => `<path d="M-3 0 L3 0 L2 -70 L-2 -70 Z" fill="#fff" ${ST}/>` + [0, 120, 240].map((a) => `<path d="M0 -70 L-3 -100 Q0 -104 3 -100 Z" fill="#fff" ${ST} stroke-width="1.6" transform="rotate(${a} 0 -70)"/>`).join('') + `<circle cx="0" cy="-70" r="3.5" fill="#bdc3c7" ${ST} stroke-width="1.4"/>`,
+    moulinEau: () => `<path d="M-30 0 L-30 -44 L-6 -62 L18 -44 L18 0 Z" fill="#f5cba7" ${ST}/><path d="M-36 -42 L-6 -66 L24 -42" fill="none" ${ST} stroke="#922b21" stroke-width="4"/><circle cx="26" cy="-18" r="16" fill="none" ${ST} stroke="#8a5a2e" stroke-width="3"/>` + [0, 45, 90, 135].map((a) => `<path d="M26 -34 L26 -2" ${ST} stroke="#8a5a2e" transform="rotate(${a} 26 -18)"/>`).join('') + `<path d="M8 0 Q26 4 46 0" fill="none" stroke="#2e86de" stroke-width="4"/>`,
+    voilier: () => `<path d="M-26 -8 L26 -8 L18 0 L-18 0 Z" fill="#c0702a" ${ST}/><path d="M0 -8 L0 -60" ${ST}/><path d="M2 -58 L2 -12 L26 -12 Z" fill="#fff" ${ST}/><path d="M-2 -52 L-2 -12 L-20 -12 Z" fill="#fdebd0" ${ST}/>`,
+    chrono: () => `<circle cx="0" cy="-14" r="14" fill="#fff" ${ST}/><path d="M-3 -30 L3 -30 L3 -28 L-3 -28 Z M0 -28 L0 -30" fill="${K}" ${ST}/><path d="M0 -14 L0 -23 M0 -14 L6 -10" ${ST} stroke="#e74c3c"/>`,
+    metre: () => `<circle cx="-16" cy="-12" r="12" fill="#f1c40f" ${ST}/><circle cx="-16" cy="-12" r="3" fill="${K}"/><path d="M-6 -4 L30 -4 L30 0 L-6 0 Z" fill="#f9e79f" ${ST} stroke-width="1.4"/>` + [0, 8, 16, 24].map((x) => `<path d="M${x} -4 l0 2" stroke="${K}" stroke-width="1"/>`).join(''),
+    plantePot: (n = 'verte') => `<path d="M-12 0 L12 0 L15 -18 L-15 -18 Z" fill="#c0702a" ${ST}/><path d="M0 -18 L0 -44" ${ST} stroke="#2e8b57" stroke-width="2.6"/>` + (n === 'fanee'
+      ? `<path d="M0 -30 Q-12 -26 -14 -16 Q-6 -22 0 -28 Z M0 -40 Q10 -36 12 -26 Q4 -32 0 -38 Z" fill="#b7950b" ${ST} stroke-width="1.4"/>`
+      : `<path d="M0 -28 Q-16 -36 -18 -24 Q-8 -20 0 -28 Z M0 -36 Q14 -46 18 -34 Q8 -30 0 -36 Z M0 -44 Q-6 -54 0 -56 Q6 -54 0 -44 Z" fill="${n === 'pale' ? '#d4e6a5' : '#58d68d'}" ${ST} stroke-width="1.4"/>`),
+    graine: () => `<path d="M-30 0 L30 0 L30 -16 L-30 -16 Z" fill="#8d6e63" ${ST}/><ellipse cx="0" cy="-8" rx="5" ry="3.5" fill="#f5cba7" ${ST} stroke-width="1.4"/><path d="M0 -4 q-2 4 -6 6" fill="none" stroke="#f5f5dc" stroke-width="1.6"/>`,
+    pousse: () => `<path d="M-30 0 L30 0 L30 -12 L-30 -12 Z" fill="#8d6e63" ${ST}/><path d="M0 -6 q-2 6 -6 8 M0 -6 q2 6 5 8" fill="none" stroke="#f5f5dc" stroke-width="1.6"/><path d="M0 -12 L0 -30" ${ST} stroke="#2e8b57" stroke-width="2.4"/><path d="M0 -30 Q-10 -38 -12 -28 Q-4 -26 0 -30 Z M0 -30 Q10 -38 12 -28 Q4 -26 0 -30 Z" fill="#58d68d" ${ST} stroke-width="1.4"/>`,
+    pomme: (c = '#e74c3c') => `<circle cx="0" cy="-10" r="10" fill="${c}" ${ST}/><path d="M0 -20 l1 -6" ${ST}/><path d="M1 -24 q6 -4 8 0 q-4 3 -8 0" fill="#27ae60" ${ST} stroke-width="1"/>`,
+    pommeCoupee: () => `<path d="M-12 -10 A12 12 0 0 0 12 -10 Z" fill="#fdebd0" ${ST}/><path d="M-12 -10 A12 12 0 0 1 12 -10" fill="none" ${ST} stroke="#e74c3c" stroke-width="3"/><ellipse cx="-3" cy="-6" rx="1.6" ry="2.6" fill="#6e3b1f"/><ellipse cx="3" cy="-6" rx="1.6" ry="2.6" fill="#6e3b1f"/>`,
+    carotte: () => `<path d="M-4 -22 L4 -22 L0 0 Z" fill="#f39c12" ${ST}/><path d="M0 -22 l-5 -8 M0 -22 l0 -9 M0 -22 l5 -8" stroke="#27ae60" stroke-width="2.4" stroke-linecap="round"/>`,
+    salade: () => `<path d="M-16 0 Q-20 -16 -6 -18 Q0 -26 8 -18 Q20 -16 16 0 Z" fill="#82e0aa" ${ST}/><path d="M-8 -2 Q-6 -12 0 -14 Q6 -12 8 -2" fill="none" stroke="#27ae60" stroke-width="1.6"/>`,
+    feuilleChene: (c = '#58d68d') => `<path d="M0 0 L0 -6 Q-12 -6 -10 -14 Q-16 -18 -8 -22 Q-12 -30 -2 -30 Q0 -38 4 -30 Q14 -30 8 -22 Q16 -18 10 -14 Q12 -6 0 -6" fill="${c}" ${ST} stroke-width="1.6"/>`,
+    rosier: () => `<path d="M0 0 L0 -40 M0 -20 l-10 -8 M0 -30 l10 -6" ${ST} stroke="#2e8b57" stroke-width="2.4"/><circle cx="0" cy="-44" r="6" fill="#ff5a8a" ${ST} stroke-width="1.4"/><circle cx="12" cy="-38" r="5" fill="#ff5a8a" ${ST} stroke-width="1.4"/><ellipse cx="-10" cy="-28" rx="5" ry="3" fill="#58d68d" ${ST} stroke-width="1"/>`,
+    brosseDents: () => `<path d="M-30 -6 L16 -10" ${ST} stroke="#3498db" stroke-width="5"/><path d="M14 -10 L30 -12 L30 -18 L14 -16 Z" fill="#fff" ${ST} stroke-width="1.4"/>` + [17, 21, 25].map((x) => `<path d="M${x} -16 l0 -6" stroke="#5dade2" stroke-width="2"/>`).join(''),
+    dent: () => `<path d="M-10 -26 Q-12 -34 -4 -34 Q0 -30 4 -34 Q12 -34 10 -26 Q10 -14 6 0 Q2 -10 0 -10 Q-2 -10 -6 0 Q-10 -14 -10 -26 Z" fill="#fff" ${ST}/>`,
+    bonbons: () => [[-12, '#e74c3c'], [0, '#f1c40f'], [12, '#9b59b6']].map(([x, c]) => `<ellipse cx="${x}" cy="-6" rx="5" ry="4" fill="${c}" ${ST} stroke-width="1.2"/><path d="M${x - 5} -6 l-4 -3 l0 6 Z M${x + 5} -6 l4 -3 l0 6 Z" fill="${c}" ${ST} stroke-width="1"/>`).join(''),
+    savon: () => `<path d="M-14 0 L14 0 Q18 0 18 -6 L18 -10 Q18 -14 14 -14 L-14 -14 Q-18 -14 -18 -10 L-18 -6 Q-18 0 -14 0 Z" fill="#f9c6dd" ${ST}/>` + [[-6, -22], [4, -26], [12, -20]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#d6eaf8" ${ST} stroke-width="1"/>`).join(''),
+    ordinateur: () => `<path d="M-26 -26 L26 -26 L26 -60 L-26 -60 Z" fill="#34495e" ${ST}/><path d="M-22 -30 L22 -30 L22 -56 L-22 -56 Z" fill="#85c1e9"/><path d="M-6 -26 L-8 -18 L8 -18 L6 -26" fill="#7f8c8d" ${ST} stroke-width="1.6"/><path d="M-30 0 L22 0 L18 -10 L-26 -10 Z" fill="#bdc3c7" ${ST}/>` + [-22, -14, -6, 2, 10].map((x) => `<path d="M${x} -6 l6 0" stroke="${K}" stroke-width="1.4"/>`).join('') + `<path d="M30 0 Q34 -4 30 -8 Q26 -4 30 0 Z" fill="#ecf0f1" ${ST} stroke-width="1.4"/><path d="M30 -8 Q30 -14 24 -14" fill="none" ${ST} stroke-width="1"/>`,
+    imprimante: () => `<path d="M-24 0 L24 0 L24 -22 L-24 -22 Z" fill="#bdc3c7" ${ST}/><path d="M-14 -22 L-14 -36 L14 -36 L14 -22" fill="#fff" ${ST}/><path d="M-16 -6 L16 -6 L14 4 L-14 4 Z" fill="#fff" ${ST} stroke-width="1.4"/><circle cx="18" cy="-14" r="2" fill="#2ecc71"/>`,
+    tablette: () => `<path d="M-18 0 L18 0 L18 -48 L-18 -48 Z" fill="#2c3e50" ${ST}/><path d="M-15 -4 L15 -4 L15 -44 L-15 -44 Z" fill="#a9cce3"/><circle cx="0" cy="-2" r="1" fill="#fff"/>`,
+    cadenas: () => `<path d="M-8 -16 L-8 -24 Q-8 -32 0 -32 Q8 -32 8 -24 L8 -16" fill="none" ${ST} stroke-width="3.4"/><path d="M-12 0 L12 0 L12 -16 L-12 -16 Z" fill="#f1c40f" ${ST}/><circle cx="0" cy="-9" r="2.4" fill="${K}"/>`,
+    pile: () => `<path d="M-8 0 L8 0 L8 -34 L-8 -34 Z" fill="#2c3e50" ${ST}/><path d="M-8 -34 L8 -34 L8 -26 L-8 -26 Z" fill="#e67e22" ${ST} stroke-width="1.4"/><path d="M-3 -34 L3 -34 L3 -38 L-3 -38 Z" fill="#bdc3c7" ${ST} stroke-width="1.2"/><text x="0" y="-12" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="10" font-weight="bold" fill="#fff">+</text>`,
+    ampoule: (allume) => (allume ? [0, 60, 120, 180, 240, 300].map((a) => `<path d="M0 -40 L0 -48" stroke="#f1c40f" stroke-width="2.4" transform="rotate(${a} 0 -26)"/>`).join('') : '') + `<circle cx="0" cy="-26" r="11" fill="${allume ? '#fff36b' : '#f4f6f7'}" ${ST}/><path d="M-5 -16 L5 -16 L5 -6 L-5 -6 Z" fill="#bdc3c7" ${ST} stroke-width="1.4"/><path d="M-4 -26 l2 -4 l2 4 l2 -4 l2 4" fill="none" stroke="#e67e22" stroke-width="1.2"/>`,
+    prise: () => `<path d="M-14 -40 L14 -40 L14 -12 L-14 -12 Z" fill="#fdfefe" ${ST}/><circle cx="0" cy="-26" r="9" fill="#ecf0f1" ${ST} stroke-width="1.4"/><circle cx="-4" cy="-26" r="1.8" fill="${K}"/><circle cx="4" cy="-26" r="1.8" fill="${K}"/>`,
+    flacon: (picto) => flacon(picto),
+    telephone: () => `<path d="M-10 0 L10 0 L10 -36 L-10 -36 Z" fill="#2c3e50" ${ST}/><path d="M-7 -6 L7 -6 L7 -32 L-7 -32 Z" fill="#a9cce3"/><text x="0" y="-15" text-anchor="middle" font-family="Comic Sans MS, cursive" font-size="8" font-weight="bold" fill="#c0392b">SOS</text>`,
+    medicaments: () => `<path d="M-14 0 L2 0 L2 -26 L-14 -26 Z" fill="#fff" ${ST}/><path d="M-10 -22 L-2 -22 L-2 -14 L-10 -14 Z" fill="#2ecc71"/><path d="M-6 -24 L-6 -12 M-12 -18 L0 -18" stroke="#fff" stroke-width="2"/><ellipse cx="12" cy="-4" rx="6" ry="3" fill="#e74c3c" ${ST} stroke-width="1.2"/>`,
+    parapluie: () => `<path d="M-26 -40 Q0 -70 26 -40 Q20 -44 13 -40 Q6 -44 0 -40 Q-6 -44 -13 -40 Q-20 -44 -26 -40 Z" fill="#8e44ad" ${ST}/><path d="M0 -40 L0 -4 Q0 2 6 2 Q10 2 10 -4" fill="none" ${ST} stroke-width="2.4"/>`,
+    balance: () => `<path d="M-20 0 L20 0 L16 -12 L-16 -12 Z" fill="#bdc3c7" ${ST}/><path d="M-22 -14 L22 -14 L22 -18 L-22 -18 Z" fill="#7f8c8d" ${ST} stroke-width="1.4"/><path d="M-8 -6 L8 -6" stroke="#2ecc71" stroke-width="3"/>`,
+    tailleCrayon: () => `<path d="M-10 0 L10 0 L10 -16 L-10 -16 Z" fill="#3498db" ${ST}/><path d="M10 -10 L34 -8 L34 -12 Z" fill="#f1c40f" ${ST} stroke-width="1.4"/><path d="M10 -8 L4 -10 L10 -12 Z" fill="${K}"/>`,
+    poulie: () => `<path d="M-30 -96 L30 -96" ${ST} stroke-width="4"/><path d="M0 -96 L0 -84" ${ST}/><circle cx="0" cy="-74" r="10" fill="#bdc3c7" ${ST}/><circle cx="0" cy="-74" r="2.4" fill="${K}"/><path d="M-10 -74 L-10 -26 M10 -74 L10 -8" ${ST} stroke-width="1.6"/><path d="M-20 -26 L0 -26 L0 0 L-20 0 Z" fill="#c0702a" ${ST}/><path d="M6 -8 L14 -8" ${ST} stroke-width="3"/>`,
+    brouette: () => `<path d="M-26 -16 L14 -16 L8 -32 L-30 -32 Z" fill="#27ae60" ${ST}/><circle cx="-14" cy="-8" r="8" fill="#555" ${ST}/><path d="M8 -24 L36 -14 M-2 -16 L4 0" ${ST} stroke-width="3"/>`,
+    bascule: () => `<path d="M-10 0 L10 0 L0 -18 Z" fill="#c0702a" ${ST}/><path d="M-60 -24 L60 -12" ${ST} stroke="#d4a24c" stroke-width="6"/>`,
+    cassenoix: () => `<path d="M-20 -6 L22 -22 M-20 -6 L22 -2" ${ST} stroke="#7f8c8d" stroke-width="4"/><circle cx="-20" cy="-6" r="3" fill="${K}"/><circle cx="-6" cy="-11" r="5" fill="#a0522d" ${ST} stroke-width="1.4"/>`,
+    manivelle: () => `<path d="M-20 0 L20 0 L20 -24 L-20 -24 Z" fill="#d4a24c" ${ST}/><circle cx="0" cy="-12" r="5" fill="#7f8c8d" ${ST}/><path d="M0 -12 L22 -30 L22 -40" ${ST} stroke="#7f8c8d" stroke-width="3"/><circle cx="22" cy="-42" r="4" fill="#e74c3c" ${ST} stroke-width="1.4"/>`,
+    roueDentee: (n) => { const R = 14, d = Array.from({ length: 10 }, (_, k) => `<path d="M0 ${-R} l0 -6" ${ST} stroke-width="4" transform="rotate(${k * 36})"/>`).join(''); return `<g transform="translate(0 -22)">${d}<circle r="${R}" fill="#f5b041" ${ST}/><circle r="3" fill="${K}"/></g>`; },
+    terre: () => `<circle cx="0" cy="-26" r="26" fill="#3498db" ${ST}/><path d="M-18 -40 Q-8 -46 -2 -38 Q-6 -30 -14 -32 Q-20 -30 -18 -40 Z M4 -20 Q14 -26 20 -16 Q14 -6 6 -10 Q0 -14 4 -20 Z M-10 -14 Q-4 -10 -8 -4 Q-14 -8 -10 -14 Z" fill="#58d68d" ${ST} stroke-width="1.4"/>`,
+    planetes: () => [[-70, 4, '#b2babb'], [-54, 6, '#f5cba7'], [-36, 7, '#3498db'], [-18, 5, '#e74c3c'], [6, 14, '#f0b27a'], [40, 12, '#f7dc6f'], [66, 9, '#aed6f1'], [86, 9, '#5d6d7e']].map(([x, r, c], i) => `<circle cx="${x}" cy="${-20}" r="${r}" fill="${c}" ${ST} stroke-width="1.4"/>${i === 5 ? `<ellipse cx="${x}" cy="-20" rx="${r + 7}" ry="3" fill="none" ${ST} stroke-width="1.4"/>` : ''}`).join(''),
+    soleilGrand: () => `<circle cx="0" cy="0" r="24" fill="#ffd23f" ${ST}/>` + [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((a) => `<path d="M0 -30 L0 -40" ${ST} stroke="#f39c12" transform="rotate(${a})"/>`).join(''),
+    ombre: () => `<path d="M0 0 L46 0 L40 -6 Z" fill="#5d6d7e" opacity=".45"/>`,
+    maillot: () => `<path d="M-14 -40 L-6 -44 Q0 -38 6 -44 L14 -40 L20 -30 L12 -26 L12 0 L-12 0 L-12 -26 L-20 -30 Z" fill="#3498db" ${ST}/>`,
+    ecranNuit: () => `<path d="M-12 0 L12 0 L12 -22 L-12 -22 Z" fill="#2c3e50" ${ST}/><path d="M-10 -2 L10 -2 L10 -20 L-10 -20 Z" fill="#aed6f1"/><path d="M10 -14 L40 -30 L40 6 Z" fill="#aed6f1" opacity=".35"/>`,
+    poubelleTri: (c = '#f1c40f') => `<path d="M-14 0 L14 0 L16 -34 L-16 -34 Z" fill="${c}" ${ST}/><path d="M-18 -34 L18 -34 L18 -40 L-18 -40 Z" fill="${c}" ${ST}/><path d="M-4 -24 L4 -24 L0 -16 Z" fill="none" stroke="#fff" stroke-width="2"/>`,
+    thermo: () => `<path d="M-5 -10 L-5 -70 Q-5 -76 0 -76 Q5 -76 5 -70 L5 -10" fill="#fff" ${ST}/><circle cx="0" cy="-8" r="8" fill="#e74c3c" ${ST}/><path d="M0 -12 L0 -44" stroke="#e74c3c" stroke-width="4"/>` + [-20, -30, -40, -50, -60].map((y) => `<path d="M5 ${y} l5 0" stroke="${K}" stroke-width="1.2"/>`).join(''),
+    verreRetourne: () => `<path d="M-9 -26 L9 -26 L11 0 L-11 0 Z" fill="#fff" ${ST}/><path d="M-10.5 -4 L10.5 -4 L11 0 L-11 0 Z" fill="#5dade2" opacity=".85"/>`,
+    flammes: () => `<path d="M-16 0 L16 0" ${ST} stroke="#8a5a2e" stroke-width="5"/><path d="M-12 -2 Q-18 -20 -6 -30 Q-6 -20 0 -18 Q-2 -34 8 -44 Q8 -28 14 -22 Q18 -10 12 -2 Z" fill="#ff6b00" ${ST}/><path d="M-6 -4 Q-8 -14 0 -20 Q2 -12 6 -10 Q8 -4 4 -4 Z" fill="#ffd23f"/>`,
+    fusee: () => `<path d="M0 -70 Q12 -54 10 -20 L-10 -20 Q-12 -54 0 -70 Z" fill="#ecf0f1" ${ST}/><circle cx="0" cy="-44" r="5" fill="#85c1e9" ${ST} stroke-width="1.4"/><path d="M-10 -28 L-18 -14 L-10 -20 Z M10 -28 L18 -14 L10 -20 Z" fill="#e74c3c" ${ST} stroke-width="1.4"/><path d="M-6 -20 Q0 -4 6 -20" fill="#ff6b00" ${ST} stroke-width="1.4"/>`,
+  });
+
+  /* une illustration d'une seule question : une case plus étroite que dans MNEMOGRAM, pour des dessins plus grands */
+  function svgIllus(sc, alt) {
+    const M = Array.isArray(sc[0]) || (sc.length && typeof sc[0] === 'object' && sc[0].decor) ? sc : [sc];
+    const n = M.length, W = n === 1 ? 300 : 300 * n + 8 * (n - 1), G = 8, w = 300;
+    /* identifiant fixe tiré du contenu : une même scène donne toujours le même dessin */
+    const cle = Math.abs([...JSON.stringify(sc)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36);
+    let s = '';
+    M.forEach((m, i) => {
+      const decor = m.decor || m[0], el = m.el || m[1] || [];
+      const x0 = i * (w + G), id = `il${cle}${i}`;
+      s += `<clipPath id="${id}"><rect x="0" y="0" width="${w}" height="${H}" rx="10"/></clipPath><g transform="translate(${x0} 0)"><g clip-path="url(#${id})">${(DECORS[decor] || DECORS.jardin)(w)}${el.map((it) => element(it, w)).join('')}</g><rect x="1" y="1" width="${w - 2}" height="${H - 2}" rx="10" fill="none" ${ST} stroke-width="3"/></g>`;
+      if (i < n - 1) s += `<path d="M${x0 + w - 6} ${H / 2} l${G + 10} 0" stroke="${K}" stroke-width="3" marker-end="url(#fl)"/>`;
+    });
+    return `<svg class="illus-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${(alt || '').replace(/"/g, '&quot;')}"><defs><marker id="fl" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${K}"/></marker></defs>${s}</svg>`;
+  }
+
+  return { svgScene, svgIllus, PERSOS, ANIMAUX, OBJETS, DECORS };
+})();
+
+/* ============================================================
+   MNEMOSCIENCES — LES SCÈNES DU CE (une par question de banque)
+   Clé : l'énoncé exact (ou « énoncé|bonne réponse » quand plusieurs questions ont le même énoncé).
+   Une scène : [décor, éléments] ; ou deux scènes à la suite (avant → après).
+   Un élément : [nom, x en % de la largeur, y (null = sur le sol), échelle, options].
+   L'image montre la situation sans jamais souffler la réponse.
+   ------------------------------------------------------------ */
+const e = (n, x, s = 2, o, y = null) => [n, x, y, s, o || {}];
+const SCENES_CE = {
+  /* ---------- Solides et liquides ---------- */
+  'Le <strong>lait</strong> est…': ['cuisine', [e('table', 50, 2.4), e('brique', 38, 2, {}, 150), e('verreEau', 60, 2, { c: '#fdfefe' }, 150)]],
+  'Une <strong>pierre</strong> est…': ['jardin', [e('pierre', 50, 3), e('fleur', 20, 2)]],
+  'Le <strong>jus d\'orange</strong> est…': ['cuisine', [e('table', 50, 2.4), e('verreEau', 45, 2.2, { c: '#f5b041' }, 150), e('pomme', 62, 1.6, { c: '#f39c12' }, 150)]],
+  'Une <strong>règle en bois</strong> est…': ['classe', [e('pupitre', 50, 2.2), e('regle', 50, 1.6, {}, 150)]],
+  'Un <strong>glaçon</strong> est de l\'eau…': ['cuisine', [e('glacon', 50, 3)]],
+  'Le <strong>miel</strong> est…': ['cuisine', [e('table', 50, 2.4), e('miel', 50, 2, {}, 150), e('abeille', 78, 1.6, {}, 80)]],
+  'Un liquide prend la forme…': ['cuisine', [e('verreEau', 30, 3), e('bouteille', 70, 3)]],
+  'Peut-on prendre un liquide entre ses doigts ?': ['maison', [e('leo', 50, 1.6, { bras: 'tend' }), e('gouttes', 64, 1.6, {}, 150)]],
+  'On verse l\'eau d\'un verre dans une bouteille. L\'eau…': [['cuisine', [e('verreEau', 50, 3)]], ['cuisine', [e('bouteille', 50, 3.2)]]],
+  'Pour transformer de l\'eau liquide en glace, on la met…': ['cuisine', [e('verreEau', 30, 2.4), e('frigo', 70, 1.9)]],
+  'Un solide a une <strong>forme propre</strong>. Cela veut dire…': ['maison', [e('pierre', 30, 2.4), e('cadeau', 70, 2)]],
+  'Le <strong>sable</strong> coule quand on le verse. Est-ce un liquide ?': ['plage', [e('tasSable', 40, 2.4), e('seau', 70, 2)]],
+  'La <strong>farine</strong> est…': ['cuisine', [e('table', 50, 2.4), e('sacFarine', 44, 2, {}, 150), e('oeufs', 64, 1.6, {}, 150)]],
+  'La surface d\'un liquide au repos dans un verre est…': ['cuisine', [e('verreEau', 50, 4)]],
+  'Un morceau de <strong>beurre</strong> laissé au soleil…': ['jardin', [e('soleil', 80, 1.4, {}, 40), e('table', 45, 2.4), e('beurre', 45, 2, {}, 150)]],
+  'Quand un glaçon fond, il devient…': [['cuisine', [e('glacon', 50, 2.6)]], ['cuisine', [e('soleil', 80, 1, {}, 40), e('flaque', 50, 1.4)]]],
+  'Le <strong>chocolat</strong> d\'une tablette, chauffé au bain-marie, devient…': ['cuisine', [e('chocolat', 30, 2), e('casserole', 68, 2.4), e('vapeur', 68, 1.4, {}, 130)]],
+  /* ---------- Les changements d'état de l'eau ---------- */
+  'Quand la glace devient de l\'eau liquide, on dit qu\'elle…': [['cuisine', [e('glacon', 50, 2.6)]], ['cuisine', [e('flaque', 50, 1.4)]]],
+  'Quand l\'eau liquide devient de la glace, on dit qu\'elle…': [['cuisine', [e('verreEau', 50, 2.6)]], ['neige', [e('glacon', 50, 2.6)]]],
+  'Le passage de la glace à l\'eau liquide s\'appelle…': [['neige', [e('glacon', 50, 2.6)]], ['jardin', [e('flaque', 50, 1.4), e('soleil', 80, 1, {}, 40)]]],
+  'Le passage de l\'eau liquide à la glace s\'appelle…': [['jardin', [e('flaque', 50, 1.4)]], ['neige', [e('lacGele', 50, 1.2)]]],
+  'Un glaçon posé sur la table de la classe…': ['classe', [e('pupitre', 50, 2.2), e('glacon', 50, 1.4, {}, 150), e('maitresse', 20, 1.2)]],
+  'En hiver, l\'eau d\'une flaque peut geler. Il fait alors…': ['neige', [e('lacGele', 50, 1.2), e('bonhommeNeige', 80, 1.4)]],
+  'La glace fond à partir de quelle température ?': ['neige', [e('glacon', 40, 2.4), e('soleil', 80, 1, {}, 40)]],
+  'L\'eau <strong>bout</strong> à quelle température ?': ['cuisine', [e('casserole', 50, 3), e('vapeur', 50, 1.8, {}, 120)]],
+  'Le passage de l\'eau liquide à la vapeur d\'eau s\'appelle…': ['cuisine', [e('casserole', 50, 3), e('vapeur', 50, 1.8, {}, 120)]],
+  'Le passage de la vapeur d\'eau à l\'eau liquide s\'appelle…': ['maison', [e('fenetre', 50, 2.2), e('gouttes', 50, 1.6, {}, 110)]],
+  'La <strong>buée</strong> sur une vitre froide, c\'est…': ['maison', [e('fenetre', 50, 2.2), e('gouttes', 46, 1.6, {}, 110)]],
+  'Le linge mouillé sèche sur le fil parce que l\'eau…': ['jardin', [e('filLinge', 45, 2), e('soleil', 85, 1, {}, 36)]],
+  'La vapeur d\'eau est…': ['cuisine', [e('casserole', 50, 3), e('vapeur', 50, 1.8, {}, 120)]],
+  'Quand l\'eau gèle, son volume…': [['cuisine', [e('bouteille', 50, 3.2)]], ['neige', [e('bouteille', 50, 3.2, {}, null), e('eclairs', 62, 1, {}, 110)]]],
+  'On fait fondre un glaçon de 20 g. Quelle est la masse de l\'eau obtenue ?': [['cuisine', [e('balance', 50, 2.4), e('glacon', 50, 1.4, {}, 160)]], ['cuisine', [e('balance', 50, 2.4), e('verreEau', 50, 1.4, {}, 160)]]],
+  /* ---------- L'air ---------- */
+  'L\'air est-il de la matière ?': ['parc', [e('arbre', 30, 1.6), e('nuage', 70, 1.4, {}, 70), e('mouvement', 60, 1, {}, 120)]],
+  'Une bouteille « vide », bouchée…': ['cuisine', [e('bouteille', 50, 3.4)]],
+  'Le <strong>vent</strong>, c\'est…': ['parc', [e('arbre', 35, 1.8), e('mouvement', 75, 1.6, {}, 110), e('feuilles', 80, 1.6, {}, 140)]],
+  'Comment montrer que l\'air existe ?': ['mer', [e('bouteille', 50, 3, {}, 200), e('bulles', 54, 1.6, {}, 120)]],
+  'Dans l\'eau, les bulles d\'air…': ['mer', [e('poisson', 40, 2, {}, 170), e('bulles', 60, 1.8, {}, 140)]],
+  'Quand on gonfle un ballon, on…': ['parc', [e('lina', 40, 1.5), e('ballonFete', 58, 1.6, {}, 140)]],
+  'On respire…': ['parc', [e('leo', 50, 1.6, { visage: 'sourit' }), e('arbre', 20, 1.6)]],
+  'On enfonce un verre <strong>retourné</strong> dans l\'eau. L\'eau ne monte pas jusqu\'au fond du verre, parce que…': ['mer', [e('verreRetourne', 50, 3.6, {}, 150)]],
+  'Un ballon <strong>gonflé</strong> est… qu\'un ballon dégonflé.': ['maison', [e('balance', 50, 2.6), e('ballonFete', 50, 1.4, {}, 210)]],
+  'On bouche le bout d\'une seringue pleine d\'air et on pousse le piston : il s\'enfonce un peu. On dit que l\'air est…': ['classe', [e('seringue', 50, 2.6, {}, 150)]],
+  'On comprime l\'air d\'une seringue bouchée, puis on lâche le piston. Il…': ['classe', [e('seringue', 50, 2.6, {}, 150)]],
+  'Un pneu de vélo est rempli…': ['rue', [e('velo', 50, 2.2)]],
+  'Pourquoi un parachute ralentit-il la chute ?': ['ciel', [e('parachute', 50, 1.8, {}, 190)]],
+  /* ---------- Mouvements et énergie ---------- */
+  'Pour mesurer la distance parcourue par une petite voiture, j\'utilise…': ['maison', [e('voiture', 30, .9), e('metre', 70, 1.8)]],
+  'Pour mesurer une durée, on utilise…': ['parc', [e('hugo', 30, 1.4, { bras: 'deux' }), e('chrono', 70, 2.2)]],
+  'Deux enfants courent la même distance. Le plus rapide est celui qui…': ['parc', [e('leo', 35, 1.3, { bras: 'deux' }), e('mouvement', 26, 1, {}, 150), e('lina', 70, 1.3, { bras: 'deux' }), e('mouvement', 61, 1, {}, 150)]],
+  'Deux petites voitures roulent pendant le même temps. La plus rapide est celle qui…': ['route', [e('voiture', 30, .8, {}, 150), e('voiture', 75, .8, { c: '#3498db' })]],
+  'Qu\'est-ce qui fait tourner les ailes d\'une <strong>éolienne</strong> ?': ['ferme', [e('eolienne', 50, 1.6), e('nuage', 80, 1, {}, 50)]],
+  'Qu\'est-ce qui fait tourner la roue d\'un <strong>moulin à eau</strong> ?': ['jardin', [e('moulinEau', 45, 1.8)]],
+  'Un voilier avance grâce…': ['mer', [e('voilier', 50, 2, {}, 140), e('mouvement', 26, 1.2, {}, 90)]],
+  'Pour faire bouger un objet immobile, il faut…': ['parc', [e('ballon', 50, 2)]],
+  'Pour comparer deux lancers de balle, on mesure…': ['parc', [e('tom', 20, 1.3, { bras: 'haut' }), e('ballon', 80, 1.6)]],
+  'Quelle unité utilise-t-on pour une distance ?': ['classe', [e('regle', 50, 2.4, {}, 150)]],
+  'Une voiture A fait 10 m en 5 secondes, une voiture B fait 10 m en 8 secondes. La plus rapide est…': ['route', [e('voiture', 30, .8, {}, 150), e('voiture', 70, .8, { c: '#3498db' }), e('chrono', 88, 1.4, {}, 70)]],
+  'Une petite voiture lâchée en haut d\'une pente…': ['montagne', [e('voiture', 30, .7, {}, 110)]],
+  'Le vent et l\'eau qui coule peuvent servir à…': [['ferme', [e('eolienne', 50, 1.6)]], ['jardin', [e('moulinEau', 45, 1.8)]]],
+  'Quand on lance une balle vers le haut, elle…': ['parc', [e('hugo', 40, 1.4, { bras: 'haut' }), e('ballon', 48, 1.6, {}, 60)]],
+  /* ---------- Le vivant et ses besoins ---------- */
+  'Lequel est <strong>vivant</strong> ?|un arbre': ['jardin', [e('arbre', 20, 1.6), e('pierre', 55, 2), e('nuage', 80, 1.2, {}, 50)]],
+  'Lequel est <strong>vivant</strong> ?|une fourmi': ['jardin', [e('fourmi', 20, 2.4), e('robot', 50, 1.6), e('voiture', 82, .6)]],
+  'Lequel est <strong>vivant</strong> ?|un champignon': ['foret', [e('champignon', 22, 2.4), e('ruisseau', 55, 1), e('pierre', 82, 2)]],
+  'Un être vivant…': [['ferme', [e('oeufs', 50, 2.4)]], ['ferme', [e('poussin', 50, 2.4)]], ['ferme', [e('poule', 50, 2.4)]]],
+  'Une plante a besoin, pour vivre…': ['jardin', [e('plantePot', 50, 2.4), e('soleil', 82, 1, {}, 40)]],
+  'Un animal a besoin, pour vivre…': ['maison', [e('chien', 40, 2.2, { c: '#c8874b' }), e('gamelle', 72, 2)]],
+  'Une plante qu\'on n\'arrose plus…': [['maison', [e('plantePot', 50, 2.6)]], ['maison', [e('plantePot', 50, 2.6, { n: 'fanee' })]]],
+  'Un robot qui bouge et qui parle est-il vivant ?': ['maison', [e('robot', 50, 2.2), e('bulle', 62, 1, { t: 'Bonjour !' }, 70)]],
+  'Un chat a besoin…': ['maison', [e('chat', 40, 2.4), e('gamelle', 72, 2)]],
+  'Une poule pond des œufs : cela montre qu\'elle…': ['ferme', [e('poule', 40, 2.4), e('oeufs', 70, 2)]],
+  'Le feu grandit et bouge. Est-il vivant ?': ['foret', [e('flammes', 40, 2.4), e('sapin', 85, 1.4)]],
+  'Une feuille morte tombée de l\'arbre est…': ['foret', [e('arbre', 30, 1.6), e('feuilles', 66, 2.4)]],
+  'Les poissons respirent-ils ?': ['mer', [e('poisson', 50, 3, {}, 170), e('bulles', 64, 1.4, {}, 130)]],
+  'Les plantes respirent-elles ?': ['jardin', [e('plantePot', 50, 2.6)]],
+  'Une graine plantée dans le noir, avec de l\'eau…': ['nuit', [e('plantePot', 50, 2.4, { n: 'pale' })]],
+  /* ---------- Grandir et rester en bonne santé ---------- */
+  'Les <strong>dents de lait</strong>…': ['maison', [e('dent', 50, 3)]],
+  'On perd ses premières dents de lait vers…': ['maison', [e('lina', 50, 1.6, { visage: 'rit' }), e('dent', 75, 1.4, {}, 110)]],
+  'Il faut se brosser les dents…': ['maison', [e('brosseDents', 50, 2.2, {}, 150), e('dent', 80, 1.6, {}, 170)]],
+  'Une <strong>alimentation équilibrée</strong>, c\'est…': ['cuisine', [e('table', 50, 2.6), e('pomme', 30, 1.4, {}, 150), e('pain', 48, 1.4, {}, 150), e('fromage', 62, 1.4, {}, 150), e('carotte', 76, 1.4, {}, 150)]],
+  'Quelle est la seule boisson indispensable ?': ['cuisine', [e('verreEau', 50, 3)]],
+  'Les fruits et les légumes, on en mange…': ['marche', [e('panier', 50, 2.4), e('pomme', 40, 1.4, {}, 150), e('carotte', 58, 1.4, {}, 150)]],
+  'Les bonbons et les gâteaux…': ['cuisine', [e('table', 50, 2.4), e('bonbons', 40, 1.6, {}, 150), e('gateau', 64, 1.4, {}, 150)]],
+  'Avant de manger, il faut…': ['cuisine', [e('savon', 50, 2.4)]],
+  'Pour grandir et rester en forme, il faut aussi…': ['parc', [e('leo', 30, 1.4, { bras: 'haut', visage: 'rit' }), e('ballon', 55, 1.6), e('velo', 80, 1.2)]],
+  'Un enfant de ton âge doit dormir environ…': ['nuit', [e('lit', 50, 2), e('zzz', 60, 1, {}, 120), e('lune', 82, 1, {}, 40)]],
+  'Combien de <strong>dents de lait</strong> a un enfant ?': ['maison', [e('dent', 50, 3)]],
+  'Combien de dents a un adulte, avec les dents de sagesse ?': ['maison', [e('brosseDents', 50, 2.2, {}, 150)]],
+  'Pour suivre la croissance d\'un enfant, le médecin mesure…': ['maison', [e('tom', 40, 1.5), e('regle', 70, 1.4, {}, 120), e('balance', 75, 1.8)]],
+  'Le lait, les yaourts et le fromage apportent du calcium, qui est utile…': ['cuisine', [e('table', 50, 2.4), e('brique', 40, 1.6, {}, 150), e('fromage', 62, 1.6, {}, 150)]],
+  'Regarder un écran juste avant de dormir…': ['nuit', [e('lit', 45, 2), e('tablette', 70, 1.2, {}, 130)]],
+  'Pourquoi se laver les mains en rentrant de la récréation ?': ['classe', [e('savon', 50, 2.4)]],
+  /* ---------- Le cycle de vie ---------- */
+  'La <strong>chenille</strong> devient…': ['jardin', [e('feuilleChene', 40, 2.4), e('chenille', 62, 1.8)]],
+  'Le <strong>têtard</strong> devient…': ['lac', [e('tetard', 40, 2.4, {}, 200), e('tetard', 70, 2, {}, 214)]],
+  'Le changement complet de forme pendant la croissance s\'appelle…': [['jardin', [e('chenille', 50, 2)]], ['jardin', [e('papillon', 50, 2.2, {}, 140)]]],
+  'Dans l\'ordre, le papillon passe par…': ['jardin', [e('papillon', 50, 2.6, {}, 140), e('fleurs', 20, 2)]],
+  'Un chaton…': ['maison', [e('chat', 30, 2.6), e('chat', 70, 1.4, { c: '#f5cba7' })]],
+  'Lequel grandit <strong>sans métamorphose</strong> ?': ['jardin', [e('chien', 22, 1.8, { c: '#c8874b' }), e('papillon', 52, 1.6, {}, 130), e('grenouille', 82, 1.6)]],
+  'Une poule pond…': ['ferme', [e('poule', 40, 2.4), e('foin', 72, 1.4)]],
+  'Quand une graine commence à pousser, on dit qu\'elle…': ['jardin', [e('pousse', 50, 2.4)]],
+  'Les graines d\'une plante se trouvent…': ['cuisine', [e('pommeCoupee', 50, 3)]],
+  'Après la floraison, la fleur devient…': ['jardin', [e('pommier', 50, 1.6)]],
+  'Dans l\'ordre, la vie d\'une plante à fleurs :': [['jardin', [e('graine', 50, 1.8)]], ['jardin', [e('pousse', 50, 1.8)]], ['jardin', [e('pommier', 50, 1.4)]]],
+  'Quand une graine germe, ce qui sort en premier, c\'est…': ['jardin', [e('graine', 50, 2.6)]],
+  'Un animal qui naît d\'un œuf pondu est dit…': ['ferme', [e('oeufs', 40, 2.4), e('poussin', 68, 2)]],
+  'Un animal dont le petit se développe dans le ventre de sa mère est dit…': ['ferme', [e('vache', 40, 1.8), e('mouton', 75, 1.4)]],
+  'Qui transporte le <strong>pollen</strong> de fleur en fleur ?': ['jardin', [e('fleurs', 30, 2.4), e('fleur', 70, 2.4, { c: '#f1c40f' })]],
+  'La coccinelle passe par une larve qui ne lui ressemble pas. Sa croissance est…': ['jardin', [e('feuilleChene', 40, 2.4), e('coccinelle', 70, 2.2)]],
+  /* ---------- Les chaînes alimentaires ---------- */
+  'Un animal qui mange <strong>seulement des plantes</strong> est…': ['ferme', [e('vache', 50, 2)]],
+  'Un animal qui mange <strong>d\'autres animaux</strong> est…': ['zoo', [e('lion', 50, 2)]],
+  'Un animal qui mange <strong>des plantes et des animaux</strong> est…': ['foret', [e('ours', 50, 1.8)]],
+  'La <strong>vache</strong> est…': ['ferme', [e('vache', 45, 2.2), e('foin', 80, 1.4)]],
+  'Le <strong>lion</strong> est…': ['zoo', [e('lion', 50, 2.2)]],
+  'Le <strong>lapin</strong> est…': ['jardin', [e('lapin', 40, 2.4), e('carotte', 70, 2)]],
+  'L\'<strong>être humain</strong> est…': ['cuisine', [e('table', 50, 2.4), e('pomme', 36, 1.4, {}, 150), e('poisson', 60, 1.4, {}, 150), e('pain', 76, 1.2, {}, 150)]],
+  'Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>herbe → lapin → ?</strong>': ['jardin', [e('lapin', 40, 2.4), e('bulle', 60, 1.2, { t: '?' }, 100)]],
+  'Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>salade → escargot → ?</strong>': ['jardin', [e('salade', 30, 2), e('escargot', 66, 2)]],
+  'Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>feuille de chêne → chenille → ?</strong>': ['foret', [e('feuilleChene', 36, 2.4), e('chenille', 64, 1.6)]],
+  'Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>? → puceron → coccinelle</strong>': ['jardin', [e('puceron', 40, 2.4, {}, 170), e('coccinelle', 70, 2)]],
+  'Dans la chaîne <strong>blé → souris → chouette</strong>, qui mange la souris ?': ['ferme', [e('ble', 25, 2), e('souris', 55, 2)]],
+  'Au début d\'une chaîne alimentaire, il y a toujours…': ['jardin', [e('fleurs', 25, 2.2), e('arbre', 55, 1.4), e('salade', 82, 1.6)]],
+  'Si tous les lapins d\'une forêt disparaissaient, les renards…': ['foret', [e('renard', 50, 2.2)]],
+  'Dans un jardin, on supprime toutes les coccinelles. Les pucerons…': ['jardin', [e('rosier', 40, 2), e('puceron', 62, 1.8, {}, 130)]],
+  'Le <strong>hérisson</strong> mange des insectes, des vers, des escargots, et parfois des fruits. Il est…': ['jardin', [e('herisson', 40, 2.2), e('ver', 75, 1.6)]],
+  /* ---------- Les objets et le numérique ---------- */
+  'À quoi sert une <strong>paire de ciseaux</strong> ?': ['classe', [e('ciseaux', 50, 3, {}, 170)]],
+  'À quoi sert une <strong>lampe de poche</strong> ?': ['nuit', [e('lampe', 40, 2.6)]],
+  'À quoi sert un <strong>taille-crayon</strong> ?': ['classe', [e('tailleCrayon', 45, 2.6, {}, 170)]],
+  'À quoi sert un <strong>parapluie</strong> ?': ['rue', [e('parapluie', 50, 2.4), e('pluie', 0)]],
+  'À quoi sert une <strong>balance</strong> ?': ['cuisine', [e('balance', 50, 2.8), e('pomme', 50, 1.6, {}, 150)]],
+  'À quoi sert un <strong>thermomètre</strong> ?': ['maison', [e('thermo', 50, 2.2, {}, 200)]],
+  'Lequel est un <strong>objet technique</strong> (fabriqué par l\'être humain) ?': ['parc', [e('velo', 25, 1.4), e('arbre', 58, 1.2), e('pierre', 85, 1.4)]],
+  'Pour écrire un texte sur l\'ordinateur, on utilise…': ['classe', [e('ordinateur', 50, 2.4)]],
+  'Pour déplacer la flèche sur l\'écran de l\'ordinateur, on utilise…': ['classe', [e('ordinateur', 50, 2.4)]],
+  'Pour avoir sur papier un texte écrit à l\'ordinateur, on utilise…': ['classe', [e('ordinateur', 35, 1.8), e('imprimante', 75, 1.6)]],
+  'Une tablette, un ordinateur et un téléphone sont…': ['maison', [e('tablette', 25, 1.6), e('ordinateur', 55, 1.4), e('telephone', 85, 1.6)]],
+  'Ce à quoi sert un objet s\'appelle sa…': ['classe', [e('ciseaux', 30, 2.4, {}, 170), e('tailleCrayon', 70, 2, {}, 170)]],
+  'À quoi sert une <strong>boussole</strong> ?': ['foret', [e('boussole', 50, 3.6, {}, 170)]],
+  'Un <strong>mot de passe</strong>…': ['maison', [e('ordinateur', 40, 2), e('cadenas', 78, 1.8)]],
+  'Sur Internet, quand on trouve une information, il faut…': ['maison', [e('ordinateur', 50, 2.2), e('bulle', 70, 1.2, { t: '?' }, 70)]],
+  'On reçoit un message d\'un inconnu sur Internet qui demande notre adresse. Il faut…': ['maison', [e('tablette', 40, 1.8), e('bulle', 58, 1, { t: 'Ton adresse ?' }, 70)]],
+  /* ---------- Les circuits électriques ---------- */
+  'Dans un circuit avec une pile et une ampoule, qui fournit l\'électricité ?': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4, { n: true })]],
+  'L\'<strong>interrupteur</strong> sert à…': ['maison', [e('ampoule', 50, 2.4, { n: true }, 120)]],
+  'Pour qu\'une ampoule brille, le circuit doit être…': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4, { n: true })]],
+  'Un circuit est <strong>ouvert</strong> quand…': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4)]],
+  'Une pile a deux bornes :': ['classe', [e('pile', 50, 3.4)]],
+  'Si l\'ampoule est grillée (son filament est cassé)…': ['classe', [e('ampoule', 50, 3.2)]],
+  'Le fil électrique est en métal (du cuivre) parce que le métal…': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4, { n: true })]],
+  'L\'électricité d\'une pile de 4,5 V et celle d\'une prise de la maison…': ['maison', [e('pile', 30, 2.4), e('prise', 70, 2.2)]],
+  /* ---------- Engrenages, poulies et leviers ---------- */
+  'Deux roues dentées qui s\'engrènent tournent…': ['classe', [e('roueDentee', 38, 2.4, {}, 160), e('roueDentee', 64, 2.4, {}, 160)]],
+  'Sur un vélo, la <strong>chaîne</strong> relie…': ['rue', [e('velo', 50, 2.6)]],
+  'Une <strong>poulie</strong> sert à…': ['ferme', [e('poulie', 50, 1.6)]],
+  'Une brouette, une balançoire à bascule et un casse-noix utilisent…': ['jardin', [e('brouette', 30, 1.6), e('cassenoix', 75, 1.6, {}, 150)]],
+  'Une <strong>manivelle</strong> sert à…': ['maison', [e('manivelle', 50, 2.4)]],
+  'Avec un levier, pour soulever une charge lourde le plus facilement, on appuie…': ['jardin', [e('brouette', 50, 2.4)]],
+  'Une petite roue dentée est entraînée par une grande roue dentée. La petite tourne…': ['classe', [e('roueDentee', 38, 3, {}, 170), e('roueDentee', 70, 1.6, {}, 130)]],
+  'Sur une balançoire à bascule, un adulte et un enfant s\'équilibrent si…': ['parc', [e('bascule', 50, 1.8)]],
+  'Dans un vélo, les roues dentées reliées par la chaîne s\'appellent…': ['rue', [e('velo', 50, 2.6)]],
+  /* ---------- La sécurité à la maison ---------- */
+  'On ne touche jamais une prise ou un appareil électrique…': ['maison', [e('prise', 50, 2.6, {}, 170), e('gouttes', 30, 1.6, {}, 140)]],
+  'On voit un fil électrique abîmé. Il faut…': ['maison', [e('prise', 40, 2.4, {}, 170), e('eclairs', 66, 1, {}, 120)]],
+  'L\'électricité des prises de la maison est…': ['maison', [e('prise', 50, 3, {}, 170)]],
+  'Pour débrancher un appareil, on tire…': ['maison', [e('prise', 40, 2.4, {}, 170), e('lampe', 75, 1.6)]],
+  'Peut-on verser un produit ménager dans une bouteille de jus vide ?': ['cuisine', [e('flacon', 35, 2), e('bouteille', 70, 2.6)]],
+  'Les médicaments…': ['maison', [e('medicaments', 50, 2.6)]],
+  'Le numéro d\'appel des <strong>pompiers</strong> en France est le…': ['rue', [e('telephone', 50, 2.6)]],
+  'Le numéro d\'appel du <strong>SAMU</strong> (urgences médicales) est le…': ['rue', [e('telephone', 50, 2.6)]],
+  'Le numéro d\'urgence valable dans toute l\'Europe est le…': ['rue', [e('telephone', 50, 2.6)]],
+  'Sur un flacon, une <strong>flamme</strong> dans un losange rouge veut dire que le produit…': ['maison', [e('flacon', 50, 2.8, { n: 'flamme' })]],
+  'Sur un flacon, une <strong>tête de mort</strong> veut dire que le produit…': ['maison', [e('flacon', 50, 2.8, { n: 'tete' })]],
+  'Sur un flacon, un dessin de main et de matière <strong>rongées</strong> par un liquide veut dire que le produit…': ['maison', [e('flacon', 50, 2.8, { n: 'corrosif' })]],
+  'Pourquoi met-on des cache-prises quand il y a un bébé à la maison ?': ['maison', [e('bebe', 35, 2), e('prise', 70, 1.8, {}, 170)]],
+  /* ---------- Le jour, la nuit, les saisons et le système solaire ---------- */
+  'Le jour et la nuit existent parce que…': ['ciel', [e('soleilGrand', 25, 1.4, {}, 110), e('terre', 72, 2)]],
+  'La Terre fait un tour complet sur elle-même en…': ['ciel', [e('terre', 50, 2.6)]],
+  'Le Soleil se lève…': ['ferme', [e('soleil', 20, 1.4, {}, 150)]],
+  'Dans l\'ordre, à partir du printemps, les saisons sont :': [['jardin', [e('fleurs', 50, 2)]], ['plage', [e('soleil', 50, 1.2, {}, 50)]], ['foret', [e('feuilles', 50, 2)]], ['neige', [e('bonhommeNeige', 50, 1.4)]]],
+  'En hiver, en France, les jours sont…': ['neige', [e('bonhommeNeige', 40, 1.6), e('lune', 80, 1, {}, 40)]],
+  'Ton ombre est la plus courte…': ['parc', [e('leo', 50, 1.6), e('ombre', 50, 1.4), e('soleil', 80, 1, {}, 36)]],
+  'Le Soleil est…': ['ciel', [e('soleilGrand', 50, 2, {}, 120)]],
+  'La Terre est…': ['ciel', [e('terre', 50, 2.6)]],
+  'La Lune…': ['nuit', [e('lune', 50, 2.2, {}, 100)]],
+  'La Lune brille la nuit parce que…': ['nuit', [e('lune', 50, 2.2, {}, 100)]],
+  'La Terre fait le tour du Soleil en…': ['ciel', [e('soleilGrand', 30, 1.4, {}, 110), e('terre', 78, 1.4)]],
+  'Combien de planètes tournent autour du Soleil ?': ['ciel', [e('soleilGrand', 50, 2, {}, 120)]],
+  'La planète la plus proche du Soleil est…': ['ciel', [e('soleilGrand', 20, 1.6, {}, 110), e('terre', 75, 1.2)]],
+  'La plus grosse planète du système solaire est…': ['ciel', [e('planetes', 45, 1.4, {}, 150)]],
+  'La Lune fait le tour de la Terre en environ…': ['nuit', [e('terre', 40, 1.8), e('lune', 80, 1.2, {}, 80)]],
+  'Quand il fait jour en France, en Nouvelle-Calédonie (de l\'autre côté de la Terre), il fait…': ['ciel', [e('soleilGrand', 20, 1.4, {}, 110), e('terre', 70, 2.2)]],
+};
+
+/* ---------- Les quiz de cours du CE ---------- */
+const SCENES_QUIZ_CE = {
+  'Un <strong>solide</strong>…': ['jardin', [e('pierre', 50, 3)]],
+  'Un <strong>liquide</strong>…': ['cuisine', [e('verreEau', 30, 3), e('bouteille', 70, 3)]],
+  'La surface d\'un liquide au repos est…': ['cuisine', [e('verreEau', 50, 4)]],
+  'La glace, c\'est de l\'eau à l\'état…': ['neige', [e('glacon', 50, 3)]],
+  'La vapeur d\'eau, c\'est de l\'eau à l\'état…': ['cuisine', [e('casserole', 50, 3), e('vapeur', 50, 1.8, {}, 120)]],
+  'Solide → liquide : c\'est…': [['neige', [e('glacon', 50, 2.6)]], ['jardin', [e('flaque', 50, 1.4)]]],
+  'Liquide → solide : c\'est…': [['jardin', [e('flaque', 50, 1.4)]], ['neige', [e('lacGele', 50, 1.2)]]],
+  'Liquide → gaz : c\'est…': [['cuisine', [e('verreEau', 50, 2.6)]], ['cuisine', [e('vapeur', 50, 2.2, {}, 150)]]],
+  'Gaz → liquide : c\'est…': ['maison', [e('fenetre', 50, 2.2), e('gouttes', 50, 1.6, {}, 110)]],
+  'La glace fond (et l\'eau gèle) à…': ['neige', [e('glacon', 40, 2.4), e('thermo', 75, 1.8, {}, 200)]],
+  'L\'eau bout à…': ['cuisine', [e('casserole', 45, 3), e('vapeur', 45, 1.8, {}, 120), e('thermo', 85, 1.6, {}, 200)]],
+  'On mesure la température avec…': ['maison', [e('leo', 50, 1.6)]],
+  'Quand une flaque sèche au soleil, l\'eau…': ['jardin', [e('flaque', 45, 1.6), e('soleil', 80, 1.2, {}, 40)]],
+  'L\'air est…': ['parc', [e('arbre', 30, 1.6), e('mouvement', 70, 1.4, {}, 120)]],
+  'L\'air pèse-t-il quelque chose ?': ['maison', [e('balance', 50, 2.6), e('ballonFete', 50, 1.4, {}, 210)]],
+  'On peut serrer l\'air dans une seringue bouchée : l\'air est…': ['classe', [e('seringue', 50, 2.6, {}, 150)]],
+  'Le vent, c\'est…': ['mer', [e('voilier', 50, 2, {}, 140), e('mouvement', 26, 1.2, {}, 90)]],
+  'Pour une même distance, le plus rapide est celui qui met…': ['parc', [e('leo', 35, 1.3, { bras: 'deux' }), e('lina', 70, 1.3, { bras: 'deux' }), e('chrono', 88, 1.4, {}, 70)]],
+  'Une éolienne utilise l\'énergie…': ['ferme', [e('eolienne', 50, 1.6)]],
+  'Un moulin à eau utilise l\'énergie…': ['jardin', [e('moulinEau', 45, 1.8)]],
+  'Un être vivant naît, se nourrit, grandit, se reproduit et…': [['ferme', [e('oeufs', 50, 2.4)]], ['ferme', [e('poussin', 50, 2.4)]], ['ferme', [e('poule', 50, 2.4)]]],
+  'Une plante verte a besoin de…': ['jardin', [e('plantePot', 50, 2.4), e('soleil', 82, 1, {}, 40)]],
+  'Un animal a besoin de…': ['maison', [e('chat', 40, 2.4), e('gamelle', 72, 2)]],
+  'Les poissons respirent grâce à leurs…': ['mer', [e('poisson', 50, 3, {}, 170), e('bulles', 64, 1.4, {}, 130)]],
+  'Un animal qui ne mange que des végétaux est…': ['jardin', [e('lapin', 40, 2.4), e('carotte', 70, 2)]],
+  'Un animal qui mange d\'autres animaux est…': ['zoo', [e('lion', 50, 2.2)]],
+  'Un animal qui mange de tout est…': ['foret', [e('ours', 50, 1.8)]],
+  'Une chaîne alimentaire commence toujours par…': ['jardin', [e('salade', 25, 2), e('escargot', 55, 1.8), e('herisson', 82, 1.6)]],
+  'Dans une chaîne alimentaire, la flèche veut dire…': [['jardin', [e('salade', 50, 2.4)]], ['jardin', [e('lapin', 50, 2.4)]], ['foret', [e('renard', 50, 2)]]],
+  'Le changement complet de forme d\'un animal en grandissant s\'appelle…': [['lac', [e('tetard', 50, 2.6, {}, 210)]], ['lac', [e('grenouille', 50, 2.4)]]],
+  'La chenille, avant de devenir papillon, s\'enferme dans…': [['jardin', [e('chenille', 50, 2)]], ['jardin', [e('bulle', 50, 1.4, { t: '?' }, 120)]], ['jardin', [e('papillon', 50, 2.2, {}, 140)]]],
+  'Un animal qui pond des œufs est…': ['ferme', [e('poule', 40, 2.4), e('oeufs', 70, 2)]],
+  'Un animal dont le petit se développe dans le ventre de sa mère est…': ['ferme', [e('vache', 40, 1.8), e('mouton', 75, 1.4)]],
+  'Quand une graine commence à pousser, elle…': ['jardin', [e('pousse', 50, 2.4)]],
+  'Les graines se trouvent dans…': ['cuisine', [e('pommeCoupee', 50, 3)]],
+  'Combien d\'heures de sommeil par nuit à ton âge, environ ?': ['nuit', [e('lit', 50, 2), e('zzz', 60, 1, {}, 120), e('lune', 82, 1, {}, 40)]],
+  'Combien de fois par jour se brosse-t-on les dents ?': ['maison', [e('brosseDents', 50, 2.2, {}, 150), e('dent', 80, 1.6, {}, 170)]],
+  'Combien de fruits et légumes par jour, au moins ?': ['marche', [e('panier', 50, 2.4), e('pomme', 40, 1.4, {}, 150), e('carotte', 58, 1.4, {}, 150)]],
+  'Les dents qui tombent vers 6 ans s\'appellent…': ['maison', [e('lina', 50, 1.6, { visage: 'rit' }), e('dent', 75, 1.4, {}, 110)]],
+  'Ce à quoi sert un objet, c\'est sa…': ['classe', [e('ciseaux', 30, 2.4, {}, 170), e('parapluie', 70, 1.8)]],
+  'Un objet fabriqué par l\'être humain pour répondre à un besoin est…': ['parc', [e('velo', 50, 2.2)]],
+  'Dans un circuit, ce qui fournit l\'électricité, c\'est…': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4, { n: true })]],
+  'L\'ampoule brille si le circuit est…': ['classe', [e('ampoule', 50, 3, { n: true })]],
+  'Un interrupteur ouvert…': ['classe', [e('ampoule', 50, 3)]],
+  'Un matériau qui laisse passer le courant est…': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4, { n: true })]],
+  'Un matériau qui ne laisse pas passer le courant est…': ['classe', [e('pile', 35, 2.4), e('ampoule', 70, 2.4)]],
+  'Deux roues dentées qui s\'engrènent tournent…': ['classe', [e('roueDentee', 38, 2.4, {}, 160), e('roueDentee', 64, 2.4, {}, 160)]],
+  'Une barre qui tourne autour d\'un point d\'appui est…': ['parc', [e('bascule', 50, 1.8)]],
+  'Le numéro des pompiers :': ['rue', [e('telephone', 50, 2.6)]],
+  'Le numéro du SAMU :': ['rue', [e('telephone', 50, 2.6)]],
+  'Le numéro d\'urgence européen :': ['rue', [e('telephone', 50, 2.6)]],
+  'On ne touche jamais une prise…': ['maison', [e('prise', 50, 2.6, {}, 170), e('gouttes', 30, 1.6, {}, 140)]],
+  'Le jour et la nuit sont dus à…': ['ciel', [e('soleilGrand', 25, 1.4, {}, 110), e('terre', 72, 2)]],
+  'La Terre tourne sur elle-même en…': ['ciel', [e('terre', 50, 2.6)]],
+  'La Terre fait le tour du Soleil en…': ['ciel', [e('soleilGrand', 30, 1.4, {}, 110), e('terre', 78, 1.4)]],
+  'Le Soleil se lève à…': ['ferme', [e('soleil', 20, 1.4, {}, 150)]],
+  'Le Soleil est…': ['ciel', [e('soleilGrand', 50, 2, {}, 120)]],
+  'La Lune est…': ['nuit', [e('terre', 40, 1.8), e('lune', 80, 1.2, {}, 80)]],
+  'Combien de planètes dans le système solaire ?': ['ciel', [e('soleilGrand', 50, 2, {}, 120)]],
+};
+
+/* ============================================================
+   MNEMOSCIENCES — LES SCHÉMAS À LA CRAIE (CM, 6e – 5e, 4e – 3e)
+   Un schéma par notion, réutilisé pour les questions de la notion ; aucun ne porte de légende qui donnerait la réponse.
+   SCHEMA_NOTION : pour chaque notion, le schéma par défaut, puis des règles [mot-clé de l'énoncé, schéma].
+   ------------------------------------------------------------ */
+const sch = (s, label, w = 380, h = 240) => svgArdoise(w, h, s, label);
+const fleche = (x1, y1, x2, y2, c = CRAIE) => { const a = Math.atan2(y2 - y1, x2 - x1), p = (d) => `${(x2 - 10 * Math.cos(a + d)).toFixed(1)} ${(y2 - 10 * Math.sin(a + d)).toFixed(1)}`; return ligne(x1, y1, x2, y2, c, 3) + `<path d="M${x2} ${y2} L${p(0.45)} L${p(-0.45)} Z" fill="${c}"/>`; };
+const rond = (x, y, r, c = CRAIE, f = 'none', w = 3) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${c}" stroke-width="${w}"/>`;
+const chemin = (d, c = CRAIE, w = 3, f = 'none') => `<path d="${d}" fill="${f}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const silhouette = (x, y, k = 1) => chemin(`M${x} ${y - 150 * k} m-18 0 a18 18 0 1 0 36 0 a18 18 0 1 0 -36 0 M${x - 34 * k} ${y - 112 * k} Q${x} ${y - 124 * k} ${x + 34 * k} ${y - 112 * k} L${x + 40 * k} ${y - 40 * k} M${x - 34 * k} ${y - 112 * k} L${x - 40 * k} ${y - 40 * k} M${x - 24 * k} ${y - 110 * k} L${x - 22 * k} ${y - 30 * k} L${x - 16 * k} ${y} M${x + 24 * k} ${y - 110 * k} L${x + 22 * k} ${y - 30 * k} L${x + 16 * k} ${y}`, CRAIE, 2.4);
+const becher = (x, y, w = 60, h = 80, eau = 0.6, c = BLEU) => chemin(`M${x - w / 2} ${y - h} L${x - w / 2} ${y} L${x + w / 2} ${y} L${x + w / 2} ${y - h}`) + `<rect x="${x - w / 2 + 3}" y="${y - h * eau}" width="${w - 6}" height="${h * eau - 3}" fill="${c}" opacity=".45"/>`;
+
+const SCHEMAS = {
+  /* ---------- matière ---------- */
+  familles: () => sch(chemin('M50 190 L50 120 L60 105 L60 90 L70 90 L70 105 L80 120 L80 190 Z', CRAIE) + chemin('M120 190 L130 120 L160 120 L170 190 Z', BLEU) + chemin('M205 190 L215 110 L245 110 L255 190 Z M205 150 L255 150', JAUNE) + `<ellipse cx="310" cy="175" rx="38" ry="16" fill="none" stroke="#c9a26b" stroke-width="3"/>` + chemin('M290 170 l40 0 M296 180 l30 0', '#c9a26b', 2), 'Des objets faits de matériaux différents'),
+  aimant: () => sch(chemin('M120 70 L120 150 Q120 200 170 200 Q220 200 220 150 L220 70 L190 70 L190 150 Q190 172 170 172 Q150 172 150 150 L150 70 Z', ROUGE, 3, 'none') + `<rect x="120" y="60" width="30" height="14" fill="${CRAIE}"/><rect x="190" y="60" width="30" height="14" fill="${CRAIE}"/>` + chemin('M290 90 l0 60 q0 10 10 10 l10 0 q10 0 10 -10 l0 -50 q0 -8 -8 -8 l-4 0 q-8 0 -8 8 l0 40', CRAIE, 2.4) + rond(70, 150, 22, JAUNE) + txt(170, 228, '?', { taille: 18, gras: true, c: JAUNE }), 'Un aimant en fer à cheval, un trombone et une pièce'),
+  testeur: () => sch(ligne(50, 70, 50, 105) + ligne(50, 145, 50, 200) + ligne(42, 105, 78, 105, CRAIE, 4) + ligne(50, 145, 70, 145, CRAIE, 8) + ligne(50, 70, 170, 70) + rond(190, 70, 18) + ligne(208, 70, 330, 70) + ligne(330, 70, 330, 200) + ligne(330, 200, 230, 200) + ligne(150, 200, 50, 200) + rond(230, 200, 5, JAUNE, JAUNE) + rond(150, 200, 5, JAUNE, JAUNE) + `<rect x="160" y="188" width="60" height="24" rx="4" fill="none" stroke="${JAUNE}" stroke-width="3" stroke-dasharray="6 4"/>` + txt(190, 232, 'objet à tester', { taille: 13, c: JAUNE }), 'Un circuit avec une pile, une lampe et un objet à tester entre deux pinces'),
+  melanges: () => sch(becher(110, 200, 90, 120, 0.7, BLEU) + becher(270, 200, 90, 120, 0.7, BLEU) + `<rect x="230" y="178" width="80" height="19" fill="#c9a26b" opacity=".85"/>` + [240, 256, 272, 290].map((x) => rond(x, 160, 2, '#c9a26b', '#c9a26b', 1)).join(''), 'Deux verres : l\'un d\'aspect uniforme, l\'autre avec des grains au fond'),
+  filtration: () => sch(chemin('M140 40 L240 40 L200 110 L200 140 L180 140 L180 110 Z', CRAIE) + chemin('M150 46 L230 46 L190 108 Z', JAUNE, 2) + `<rect x="160" y="50" width="60" height="10" fill="#c9a26b" opacity=".8"/>` + becher(190, 220, 90, 70, 0.4, BLEU) + chemin('M190 145 l0 8 M190 160 l0 8', BLEU, 3), 'Un entonnoir avec un filtre au-dessus d\'un récipient'),
+  decantation: () => sch(becher(190, 210, 110, 160, 0.85, '#8fb4d8') + `<rect x="138" y="178" width="104" height="29" fill="#c9a26b" opacity=".9"/>` + [150, 175, 200, 225].map((x, i) => rond(x, 150 + (i % 2) * 10, 2.5, '#c9a26b', '#c9a26b', 1)).join(''), 'Un récipient d\'eau boueuse laissé au repos'),
+  evaporation: () => sch(chemin('M110 120 Q190 150 270 120', CRAIE) + `<path d="M115 122 Q190 146 265 122 Z" fill="${BLEU}" opacity=".4"/>` + ligne(130, 135, 120, 200) + ligne(250, 135, 260, 200) + chemin('M170 200 Q178 170 190 182 Q196 160 206 184 Q214 172 212 200 Z', ROUGE, 2.4) + [150, 190, 230].map((x) => chemin(`M${x} 100 q-6 -10 0 -20 q6 -10 0 -20`, '#aeb6bf', 2.4)).join(''), 'Un récipient d\'eau salée chauffé : l\'eau part en vapeur'),
+  energies: () => sch(`<circle cx="70" cy="70" r="26" fill="${JAUNE}"/>` + [0, 45, 90, 135, 180, 225, 270, 315].map((a) => ligne(70 + 32 * Math.cos(a * Math.PI / 180), 70 + 32 * Math.sin(a * Math.PI / 180), 70 + 44 * Math.cos(a * Math.PI / 180), 70 + 44 * Math.sin(a * Math.PI / 180), JAUNE, 3)).join('') + ligne(190, 200, 190, 90) + [-90, 30, 150].map((a) => ligne(190, 90, 190 + 46 * Math.cos(a * Math.PI / 180), 90 + 46 * Math.sin(a * Math.PI / 180), CRAIE, 4)).join('') + rond(190, 90, 5, CRAIE, CRAIE) + chemin('M250 200 L262 110 L300 110 L312 200 Z', CRAIE) + `<rect x="314" y="150" width="50" height="50" fill="${BLEU}" opacity=".5"/>` + chemin('M228 200 L248 200', BLEU, 4) + chemin('M30 200 L120 200 M150 200 L230 200', CRAIE, 2), 'Le soleil, une éolienne, un barrage'),
+  fossiles: () => sch(chemin('M70 200 L100 60 L130 200 M80 150 L120 150 M88 110 L112 110 M100 60 L100 40', CRAIE) + chemin('M100 40 L150 60', CRAIE, 2) + `<rect x="160" y="150" width="40" height="50" rx="4" fill="none" stroke="${JAUNE}" stroke-width="3"/>` + ligne(160, 165, 200, 165, JAUNE, 2) + chemin('M240 200 L270 150 L300 170 L330 140 L360 200 Z', CRAIE, 3, '#2b2118') + chemin('M20 200 L370 200', CRAIE, 2), 'Un derrick de pétrole, un baril et un tas de charbon'),
+  chaineEnergie: () => sch(`<rect x="20" y="90" width="90" height="60" rx="8" fill="none" stroke="${CRAIE}" stroke-width="3"/><rect x="145" y="90" width="90" height="60" rx="8" fill="none" stroke="${CRAIE}" stroke-width="3"/><rect x="270" y="90" width="90" height="60" rx="8" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + fleche(112, 120, 142, 120, JAUNE) + fleche(237, 120, 267, 120, JAUNE) + `<rect x="55" y="104" width="20" height="34" fill="${CRAIE}"/>` + rond(190, 116, 14, JAUNE, JAUNE) + [0, 60, 120, 180, 240, 300].map((a) => ligne(315 + 14 * Math.cos(a * Math.PI / 180), 120 + 14 * Math.sin(a * Math.PI / 180), 315 + 24 * Math.cos(a * Math.PI / 180), 120 + 24 * Math.sin(a * Math.PI / 180), JAUNE, 3)).join(''), 'Trois cases reliées par des flèches : une pile, une ampoule, de la lumière'),
+  signaux: () => sch(chemin('M60 200 L70 90 L90 90 L100 200 Z M64 140 L96 140', CRAIE) + chemin('M70 90 L80 70 L90 90', JAUNE) + chemin('M100 80 L160 60 M100 90 L160 100', JAUNE, 2) + chemin('M190 130 L210 130 L230 110 L230 170 L210 150 L190 150 Z', CRAIE) + [0, 1, 2].map((i) => chemin(`M${245 + i * 12} ${120 - i * 6} q10 20 0 40`, CRAIE, 2.4)).join('') + ligne(320, 200, 320, 110) + chemin('M300 200 L320 110 L340 200', CRAIE, 2) + [0, 1, 2].map((i) => chemin(`M${330 + i * 8} ${100 - i * 8} q12 -12 24 0`, BLEU, 2)).join(''), 'Un phare, un haut-parleur et une antenne'),
+  trajectoires: () => sch([40, 70, 100, 130, 160].map((x) => rond(x, 70, 6, CRAIE, CRAIE)).join('') + rond(270, 110, 60, CRAIE, 'none', 1.5).replace('stroke-width="1.5"', 'stroke-width="1.5" stroke-dasharray="4 6"') + [0, 1, 2, 3, 4].map((i) => { const a = -Math.PI / 2 + i * 0.6; return rond(270 + 60 * Math.cos(a), 110 + 60 * Math.sin(a), 6, JAUNE, JAUNE); }).join('') + [0, 1, 2, 3, 4, 5].map((i) => { const t = i / 5; return rond(40 + t * 160, 210 - 140 * t * (1 - t) * 1.6, 6, ROSE, ROSE); }).join(''), 'Trois trajectoires : une droite, un cercle, une courbe'),
+  /* ---------- vivant ---------- */
+  groupes: () => sch(`<ellipse cx="190" cy="120" rx="170" ry="100" fill="none" stroke="${CRAIE}" stroke-width="3"/><ellipse cx="140" cy="125" rx="90" ry="65" fill="none" stroke="${JAUNE}" stroke-width="3"/><ellipse cx="270" cy="125" rx="60" ry="50" fill="none" stroke="${BLEU}" stroke-width="3"/>` + [[110, 110], [150, 140], [170, 100], [260, 115], [285, 140], [340, 70], [60, 190]].map(([x, y]) => rond(x, y, 6, CRAIE, CRAIE)).join(''), 'Des groupes emboîtés : des ensembles dans des ensembles'),
+  digestif: () => sch(silhouette(190, 230, 1.3) + chemin('M190 52 L190 95 Q215 100 215 120 Q215 140 190 140 Q170 140 172 150 Q170 170 200 168 Q220 170 210 180 Q180 186 172 176 Q160 160 150 170 L150 200 Q190 210 228 200 L228 165', ROSE, 4), 'Le corps humain et le trajet des aliments, sans légende'),
+  decompo: () => sch(`<rect x="0" y="120" width="380" height="120" fill="#5d4037" opacity=".55"/><rect x="0" y="120" width="380" height="30" fill="#3b2a20" opacity=".7"/>` + [[60, 112], [100, 116], [150, 110], [230, 114], [300, 112]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="14" ry="6" fill="#e67e22" opacity=".9"/>`).join('') + chemin('M80 190 q20 -14 40 0 q20 14 40 0', '#d98880', 7) + chemin('M280 120 L280 96 M262 96 Q280 70 298 96 Z', CRAIE, 3, '#c9a26b') + [200, 220, 240].map((x) => rond(x, 200, 3, CRAIE, CRAIE, 1)).join(''), 'Une coupe du sol : feuilles mortes, humus, ver de terre, champignon'),
+  respiration: () => sch(silhouette(190, 230, 1.3) + chemin('M190 52 L190 88 M190 88 L172 100 M190 88 L208 100', CRAIE, 3) + `<path d="M150 98 Q140 140 152 170 Q172 176 180 160 L182 104 Q170 92 150 98 Z" fill="${ROSE}" opacity=".55" stroke="${ROSE}" stroke-width="2"/><path d="M230 98 Q240 140 228 170 Q208 176 200 160 L198 104 Q210 92 230 98 Z" fill="${ROSE}" opacity=".55" stroke="${ROSE}" stroke-width="2"/>` + `<path d="M196 140 q-12 -14 -4 -22 q8 -6 14 4 q6 -10 14 -4 q8 8 -4 22 l-10 12 Z" fill="${ROUGE}" opacity=".8"/>`, 'Le corps humain : les poumons et le cœur, sans légende'),
+  circulation: () => sch(`<path d="M190 150 q-30 -36 -10 -54 q20 -14 28 8 q8 -22 28 -8 q20 18 -10 54 l-18 22 Z" fill="${ROUGE}" opacity=".85"/>` + chemin('M200 96 Q200 40 120 40 Q60 40 60 120 Q60 200 140 200 Q180 200 186 168', ROUGE, 4) + chemin('M214 168 Q220 200 260 200 Q330 200 330 120 Q330 40 260 40 Q216 40 214 96', BLEU, 4) + fleche(100, 44, 80, 50, ROUGE) + fleche(320, 160, 314, 176, BLEU), 'Le cœur et le circuit du sang, sans légende'),
+  croissance: () => sch([[80, 0.7], [180, 0.95], [290, 1.25]].map(([x, k]) => silhouette(x, 220, k)).join('') + chemin('M30 225 L350 225', CRAIE, 2), 'Trois silhouettes de plus en plus grandes'),
+  fossile: () => sch(`<rect x="0" y="40" width="380" height="50" fill="#c9a26b" opacity=".35"/><rect x="0" y="90" width="380" height="60" fill="#a0522d" opacity=".35"/><rect x="0" y="150" width="380" height="90" fill="#8d6e63" opacity=".4"/>` + chemin('M190 120 m-22 0 a22 22 0 1 0 44 0 a22 22 0 1 0 -44 0 M190 120 a14 14 0 1 1 -14 -10 a8 8 0 1 1 6 8', CRAIE, 2.4) + chemin('M90 190 l20 -10 l20 10 l20 -10 l20 10 M100 190 l0 -12 M120 184 l0 -12', CRAIE, 2), 'Des couches de roche avec des fossiles'),
+  biodiv: () => sch(ligne(70, 200, 70, 120, '#c9a26b', 6) + rond(70, 100, 40, VERT, VERT, 2) + chemin('M150 200 L150 150 M150 150 q-10 -10 0 -20 q10 10 0 20', VERT) + rond(150, 128, 8, ROSE, ROSE) + chemin('M220 110 q10 -10 20 0 q10 -10 20 0', CRAIE, 2.4) + `<ellipse cx="300" cy="190" rx="16" ry="8" fill="${ROUGE}"/>` + chemin('M240 170 q10 -14 22 0 q10 -14 22 0', JAUNE, 2) + chemin('M20 200 L360 200', CRAIE, 2), 'Un arbre, une fleur, un oiseau, des insectes : la diversité du vivant'),
+  /* ---------- technique et Terre ---------- */
+  lampe: () => sch(`<rect x="60" y="100" width="180" height="50" rx="10" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + chemin('M240 95 L290 75 L290 175 L240 155 Z', CRAIE) + rond(270, 125, 14, JAUNE, JAUNE) + `<rect x="80" y="110" width="50" height="30" fill="none" stroke="${JAUNE}" stroke-width="2.4"/><rect x="140" y="110" width="50" height="30" fill="none" stroke="${JAUNE}" stroke-width="2.4"/>` + `<rect x="200" y="88" width="20" height="12" fill="${ROSE}"/>`, 'Une lampe de poche ouverte : piles, interrupteur, ampoule'),
+  blocs: () => sch([['quand le drapeau est cliqué', JAUNE, 40], ['répéter 4 fois', '#e6a23c', 85], ['avancer de 10', BLEU, 130], ['tourner de 90°', BLEU, 172]].map(([t, c, y], i) => `<rect x="${i >= 2 ? 90 : 60}" y="${y}" width="${t.length * 8 + 30}" height="34" rx="8" fill="${c}" opacity=".85"/>` + txt((i >= 2 ? 90 : 60) + 14, y + 18, t, { taille: 14, gras: true, ancre: 'start', c: '#1c2a22' })).join('') + `<rect x="60" y="119" width="22" height="90" fill="#e6a23c" opacity=".85"/>`, 'Des blocs de programme, comme dans Scratch'),
+  orbite: () => sch(`<ellipse cx="190" cy="120" rx="150" ry="70" fill="none" stroke="${CRAIE}" stroke-width="2" stroke-dasharray="6 6"/>` + rond(190, 120, 26, JAUNE, JAUNE) + [[40, 120], [190, 50], [340, 120], [190, 190]].map(([x, y]) => rond(x, y, 12, BLEU, BLEU) + ligne(x - 6, y - 18, x + 6, y + 18, CRAIE, 2)).join(''), 'La Terre à quatre moments de son tour autour du Soleil, son axe penché'),
+  volcan: () => sch(chemin('M40 200 L150 70 L170 70 L280 200', CRAIE, 3, '#4a3a30') + `<path d="M150 70 L170 70 L165 200 L155 200 Z" fill="${ROUGE}" opacity=".8"/><ellipse cx="160" cy="215" rx="70" ry="18" fill="${ROUGE}" opacity=".7"/>` + chemin('M150 70 Q130 50 140 30 Q160 20 175 35 Q195 25 200 45', '#aeb6bf', 3) + chemin('M170 75 Q220 110 240 160', ROUGE, 5), 'Un volcan en coupe : la lave monte et coule'),
+  seisme: () => sch(`<rect x="0" y="80" width="380" height="160" fill="#8d6e63" opacity=".45"/>` + chemin('M180 80 L200 120 L185 160 L205 200 L190 240', CRAIE, 3) + rond(195, 170, 6, ROUGE, ROUGE) + [20, 40, 60].map((r) => rond(195, 170, r, ROUGE, 'none', 1.6)).join('') + chemin('M120 80 l10 -24 l14 0 l0 24 M250 80 l0 -30 l20 0 l0 30', CRAIE, 2.4), 'Un séisme : des ondes partent d\'un point en profondeur'),
+  recyclage: () => sch([0, 120, 240].map((a) => `<g transform="rotate(${a} 190 120)">${chemin('M190 50 Q240 55 250 95', VERT, 6)}<path d="M246 105 L262 88 L238 86 Z" fill="${VERT}"/></g>`).join('') + [[100, JAUNE], [190, VERT], [280, BLEU]].map(([x, c]) => `<rect x="${x - 18}" y="190" width="36" height="36" rx="4" fill="${c}" opacity=".8"/>`).join(''), 'Le symbole du recyclage et des poubelles de tri'),
+  reseau: () => sch([[60, 70], [60, 170], [320, 70], [320, 170]].map(([x, y]) => `<rect x="${x - 26}" y="${y - 20}" width="52" height="34" rx="3" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + ligne(x - 14, y + 18, x + 14, y + 18, CRAIE, 3)).join('') + `<rect x="160" y="100" width="60" height="40" rx="6" fill="none" stroke="${JAUNE}" stroke-width="3"/>` + [[86, 70], [86, 170], [294, 70], [294, 170]].map(([x, y]) => ligne(x, y, x < 190 ? 160 : 220, 120, JAUNE, 2)).join('') + chemin('M170 60 Q170 30 200 34 Q214 14 236 30 Q262 28 258 54 Q256 66 236 66 L180 66 Q168 66 170 60 Z', CRAIE, 2.4) + ligne(190, 100, 200, 66, CRAIE, 2), 'Des ordinateurs reliés à une boîte, elle-même reliée au nuage d\'Internet'),
+  climat: () => sch(rond(70, 60, 28, JAUNE, JAUNE) + rond(250, 170, 60, BLEU, BLEU) + `<circle cx="250" cy="170" r="78" fill="none" stroke="${CRAIE}" stroke-width="2" stroke-dasharray="5 5"/>` + fleche(95, 75, 205, 125, JAUNE) + fleche(110, 60, 220, 105, JAUNE) + chemin('M240 110 Q230 80 200 70 Q180 64 190 50', ROUGE, 3) + chemin('M190 50 L200 60', ROUGE, 3), 'Le Soleil chauffe la Terre ; une partie de la chaleur est retenue par l\'atmosphère'),
+  meteo: () => sch(chemin('M80 110 Q70 80 100 76 Q110 50 140 64 Q170 56 172 86 Q194 92 180 112 Z', CRAIE, 3, '#5d6d7e') + [90, 110, 130, 150].map((x) => ligne(x, 122, x - 6, 140, BLEU, 3)).join('') + `<rect x="250" y="50" width="16" height="130" rx="8" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + rond(258, 190, 14, ROUGE, ROUGE) + `<rect x="254" y="110" width="8" height="74" fill="${ROUGE}"/>` + chemin('M300 120 l40 -10 M300 136 l50 0 M300 152 l40 10', CRAIE, 2.4), 'Un nuage qui pleut, un thermomètre et du vent'),
+};
+
+/* ---------- à quelle question va quel schéma ---------- */
+const PAS_DE_SCHEMA = [/Quand on inspire/, /Pour séparer le sable de l'eau/, /Comment récupérer le sel/, /Laquelle est une énergie/, /Laisser reposer de l'eau boueuse/, /Quel est le symbole|symbole normalisé/];
+const SCHEMA_NOTION = {
+  'Les matériaux et leurs propriétés': ['familles', [/aimant|attir|magnét/i, 'aimant'], [/conduct|courant|isolant|circuit|fils électriques/i, 'testeur']],
+  'Les mélanges': ['melanges', [/en la filtrant/, 'filtration'], [/station d'épuration/, 'decantation']],
+  'Les sources d\'énergie': ['energies', [/pétrole|charbon|fossile|nucléaire|uranium/i, 'fossiles']],
+  'Décrire un mouvement': ['trajectoires'],
+  'Les chaînes d\'énergie': ['chaineEnergie'],
+  'Les signaux et l\'information': ['signaux'],
+  'Classer les êtres vivants': ['groupes'],
+  'La digestion': ['digestif'],
+  'La décomposition': ['decompo', [/plastique/i, 'recyclage']],
+  'Respiration et circulation': ['respiration', [/cœur|sang|artère|vaisseau|pouls|tabac/i, 'circulation']],
+  'Puberté et reproduction': [null, [/puberté|voix|poils|seins|transpiration|rythme|corps devient capable/i, 'croissance']],
+  'La biodiversité et l\'évolution': ['biodiv', [/fossile|éteint|dinosaure|évolution|descend|transformation des espèces/i, 'fossile']],
+  'Analyser un objet technique': ['lampe'],
+  'Algorithmes et programmation': ['blocs'],
+  'La Terre : mouvements, séismes et volcans': ['orbite', [/volcan|lave|Auvergne/i, 'volcan'], [/séisme|tremblement|plaques|tsunami/i, 'seisme']],
+  'Choisir un matériau, recycler': ['recyclage', [/vitre|câble|casserole|gourde/i, 'familles']],
+  'Les réseaux informatiques': ['reseau'],
+  'Ressources, risques et climat': ['climat', [/météo|Météo|vigilance|canicule|inondation|risques naturels|temps qu'il fait/i, 'meteo']],
+};
+function schemaPour(q, notion) {
+  if (PAS_DE_SCHEMA.some((r) => r.test(q))) return null;
+  const R = SCHEMA_NOTION[notion];
+  if (!R) return null;
+  const [defaut, ...regles] = R;
+  const t = q.replace(/<[^>]+>/g, '');
+  const r = regles.find(([re]) => re.test(t));
+  const nom = r ? r[1] : defaut;
+  return nom && SCHEMAS[nom] ? SCHEMAS[nom]() : null;
+}
+/* les quiz de cours : on cherche la notion d'après les mots de la question */
+const NOTIONS_QUIZ = {
+  'cm-matiere': ['Les matériaux et leurs propriétés', 'Les mélanges', 'Les sources d\'énergie', 'Décrire un mouvement', 'Les chaînes d\'énergie', 'Les signaux et l\'information'],
+  'cm-vivant': ['Classer les êtres vivants', 'La digestion', 'La décomposition', 'Respiration et circulation', 'Puberté et reproduction', 'La biodiversité et l\'évolution'],
+  'cm-technique': ['Analyser un objet technique', 'Algorithmes et programmation', 'La Terre : mouvements, séismes et volcans', 'Choisir un matériau, recycler', 'Les réseaux informatiques', 'Ressources, risques et climat'],
+};
+const MOTS_QUIZ = [
+  [/sel « disparaît »|particules tomber/i, 'Les mélanges'], [/ligne suivie/i, 'Décrire un mouvement'],
+  [/mamelles|colonne vertébrale/i, 'Classer les êtres vivants'], [/tuyau entre la bouche/i, 'La digestion'], [/matière morte/i, 'La décomposition'],
+  [/corps devient capable/i, 'Puberté et reproduction'], [/diversité de tous|transformation des espèces/i, 'La biodiversité et l\'évolution'],
+  [/instructions|répéter des|erreur dans un programme/i, 'Algorithmes et programmation'], [/roche fondue/i, 'La Terre : mouvements, séismes et volcans'],
+  [/déchet/i, 'Choisir un matériau, recycler'], [/ordinateurs reliés|fournit des sites/i, 'Les réseaux informatiques'], [/temps qu'il fait|gaz rejeté/i, 'Ressources, risques et climat'],
+  [/aimant|conducteur|verre est|plastique est|bois, le coton/i, 'Les matériaux et leurs propriétés'], [/mélange|dissout|filtr|décant/i, 'Les mélanges'], [/énergies|soleil, le vent|pétrole/i, 'Les sources d\'énergie'],
+  [/trajectoire|mouvement à vitesse|ligne droite/i, 'Décrire un mouvement'], [/chaîne d'énergie|moteur électrique/i, 'Les chaînes d\'énergie'], [/signal|téléphone portable|son peut/i, 'Les signaux et l\'information'],
+  [/classer|mammifères|plumes|insecte|vertébré/i, 'Classer les êtres vivants'], [/œsophage|nutriments/i, 'La digestion'], [/décompos|épluchures/i, 'La décomposition'],
+  [/poumons|expirant|cœur|vaisseaux/i, 'Respiration et circulation'], [/puberté/i, 'Puberté et reproduction'], [/biodiversité|évolution/i, 'La biodiversité et l\'évolution'],
+  [/fonction/i, 'Analyser un objet technique'], [/algorithme|boucle|bug/i, 'Algorithmes et programmation'], [/Terre|saisons|séisme|lave/i, 'La Terre : mouvements, séismes et volcans'],
+  [/recycl|verre se/i, 'Choisir un matériau, recycler'], [/réseau|routeur|serveur/i, 'Les réseaux informatiques'], [/météo|dioxyde|risques/i, 'Ressources, risques et climat'],
+];
+function schemaQuiz(cle, q) {
+  const t = q.replace(/<[^>]+>/g, ''), possibles = NOTIONS_QUIZ[cle];
+  if (!possibles) return null;
+  const m = MOTS_QUIZ.find(([re, n]) => possibles.includes(n) && re.test(t));
+  return m ? schemaPour(q, m[1]) : null;
+}
 
 /* ------------------------------------------------------------
    L'ACCUEIL : les quatre onglets de niveau, les trois parties, la liste des exercices
