@@ -966,3 +966,6 @@ body[data-ambiance] .home-mode-button .desc { color:inherit; opacity:.85; }
 .illus-ce .illus-svg { display:block; width:min(100%,360px); height:auto; max-height:38vh; margin:4px auto 0; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.35); }
 .illus-ce .illus-svg[viewBox^="0 0 6"], .illus-ce .illus-svg[viewBox^="0 0 9"], .illus-ce .illus-svg[viewBox^="0 0 12"] { width:min(100%,600px); }
 @media (max-width:700px) { .illus-ce .illus-svg { max-height:30vh; } }
+
+/* le sorcier s'efface pour laisser voir la figure (v9 de MNEMOMATHS, v10 de MNEMOSCIENCES) */
+.character-stage.part { opacity:0; transform:translateY(30px); transition:opacity .35s, transform .35s; }

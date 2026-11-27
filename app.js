@@ -13,8 +13,13 @@
    v3 : tout le 6e – 5e (masse et volume, vitesse, circuits en série et en dérivation, modèle particulaire, lumière, cellule, photosynthèse, effort, boucles et conditions, chaînes d'énergie et d'information, structures, ordinateur…).
    v4 : tout le 4e – 3e (combustions, loi d'Ohm, son, atomes et pH, poids, énergie ; tectonique, hormones, système nerveux, génétique, évolution, immunologie ; objets connectés, simulation, cartes programmables, cybersécurité…) : tout le programme est construit.
    v5 : chaque question de banque du CE a son illustration, dans le style de MNEMOGRAM (sa bibliothèque de dessins est reprise, complétée de dessins scientifiques).
-   v6 : les quiz de cours du CE illustrés aussi ; au CM, des schémas à la craie par notion (sans légende qui donnerait la réponse). */
-const APP_VERSION = 'v6';
+   v6 : les quiz de cours du CE illustrés aussi ; au CM, des schémas à la craie par notion (sans légende qui donnerait la réponse).
+   v7 : schémas à la craie pour la 6e – 5e et la 4e – 3e (exercices et quiz de cours), y compris les questions de calcul.
+   v8 : utilisable hors connexion (sw.js garde une copie de l'application ; les scores attendent le retour d'internet).
+   v9 : l'exemple d'encouragement des sorciers dit « génie des sciences » (il restait « génie de la grammaire »).
+   v10 : après une erreur, le sorcier s'efface au bout de 3 secondes (ou dès qu'on répond) pour laisser voir la figure.
+   v11 : au CE, chaque exercice passe d'une quinzaine à une trentaine de questions (213 nouvelles, toutes illustrées). */
+const APP_VERSION = 'v11';
 
 const $ = (id) => document.getElementById(id);
 const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -890,7 +895,12 @@ function depuisBanque(x, notion) {
 /* une partie avec des questions fabriquées (fonction) et des questions de banque, mélangées */
 function genMixte(B, notion, fab, part = 0.4) {
   const g = genBanque(B, notion);
-  return (p) => (Math.random() < part ? fab(p) : g(p));
+  return (p) => {
+    if (Math.random() >= part) return g(p);
+    const q = fab(p);
+    if (!q.figure && typeof schemaPour === 'function') q.figure = schemaPour(q.enonce, notion) || undefined;
+    return q;
+  };
 }
 
 /* --- Le thermomètre --- */
@@ -3410,6 +3420,286 @@ const SCENES_QUIZ_CE = {
   'La Lune est…': ['nuit', [e('terre', 40, 1.8), e('lune', 80, 1.2, {}, 80)]],
   'Combien de planètes dans le système solaire ?': ['ciel', [e('soleilGrand', 50, 2, {}, 120)]],
 };
+/* ============================================================
+   MNEMOSCIENCES — v11 : DES QUESTIONS EN PLUS POUR LE CE (une trentaine par exercice)
+   Chaque ligne : [énoncé, bonne réponse, mauvaises réponses (ou null pour une réponse à écrire),
+                   explication, scène dessinée, options { n: 1 = plutôt CE2, u: unité, v: phrase lue }].
+   La scène montre la situation sans souffler la réponse.
+   ------------------------------------------------------------ */
+function plusCE(B, L) {
+  L.forEach(([q, r, f, ex, sc, o]) => {
+    const x = Object.assign({ q, r, e: ex }, o || {});
+    if (f) x.f = f;
+    const cle = B.some((y) => y.q === q && y.r !== r) ? `${q}|${r}` : q;
+    B.push(x);
+    SCENES_CE[cle] = sc;
+  });
+}
+
+/* ---------- Solides et liquides ---------- */
+plusCE(B_ETATS, [
+  ["Le <strong>sirop</strong> est…", "un liquide", ["un solide"], "Le sirop coule et prend la forme de la bouteille : c'est un <strong>liquide</strong>.", ['cuisine', [e('table', 50, 2.4), e('bouteille', 50, 1.6, { c: '#c0392b' }, 131)]]],
+  ["L'<strong>huile</strong> est…", "un liquide", ["un solide"], "L'huile coule et prend la forme du récipient : c'est un <strong>liquide</strong>.", ['cuisine', [e('table', 50, 2.4), e('bouteille', 44, 1.6, { c: '#f4d03f' }, 131), e('poele', 66, 1.4, {}, 131)]]],
+  ["Une <strong>bougie</strong> éteinte est…", "un solide", ["un liquide"], "La bougie garde sa forme quand on la pose ou qu'on la prend : c'est un <strong>solide</strong>.", ['maison', [e('table', 50, 2.4), e('bougie', 50, 1.8, {}, 131)]]],
+  ["Une <strong>assiette</strong> est…", "un solide", ["un liquide"], "L'assiette garde sa forme toute seule : c'est un <strong>solide</strong>.", ['cuisine', [e('table', 50, 2.4), e('assiette', 50, 1.8, {}, 131)]]],
+  ["L'<strong>eau de la mer</strong> est…", "un liquide", ["un solide"], "L'eau de mer coule, fait des vagues et prend la forme de ce qui la contient : c'est un <strong>liquide</strong>.", ['plage', [e('parasol', 25, 1.6), e('seau', 70, 1.6)]]],
+  ["On met un <strong>caillou</strong> dans un verre. Le caillou…", "garde sa forme", ["prend la forme du verre", "coule au fond comme de l'eau et s'étale"], "Un caillou est un solide : il garde sa forme, quel que soit le récipient.", ['cuisine', [e('pierre', 32, 2.2), e('verre', 68, 2.4)]]],
+  ["On verse le <strong>lait</strong> de la brique dans un bol. Le lait…", "prend la forme du bol", ["garde la forme de la brique", "devient solide"], "Le lait est un liquide : il prend la forme du récipient, ici le bol.", [['cuisine', [e('table', 50, 2.4), e('brique', 50, 2, {}, 131)]], ['cuisine', [e('table', 50, 2.4), e('bol', 50, 2, {}, 131)]]]],
+  ["Lequel est un <strong>liquide</strong> ?", "l'eau", ["le pain", "un biscuit"], "L'eau coule et prend la forme du verre : c'est un <strong>liquide</strong>. Le pain et le biscuit gardent leur forme : ce sont des solides.", ['cuisine', [e('table', 50, 2.6), e('pain', 30, 1.4, {}, 131), e('verreEau', 52, 1.6, {}, 131), e('biscuit', 72, 1.4, {}, 131)]]],
+  ["Lequel est un <strong>solide</strong> ?", "un livre", ["le lait", "l'huile"], "Le livre garde sa forme tout seul : c'est un <strong>solide</strong>. Le lait et l'huile coulent : ce sont des liquides.", ['classe', [e('pupitre', 50, 2.2), e('livre', 50, 1.4, {}, 150)]]],
+  ["La <strong>neige</strong> est de l'eau…", "solide", ["liquide"], "La neige est faite de petits cristaux de glace : c'est de l'eau à l'état <strong>solide</strong>. Quand il fait plus chaud, elle fond.", ['neige', [e('bonhommeNeige', 50, 2)]], { n: 1 }],
+  ["Le chocolat fondu, quand il refroidit…", "redevient solide", ["reste liquide pour toujours", "devient de l'eau"], "En refroidissant, le chocolat fondu <strong>redevient solide</strong> : c'est comme ça qu'on fait des tablettes et des moulages.", [['cuisine', [e('casserole', 50, 2.6)]], ['cuisine', [e('frigo', 50, 1.8)]]], { n: 1 }],
+  ["Une <strong>glace à la vanille</strong> oubliée au soleil…", "fond", ["devient plus dure", "grossit"], "La chaleur fait <strong>fondre</strong> la glace : elle devient liquide et coule.", ['plage', [e('soleil', 82, 1.2, {}, 40), e('glace', 45, 2)]]],
+  ["Près de la flamme, la <strong>cire</strong> d'une bougie allumée…", "fond et coule", ["devient plus dure", "se transforme en sable"], "La chaleur de la flamme fait <strong>fondre</strong> la cire : elle devient liquide. En refroidissant, les coulures redeviennent solides.", ['maison', [e('table', 50, 2.4), e('bougie', 50, 2, {}, 131)]], { n: 1 }],
+  ["On verse la même quantité d'eau dans un verre haut, puis dans une assiette. La quantité d'eau…", "est la même", ["est plus grande dans le verre", "est plus grande dans l'assiette"], "L'eau change de forme, mais pas de quantité : c'est <strong>la même</strong> eau. Elle paraît plus haute dans le verre parce qu'il est étroit.", ['cuisine', [e('table', 50, 2.6), e('verreEau', 36, 2, {}, 131), e('assiette', 66, 1.8, {}, 131)]], { n: 1 }],
+  ["Pour mesurer une quantité de liquide, on utilise…", "un verre doseur gradué", ["une règle", "un thermomètre"], "Le verre doseur a des <strong>graduations</strong> : on lit le niveau du liquide, en litres ou en millilitres.", ['cuisine', [e('table', 50, 2.4), e('verreEau', 50, 2, {}, 131), e('saladier', 72, 1.4, {}, 131)]], { n: 1 }],
+  ["Le <strong>sucre en poudre</strong> se verse comme un liquide. Pourtant, c'est…", "un solide en grains", ["un liquide", "de l'eau"], "Chaque grain de sucre garde sa forme : le sucre en poudre est un <strong>solide</strong> fait de tout petits grains.", ['cuisine', [e('table', 50, 2.4), e('bol', 44, 1.8, {}, 131), e('gateau', 68, 1.4, {}, 131)]], { n: 1 }],
+]);
+
+/* ---------- Les changements d'état de l'eau ---------- */
+plusCE(B_EAU, [
+  ["Au printemps, la neige fond et devient…", "de l'eau liquide", ["de l'air", "du sable"], "Quand il fait plus chaud que 0 °C, la neige <strong>fond</strong> : elle devient de l'eau liquide, qui coule dans les ruisseaux.", ['neige', [e('bonhommeNeige', 40, 1.8), e('soleil', 80, 1.2, {}, 40)]]],
+  ["Une <strong>flaque d'eau</strong> au soleil…", "disparaît peu à peu : l'eau s'évapore", ["devient de la glace", "grossit toute seule"], "La chaleur du Soleil transforme l'eau de la flaque en vapeur invisible : elle <strong>s'évapore</strong>.", ['jardin', [e('flaque', 50, 1.6), e('soleil', 82, 1.2, {}, 40)]]],
+  ["Les <strong>nuages</strong> sont faits…", "de minuscules gouttes d'eau", ["de fumée", "de coton"], "La vapeur d'eau monte, se refroidit en hauteur et forme de <strong>minuscules gouttes d'eau</strong> (ou de glace) : ce sont les nuages.", ['ciel', [e('nuage', 35, 1.6, {}, 70), e('nuage', 72, 1.2, {}, 110)]], { n: 1 }],
+  ["La <strong>pluie</strong>, c'est de l'eau…", "liquide", ["solide", "gazeuse"], "Les gouttes de pluie sont de l'eau à l'état <strong>liquide</strong> qui tombe des nuages.", ['rue', [e('pluie', 0), e('parapluie', 50, 2)]]],
+  ["La <strong>grêle</strong>, ce sont des billes d'eau…", "solide (de la glace)", ["liquide", "gazeuse"], "Les grêlons sont des billes de <strong>glace</strong> : de l'eau solide qui tombe des gros nuages d'orage.", ['ciel', [e('nuage', 50, 2, {}, 80)]], { n: 1 }],
+  ["Le linge sèche plus vite quand il y a du soleil et du vent, parce que…", "la chaleur et le vent aident l'eau à s'évaporer", ["le soleil boit l'eau", "le vent fait geler l'eau"], "L'eau du linge <strong>s'évapore</strong> plus vite quand il fait chaud et quand le vent emporte la vapeur.", ['jardin', [e('filLinge', 50, 2), e('soleil', 82, 1.1, {}, 40)]], { n: 1 }],
+  ["Quand l'eau bout, les grosses bulles sont faites…", "de vapeur d'eau", ["d'air", "de glace"], "Au fond de la casserole, l'eau devient de la <strong>vapeur</strong> : elle forme des bulles qui remontent et éclatent à la surface.", ['cuisine', [e('casserole', 50, 3)]], { n: 1 }],
+  ["Le matin, de petites gouttes couvrent l'herbe : c'est la <strong>rosée</strong>. Elle vient…", "de la vapeur d'eau de l'air qui se condense", ["des fleurs qui pleurent", "de la mer"], "La nuit, l'herbe se refroidit ; la vapeur d'eau de l'air qui la touche redevient liquide : c'est une <strong>condensation</strong>.", ['jardin', [e('fleurs', 40, 1.6), e('gouttes', 60, 1.4, {}, 160)]], { n: 1 }],
+  ["L'eau peut exister sous trois états :", "solide, liquide et gaz", ["chaud, froid et tiède", "glace, neige et grêle"], "Glace (<strong>solide</strong>), eau (<strong>liquide</strong>), vapeur (<strong>gaz</strong>) : c'est toujours de l'eau, dans trois états différents.", ['montagne', [e('lac', 50, 1.6)]], { n: 1 }],
+  ["Un glaçon fond plus vite…", "dans un endroit chaud", ["au congélateur", "dans la neige"], "Plus il fait chaud autour du glaçon, plus il <strong>fond</strong> vite.", ['cuisine', [e('table', 50, 2.4), e('glacon', 50, 1.6, {}, 131)]]],
+  ["Une bouteille très froide, sortie du réfrigérateur, se couvre de gouttelettes, parce que…", "la vapeur d'eau de l'air se condense dessus", ["l'eau traverse le verre", "la bouteille fuit"], "La vapeur d'eau invisible de l'air touche la bouteille froide et redevient liquide : c'est la <strong>condensation</strong>.", ['cuisine', [e('frigo', 30, 1.8), e('bouteille', 68, 2.2)]], { n: 1 }],
+  ["En hiver, l'eau d'un lac devient…", "de la glace", ["de la vapeur", "du sable"], "Quand il fait plus froid que 0 °C, l'eau du lac <strong>gèle</strong> : elle devient de la glace.", ['neige', [e('lacGele', 50, 1.4)]]],
+  ["On fait chauffer de la glace dans une casserole. Elle devient d'abord…", "de l'eau liquide", ["de la vapeur", "de la neige"], "La glace <strong>fond</strong> d'abord (elle devient liquide) ; si on chauffe encore, l'eau finit par bouillir et devenir vapeur.", ['cuisine', [e('glacon', 30, 2), e('casserole', 68, 2.4)]], { n: 1 }],
+  ["L'eau gèle à quelle température ?", 0, null, "L'eau gèle à <strong>0 °C</strong>, la même température que celle où la glace fond.", ['neige', [e('lacGele', 50, 1.4)]], { n: 1, u: '°C', v: "L'eau gèle à quelle température, en degrés ?" }],
+  ["Une bouteille pleine d'eau, oubliée au congélateur, peut éclater, parce que…", "l'eau prend plus de place en gelant", ["la glace est chaude", "le froid fait fondre le plastique"], "En devenant de la glace, l'eau <strong>prend plus de place</strong> : elle pousse sur les parois de la bouteille.", ['cuisine', [e('frigo', 35, 1.8), e('bouteille', 70, 2)]], { n: 1 }],
+  ["Le petit nuage blanc au-dessus d'une casserole d'eau chaude, c'est…", "de toutes petites gouttes d'eau", ["de la fumée de feu", "de la glace"], "La vapeur d'eau est invisible : le nuage blanc, ce sont de <strong>minuscules gouttes</strong> d'eau, formées quand la vapeur se refroidit dans l'air.", ['cuisine', [e('casserole', 50, 3), e('vapeur', 50, 1.8, {}, 120)]], { n: 1 }],
+]);
+
+/* ---------- L'air ---------- */
+plusCE(B_AIR, [
+  ["L'air est…", "invisible", ["rouge", "toujours blanc"], "On ne voit pas l'air : il est <strong>invisible</strong>. On le sent quand il bouge (le vent) et on le voit faire des bulles dans l'eau.", ['parc', [e('arbre', 25, 1.6), e('banc', 65, 1.6)]]],
+  ["Les feuilles des arbres bougent quand il y a…", "du vent", ["du soleil seulement", "de la lumière"], "Le <strong>vent</strong>, c'est de l'air qui se déplace : il pousse les feuilles.", ['foret', [e('arbre', 30, 1.8), e('feuilles', 65, 1.6, {}, 120)]]],
+  ["Pour gonfler un pneu de vélo, on utilise…", "une pompe", ["un tuyau d'eau", "une loupe"], "La <strong>pompe</strong> pousse de l'air dans le pneu.", ['rue', [e('velo', 50, 1.6)]]],
+  ["On souffle dans une paille plongée dans un verre d'eau. On voit…", "des bulles d'air", ["de la glace", "rien du tout"], "L'air soufflé sort au bout de la paille et remonte : ce sont des <strong>bulles d'air</strong>.", ['cuisine', [e('table', 50, 2.4), e('verreEau', 50, 2.2, {}, 131)]]],
+  ["On lâche un ballon de baudruche gonflé sans l'avoir fermé. Il…", "part en se dégonflant : l'air sort", ["reste immobile", "grossit"], "L'air sort du ballon d'un seul côté et le pousse dans l'autre sens : le ballon file en se <strong>dégonflant</strong>.", ['maison', [e('lina', 40, 1.4), e('ballonFete', 68, 1.4, {}, 100)]]],
+  ["Un cerf-volant tient dans le ciel grâce…", "au vent", ["à une pile", "à la pluie"], "Le <strong>vent</strong> appuie sous le cerf-volant et le porte, pendant qu'on tient le fil.", ['plage', [e('leo', 40, 1.4)]]],
+  ["Un oiseau peut planer sans battre des ailes parce que…", "l'air le porte", ["il ne pèse rien", "il n'y a pas d'air en hauteur"], "Les ailes s'appuient sur l'<strong>air</strong>, qui porte l'oiseau, comme l'eau porte un bateau.", ['ciel', [e('oiseau', 40, 2, {}, 90), e('nuage', 75, 1.2, {}, 60)]], { n: 1 }],
+  ["Pour se rafraîchir avec un éventail, on…", "fait bouger l'air", ["chauffe l'air", "fait de la lumière"], "L'éventail <strong>fait bouger l'air</strong> : ce petit vent sur la peau rafraîchit.", ['plage', [e('lina', 40, 1.4), e('parasol', 70, 1.6)]]],
+  ["L'air que nous respirons contient un gaz indispensable à la vie :", "l'oxygène", ["la vapeur", "le sable"], "Nous avons besoin de l'<strong>oxygène</strong> (son nom exact est le dioxygène) de l'air pour vivre.", ['parc', [e('leo', 35, 1.4), e('arbre', 72, 1.6)]], { n: 1 }],
+  ["Quand le vent souffle très très fort, c'est…", "une tempête", ["du brouillard", "une canicule"], "Une <strong>tempête</strong> est un vent très violent, qui peut casser des branches.", ['mer', [e('bateau', 50, 1.4), e('nuage', 30, 1.4, {}, 50)]]],
+  ["Un voilier n'avance pas quand…", "il n'y a pas de vent", ["il fait soleil", "la mer est bleue"], "C'est le <strong>vent</strong> qui pousse la voile : sans vent, le voilier reste sur place.", ['mer', [e('voilier', 50, 1.8)]]],
+  ["On bouche le bout d'une seringue pleine d'air. Peut-on enfoncer le piston jusqu'au bout ?", "Non, l'air enfermé résiste", ["Oui, facilement", "Oui, l'air disparaît"], "L'air se laisse un peu comprimer, mais il prend toujours de la place : il <strong>résiste</strong> et repousse le piston.", ['classe', [e('seringue', 50, 2.4)]], { n: 1 }],
+  ["Un sac en plastique gonflé et bien fermé : quand on appuie dessus, il…", "résiste, car il est plein d'air", ["s'écrase tout de suite à plat", "se remplit d'eau"], "Le sac est plein d'<strong>air</strong> : l'air enfermé prend de la place et résiste quand on appuie.", ['maison', [e('leo', 50, 1.4)]]],
+  ["Pour savoir dans quel sens souffle le vent, on regarde…", "un drapeau ou une manche à air", ["un thermomètre", "une balance"], "Le <strong>drapeau</strong> ou la manche à air se tournent dans le sens où va le vent.", ['plage', [e('parasol', 30, 1.6), e('voilier', 72, 1.2)]], { n: 1 }],
+  ["L'air chaud…", "monte", ["descend", "reste toujours au sol"], "L'air chaud est plus léger que l'air froid : il <strong>monte</strong>. C'est pour ça qu'une montgolfière s'élève quand on chauffe l'air de son ballon.", ['ciel', [e('nuage', 50, 1.6, {}, 80)]], { n: 1 }],
+  ["Les bulles d'une boisson gazeuse sont faites…", "d'un gaz", ["d'eau", "de sucre"], "Dans les boissons gazeuses, on a mis un <strong>gaz</strong> : il s'échappe en bulles quand on ouvre la bouteille.", ['cuisine', [e('table', 50, 2.4), e('bouteille', 40, 1.6, {}, 131), e('verre', 64, 1.6, {}, 131)]], { n: 1 }],
+]);
+
+/* ---------- Mouvements et énergie ---------- */
+plusCE(B_MOUV, [
+  ["Un objet qui ne bouge pas est…", "immobile", ["rapide", "en mouvement"], "Un objet qui ne bouge pas est <strong>immobile</strong>.", ['parc', [e('banc', 50, 2)]]],
+  ["Pour aller plus vite à vélo, on…", "pédale plus vite", ["freine", "arrête de pédaler"], "Plus on <strong>pédale</strong> vite, plus les roues tournent vite.", ['route', [e('velo', 50, 1.6)]]],
+  ["Pour arrêter un vélo, on utilise…", "les freins", ["la sonnette", "la selle"], "Les <strong>freins</strong> frottent sur la roue et la ralentissent.", ['route', [e('velo', 50, 1.6)]]],
+  ["Une balle qui roule sur l'herbe finit par…", "s'arrêter", ["accélérer toute seule", "rouler pour toujours"], "L'herbe <strong>freine</strong> la balle : elle ralentit, puis s'arrête.", ['parc', [e('ballon', 50, 1.6)]]],
+  ["Quand on lâche un objet, il…", "tombe vers le sol", ["monte au ciel", "reste en l'air"], "Les objets lâchés <strong>tombent</strong> vers le sol : ils sont attirés par la Terre.", ['maison', [e('leo', 40, 1.4), e('ballon', 60, 1.2, {}, 90)]]],
+  ["Lequel va le plus vite ?", "un avion", ["un vélo", "un enfant qui marche"], "Un avion vole à plusieurs centaines de kilomètres par heure : c'est le plus <strong>rapide</strong> des trois.", ['rue', [e('avion', 75, 1, {}, 50), e('velo', 30, 1.3), e('tom', 55, 1.1)]]],
+  ["Course de 50 m : Léo met 10 secondes, Lina met 12 secondes. Le plus rapide est…", "Léo", ["Lina", "aucun des deux"], "Pour la même distance, le plus rapide est celui qui met <strong>le moins de temps</strong> : Léo (10 s).", ['parc', [e('leo', 35, 1.4), e('lina', 65, 1.4)]], { n: 1 }],
+  ["Sur une pente plus raide, une petite voiture descend…", "plus vite", ["moins vite", "pas du tout"], "Plus la pente est <strong>raide</strong>, plus la voiture prend de la vitesse.", ['maison', [e('planche', 50, 2), e('voiture', 38, .6, {}, 178)]], { n: 1 }],
+  ["Une pile peut fournir de l'énergie pour…", "allumer une lampe ou faire tourner un petit moteur", ["faire pousser une plante", "faire geler l'eau"], "L'énergie électrique de la <strong>pile</strong> fait briller une lampe ou tourner un moteur.", ['classe', [e('pile', 40, 2), e('ampoule', 65, 2)]]],
+  ["On remonte le ressort d'une petite voiture : on lui donne…", "de l'énergie", ["de l'eau", "de l'air"], "En remontant le ressort, on stocke de l'<strong>énergie</strong>, que la voiture utilise pour rouler.", ['maison', [e('voiture', 50, .9)]], { n: 1 }],
+  ["Pour avancer, une voiture a besoin…", "d'énergie (de l'essence ou de l'électricité)", ["de peinture", "de musique"], "Le moteur a besoin d'<strong>énergie</strong> : de l'essence ou l'électricité d'une batterie.", ['route', [e('voiture', 50, .9)]]],
+  ["Notre corps trouve l'énergie pour courir et jouer…", "dans la nourriture", ["dans les vêtements", "dans les chaussures"], "Les aliments donnent à notre corps l'<strong>énergie</strong> dont il a besoin pour bouger, grandir et réfléchir.", ['cuisine', [e('table', 50, 2.4), e('pain', 40, 1.4, {}, 131), e('pomme', 62, 1.4, {}, 131)]]],
+  ["Le Soleil nous apporte…", "de la lumière et de la chaleur", ["de la pluie", "du bruit"], "Le Soleil nous envoie de la <strong>lumière</strong> et de la <strong>chaleur</strong> : c'est une source d'énergie.", ['jardin', [e('soleil', 70, 1.4, {}, 50), e('fleur', 30, 2)]]],
+  ["Un mètre, c'est…", "100 centimètres", ["10 centimètres", "1 000 centimètres"], "1 mètre = <strong>100 centimètres</strong>. Une règle de 20 cm, c'est donc un cinquième de mètre.", ['classe', [e('metre', 50, 2)]], { n: 1 }],
+  ["Combien de secondes y a-t-il dans une minute ?", 60, null, "1 minute = <strong>60 secondes</strong>.", ['classe', [e('chrono', 50, 2.4)]], { n: 1, u: 's', v: "Combien de secondes y a-t-il dans une minute ?" }],
+  ["Un enfant fait 5 fois le tour d'une cour de 20 m. Quelle distance a-t-il parcourue ?", 100, null, "5 tours de 20 m : 5 × 20 = <strong>100 m</strong>.", ['parc', [e('garcon', 50, 1.4)]], { n: 1, u: 'm', v: "Un enfant fait 5 fois le tour d'une cour de 20 mètres. Quelle distance a-t-il parcourue, en mètres ?" }],
+  ["On tire vers soi la corde attachée à un chariot. Le chariot…", "avance vers nous", ["s'éloigne", "s'envole"], "Quand on <strong>tire</strong>, l'objet vient vers nous ; quand on <strong>pousse</strong>, il s'éloigne.", ['parc', [e('leo', 35, 1.4), e('corde', 60, 1.4)]]],
+  ["Une trottinette avance quand on…", "pousse le sol avec le pied", ["souffle dessus", "la regarde"], "En <strong>poussant</strong> le sol avec le pied, on met la trottinette en mouvement.", ['rue', [e('lina', 50, 1.4)]]],
+]);
+
+/* ---------- Le vivant et ses besoins ---------- */
+plusCE(B_VIVANT, [
+  ["Lequel est <strong>vivant</strong> ?", "un escargot", ["un caillou", "une voiture"], "L'escargot naît, mange, grandit, se reproduit et meurt : il est <strong>vivant</strong>.", ['jardin', [e('escargot', 22, 2), e('pierre', 52, 2), e('voiture', 82, .6)]]],
+  ["Lequel est <strong>vivant</strong> ?", "une fleur", ["un ballon", "une pierre"], "La fleur pousse, a besoin d'eau et de lumière, fait des graines : elle est <strong>vivante</strong>.", ['jardin', [e('ballon', 22, 1.4), e('fleur', 52, 2), e('pierre', 82, 2)]]],
+  ["Lequel n'est <strong>pas vivant</strong> ?", "un nuage", ["un chat", "un arbre"], "Le nuage bouge et change de forme, mais il ne naît pas, ne mange pas et ne se reproduit pas : il n'est <strong>pas vivant</strong>.", ['jardin', [e('chat', 25, 1.6), e('arbre', 55, 1.6), e('nuage', 82, 1.2, {}, 50)]]],
+  ["Un être vivant finit toujours par…", "mourir", ["devenir une pierre", "rester pareil pour toujours"], "Tous les êtres vivants naissent, grandissent… et finissent par <strong>mourir</strong>.", ['foret', [e('arbre', 40, 1.6), e('feuilles', 70, 1.4, {}, 175)]], { n: 1 }],
+  ["Pour fabriquer leur nourriture, les plantes vertes ont besoin…", "de la lumière du soleil", ["de la nuit", "du bruit"], "Les feuilles utilisent la <strong>lumière</strong>, l'eau et l'air pour fabriquer la nourriture de la plante.", ['maison', [e('plantePot', 50, 2.4)]], { n: 1 }],
+  ["Une plante laissée longtemps dans le noir…", "jaunit et pousse mal", ["devient plus verte", "ne change pas"], "Sans <strong>lumière</strong>, la plante ne peut plus fabriquer sa nourriture : elle jaunit et s'affaiblit.", ['nuit', [e('plantePot', 50, 2.4)]], { n: 1 }],
+  ["Pendant l'hiver, le hérisson <strong>hiberne</strong>. Cela veut dire qu'il…", "dort tout l'hiver dans un abri", ["part dans les pays chauds", "mange sans arrêt"], "Le hérisson <strong>hiberne</strong> : il dort tout l'hiver, caché sous des feuilles, et vit sur ses réserves.", ['neige', [e('herisson', 50, 2)]]],
+  ["Les animaux se déplacent pour…", "chercher leur nourriture, fuir ou trouver un abri", ["rien, sans raison", "devenir des plantes"], "Se <strong>déplacer</strong> permet aux animaux de trouver à manger, d'échapper à un danger, de trouver un abri ou un partenaire.", ['foret', [e('biche', 50, 1.8)]]],
+  ["Un bébé…", "est vivant : il respire, mange et grandit", ["n'est pas encore vivant", "est vivant seulement quand il parle"], "Le bébé <strong>respire</strong>, se nourrit, grandit : c'est un être vivant.", ['maison', [e('maman', 40, 1.3), e('bebe', 62, 1.3)]]],
+  ["Les poissons respirent dans l'eau grâce à…", "leurs branchies", ["des poumons", "leurs nageoires"], "Les <strong>branchies</strong>, de chaque côté de la tête, prennent l'oxygène dissous dans l'eau.", ['mer', [e('poisson', 50, 2, {}, 140)]], { n: 1 }],
+  ["En hiver, un pommier sans feuilles…", "est toujours vivant", ["est mort", "est devenu un objet"], "L'arbre se repose en hiver : il perd ses feuilles mais reste <strong>vivant</strong>, et ses bourgeons s'ouvriront au printemps.", ['neige', [e('pommier', 50, 1.8)]], { n: 1 }],
+  ["Une plante prend l'eau du sol grâce…", "à ses racines", ["à ses fleurs", "à ses fruits"], "Les <strong>racines</strong> puisent l'eau et les sels minéraux du sol.", ['jardin', [e('plantePot', 50, 2.4)]]],
+  ["Un œuf de poule fécondé et couvé donne…", "un poussin", ["une graine", "un caillou"], "La poule couve ses œufs pendant 21 jours ; dans l'œuf, un <strong>poussin</strong> se développe.", ['ferme', [e('poule', 40, 1.8), e('oeufs', 68, 1.6)]]],
+  ["Le bois d'une table est…", "d'origine vivante : il vient d'un arbre", ["d'origine minérale, comme la pierre", "du plastique"], "Le bois vient des <strong>arbres</strong> : c'est une matière d'origine vivante (végétale).", ['maison', [e('table', 50, 2.6)]], { n: 1 }],
+  ["Le sable et les cailloux sont…", "non vivants (des minéraux)", ["vivants", "d'origine animale"], "Le sable et les cailloux ne naissent pas, ne grandissent pas : ce sont des <strong>minéraux</strong>, non vivants.", ['plage', [e('tasSable', 35, 2), e('pierre', 70, 2)]], { n: 1 }],
+  ["Les animaux et les plantes ont tous besoin…", "d'eau", ["de lumière électrique", "de jouets"], "Sans <strong>eau</strong>, aucun être vivant ne peut vivre.", ['jardin', [e('chien', 30, 1.6), e('fleur', 70, 2)]]],
+  ["Pourquoi pose-t-on les plantes d'intérieur près d'une fenêtre ?", "Pour qu'elles aient de la lumière", ["Pour qu'elles voient dehors", "Pour qu'elles aient froid"], "Les plantes ont besoin de <strong>lumière</strong> pour fabriquer leur nourriture.", ['maison', [e('fenetre', 50, 2.2), e('plantePot', 50, 1.6, {}, 190)]]],
+  ["Une graine est…", "vivante : elle peut germer", ["un petit caillou", "un objet en plastique"], "La graine contient une petite plante endormie : elle est <strong>vivante</strong> et peut germer.", ['jardin', [e('graine', 50, 2.4)]], { n: 1 }],
+]);
+
+/* ---------- Grandir et rester en bonne santé ---------- */
+plusCE(B_SANTE, [
+  ["Après avoir mangé des bonbons, il faut…", "se brosser les dents", ["boire un soda", "aller dormir tout de suite"], "Le sucre reste collé aux dents et nourrit les microbes qui font des caries : on se <strong>brosse les dents</strong>.", ['maison', [e('table', 50, 2.4), e('bonbons', 50, 1.8, {}, 131)]]],
+  ["Un brossage de dents doit durer au moins…", "2 minutes", ["5 secondes", "1 heure"], "Il faut au moins <strong>2 minutes</strong> pour bien brosser toutes les dents, dessus, dedans et dehors.", ['maison', [e('brosseDents', 40, 2), e('reveil', 70, 1.6)]], { n: 1 }],
+  ["Une <strong>carie</strong>, c'est…", "un trou dans une dent, causé par le sucre et les microbes", ["une dent qui pousse", "une dent très propre"], "Les microbes de la bouche transforment le sucre en acide, qui creuse la dent : c'est une <strong>carie</strong>.", ['maison', [e('dent', 50, 2.4)]], { n: 1 }],
+  ["On va chez le dentiste…", "au moins une fois par an", ["jamais", "seulement quand on est adulte"], "Une visite <strong>chaque année</strong> permet de soigner une carie avant qu'elle fasse mal.", ['maison', [e('maman', 35, 1.3), e('dent', 65, 2)]]],
+  ["Le <strong>petit-déjeuner</strong>…", "donne de l'énergie pour la matinée", ["ne sert à rien", "fait dormir"], "Le petit-déjeuner donne au corps l'<strong>énergie</strong> pour bien travailler et jouer le matin.", ['cuisine', [e('table', 50, 2.4), e('bol', 40, 1.6, {}, 131), e('pain', 62, 1.4, {}, 131)]]],
+  ["Les fruits et les légumes apportent surtout…", "des vitamines", ["du sel", "de la graisse"], "Fruits et légumes apportent des <strong>vitamines</strong>, de l'eau et des fibres.", ['marche', [e('carotte', 30, 1.8), e('salade', 52, 1.6), e('pomme', 74, 1.6)]]],
+  ["Lequel est un <strong>légume</strong> ?", "la carotte", ["la pomme", "le fromage"], "La <strong>carotte</strong> est un légume (c'est une racine). La pomme est un fruit ; le fromage vient du lait.", ['marche', [e('pomme', 25, 1.6), e('carotte', 52, 1.8), e('fromage', 78, 1.6)]]],
+  ["Lequel est un <strong>fruit</strong> ?", "la pomme", ["la salade", "le pain"], "La <strong>pomme</strong> est un fruit : elle contient des pépins, les graines du pommier.", ['marche', [e('salade', 25, 1.6), e('pain', 52, 1.4), e('pomme', 78, 1.6)]]],
+  ["Boire souvent des sodas très sucrés…", "est mauvais pour les dents et la santé", ["remplace l'eau", "rend les dents plus solides"], "Les sodas contiennent beaucoup de <strong>sucre</strong> : ils abîment les dents et font prendre du poids. La boisson indispensable, c'est l'eau.", ['cuisine', [e('table', 50, 2.4), e('bouteille', 42, 1.6, { c: '#7b3f00' }, 131), e('verre', 62, 1.6, {}, 131)]]],
+  ["Quand on éternue, on met…", "son coude devant son nez et sa bouche", ["rien du tout", "sa main sur son voisin"], "Éternuer dans son <strong>coude</strong> évite d'envoyer des microbes sur les autres (et sur ses mains).", ['classe', [e('leo', 50, 1.4)]], { n: 1 }],
+  ["Le sommeil sert…", "à reposer le corps et à grandir", ["à rien", "à avoir faim"], "Pendant le <strong>sommeil</strong>, le corps se repose, grandit, et le cerveau range ce qu'on a appris.", ['maison', [e('lit', 50, 2)]]],
+  ["Pendant le sport, on boit…", "de l'eau", ["du soda", "rien"], "En bougeant, on transpire : il faut boire de l'<strong>eau</strong> pour remplacer celle qu'on perd.", ['parc', [e('garcon', 35, 1.4), e('ballon', 65, 1.4)]]],
+  ["Pour protéger sa peau en plein soleil, on met…", "de la crème solaire et un chapeau", ["un manteau d'hiver", "rien du tout"], "Le soleil peut <strong>brûler</strong> la peau : crème solaire, chapeau, tee-shirt et ombre aux heures chaudes.", ['plage', [e('soleil', 80, 1.2, {}, 40), e('parasol', 40, 1.8)]]],
+  ["Une <strong>dent définitive</strong> qu'on perd…", "ne repousse pas", ["repousse l'année suivante", "repousse toujours deux fois"], "Les dents de lait sont remplacées une seule fois : les dents <strong>définitives</strong> ne repoussent pas. Il faut en prendre soin !", ['maison', [e('dent', 50, 2.4)]], { n: 1 }],
+  ["L'ensemble de nos os forme…", "le squelette", ["les muscles", "la peau"], "Nos os, plus de 200, forment le <strong>squelette</strong> : il soutient et protège le corps.", ['maison', [e('os', 50, 2.4)]], { n: 1 }],
+  ["Les <strong>muscles</strong> servent à…", "faire bouger le corps", ["digérer seulement", "voir"], "Les <strong>muscles</strong> tirent sur les os et font bouger le corps.", ['parc', [e('garcon', 40, 1.4), e('ballon', 66, 1.4)]], { n: 1 }],
+  ["Quand un enfant grandit, sa taille…", "augmente", ["diminue", "reste toujours pareille"], "Pendant la croissance, la taille <strong>augmente</strong> : on la mesure avec une toise ou un mètre.", ['maison', [e('leo', 40, 1.4), e('metre', 68, 1.8)]]],
+  ["Quand on a de la <strong>fièvre</strong>, la température du corps est…", "plus haute que 38 °C", ["plus basse que 30 °C", "de 20 °C"], "Normalement, le corps est à environ 37 °C. Au-dessus de <strong>38 °C</strong>, on a de la fièvre.", ['maison', [e('lit', 50, 2), e('maman', 82, 1.2)]], { n: 1 }],
+]);
+
+/* ---------- Le cycle de vie ---------- */
+plusCE(B_CYCLE, [
+  ["Le petit de la vache s'appelle…", "le veau", ["le poulain", "l'agneau"], "Le petit de la vache est le <strong>veau</strong>.", ['ferme', [e('vache', 50, 1.8)]]],
+  ["Le petit du cheval s'appelle…", "le poulain", ["le veau", "le chevreau"], "Le petit du cheval (et de la jument) est le <strong>poulain</strong>.", ['ferme', [e('cheval', 50, 1.8)]]],
+  ["Le petit de la poule s'appelle…", "le poussin", ["le caneton", "le chaton"], "Le petit de la poule est le <strong>poussin</strong>.", ['ferme', [e('poule', 50, 2)]]],
+  ["Le petit de la brebis s'appelle…", "l'agneau", ["le poulain", "le porcelet"], "Le petit de la brebis (et du bélier) est l'<strong>agneau</strong>.", ['ferme', [e('mouton', 50, 1.8)]]],
+  ["Le petit de la cane s'appelle…", "le caneton", ["le poussin", "le lapereau"], "Le petit du canard est le <strong>caneton</strong>.", ['ferme', [e('mare', 50, 1.6), e('canard', 50, 1.6, {}, 175)]]],
+  ["Avant de devenir papillon, la chenille s'enferme dans…", "une chrysalide", ["un nid", "une toile d'araignée"], "La chenille se transforme dans une <strong>chrysalide</strong> : c'est là qu'elle devient papillon.", ['jardin', [e('chenille', 50, 2.2)]], { n: 1 }],
+  ["La grenouille pond ses œufs…", "dans l'eau", ["dans un nid d'oiseau", "dans la terre sèche"], "Les œufs de grenouille sont pondus dans l'<strong>eau</strong> : il en sort des têtards.", ['ferme', [e('mare', 50, 1.8), e('grenouille', 70, 1.6)]]],
+  ["Le têtard respire…", "dans l'eau, comme un poisson", ["hors de l'eau, comme un chat", "il ne respire pas"], "Le têtard vit dans l'eau et respire avec des branchies, <strong>comme un poisson</strong>. La grenouille adulte respirera de l'air.", ['ferme', [e('mare', 50, 1.8), e('tetard', 50, 1.6, {}, 185)]], { n: 1 }],
+  ["Le papillon pond…", "des œufs", ["des chenilles déjà grandes", "des graines"], "Le papillon pond des <strong>œufs</strong> sur les feuilles ; il en sortira de petites chenilles.", ['jardin', [e('papillon', 40, 2, {}, 100), e('fleur', 65, 2)]]],
+  ["En grandissant, le chiot devient…", "un chien", ["un chat", "un loup"], "Le chiot est le petit du <strong>chien</strong> : il lui ressemble déjà, il grandit sans métamorphose.", ['jardin', [e('niche', 50, 2)]]],
+  ["Un pépin de pomme est…", "une graine", ["une feuille", "une racine"], "Les pépins sont les <strong>graines</strong> du pommier : plantés, ils peuvent donner un nouvel arbre.", ['cuisine', [e('table', 50, 2.4), e('pommeCoupee', 50, 1.8, {}, 131)]]],
+  ["Pour germer, une graine a besoin…", "d'eau et d'un peu de chaleur", ["de sel", "de bruit"], "Avec de l'<strong>eau</strong> et une température douce, la graine se réveille et germe.", ['jardin', [e('graine', 50, 2.4)]], { n: 1 }],
+  ["Une jeune pousse se tourne vers…", "la lumière", ["le noir", "le sol"], "Les plantes poussent vers la <strong>lumière</strong>, dont elles ont besoin pour vivre.", ['maison', [e('fenetre', 30, 2), e('pousse', 66, 2)]], { n: 1 }],
+  ["Le <strong>gland</strong> est la graine…", "du chêne", ["du pommier", "du sapin"], "Le gland est le fruit du <strong>chêne</strong> ; il contient sa graine.", ['foret', [e('arbre', 50, 1.8)]], { n: 1 }],
+  ["Pour sortir de l'œuf, le poussin…", "casse la coquille avec son bec", ["ouvre une petite porte", "attend que la poule l'ouvre"], "Le poussin a une petite pointe sur le <strong>bec</strong> pour casser la coquille de l'intérieur.", ['ferme', [e('oeufs', 50, 2)]], { n: 1 }],
+  ["Le chat est…", "vivipare", ["ovipare"], "Les chatons se développent dans le ventre de leur mère : le chat est <strong>vivipare</strong>.", ['maison', [e('chat', 50, 2)]], { n: 1 }],
+  ["Le merle (un oiseau) est…", "ovipare", ["vivipare"], "Les oiseaux pondent des œufs : ils sont <strong>ovipares</strong>.", ['jardin', [e('arbre', 40, 1.8), e('oiseau', 70, 1.6, {}, 90)]], { n: 1 }],
+  ["Les feuilles des arbres comme le chêne tombent…", "en automne", ["au printemps", "en été"], "En <strong>automne</strong>, les feuilles jaunissent et tombent ; les bourgeons repoussent au printemps.", ['foret', [e('arbre', 40, 1.8), e('feuilles', 70, 1.6, {}, 175)]]],
+]);
+
+/* ---------- Les chaînes alimentaires ---------- */
+plusCE(B_CHAINE, [
+  ["Le <strong>mouton</strong> est…", "herbivore", ["carnivore", "omnivore"], "Le mouton broute l'herbe : il est <strong>herbivore</strong>.", ['ferme', [e('mouton', 50, 1.8)]]],
+  ["Le <strong>loup</strong> est…", "carnivore", ["herbivore", "omnivore"], "Le loup chasse d'autres animaux : il est <strong>carnivore</strong>.", ['foret', [e('loup', 50, 1.8)]]],
+  ["Le <strong>cheval</strong> est…", "herbivore", ["carnivore", "omnivore"], "Le cheval mange de l'herbe, du foin, des céréales : il est <strong>herbivore</strong>.", ['ferme', [e('cheval', 50, 1.8)]]],
+  ["Le <strong>cochon</strong> est…", "omnivore", ["herbivore", "carnivore"], "Le cochon mange de tout, plantes et petits animaux : il est <strong>omnivore</strong>.", ['ferme', [e('cochon', 50, 1.8)]], { n: 1 }],
+  ["La <strong>chouette</strong> est…", "carnivore", ["herbivore", "omnivore"], "La chouette chasse la nuit des souris et des petits rongeurs : elle est <strong>carnivore</strong>.", ['nuit', [e('arbre', 40, 1.8), e('chouette', 62, 1.6, {}, 110)]]],
+  ["L'<strong>ours brun</strong> mange des baies, du miel et des poissons. Il est…", "omnivore", ["herbivore", "carnivore"], "Des plantes (baies) et des animaux (poissons) : l'ours est <strong>omnivore</strong>.", ['foret', [e('ours', 50, 1.8)]], { n: 1 }],
+  ["La <strong>girafe</strong> est…", "herbivore", ["carnivore", "omnivore"], "La girafe mange les feuilles en haut des arbres : elle est <strong>herbivore</strong>.", ['zoo', [e('girafe', 50, 1.8)]]],
+  ["Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>herbe → ? → loup</strong>", "le mouton", ["le renard", "le poisson"], "L'herbe est mangée par le <strong>mouton</strong>, qui peut être mangé par le loup.", ['foret', [e('loup', 70, 1.6), e('buisson', 25, 1.6)]], { n: 1 }],
+  ["Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>algues → petit poisson → ?</strong>", "le gros poisson", ["la vache", "la salade"], "Les petits poissons sont mangés par de plus <strong>gros poissons</strong>.", ['mer', [e('poisson', 50, 1.6, {}, 150)]]],
+  ["Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>graines → ? → chat</strong>", "la souris", ["le lion", "la vache"], "La <strong>souris</strong> mange des graines, et le chat chasse les souris.", ['ferme', [e('grange', 40, 1.4), e('chat', 72, 1.6)]]],
+  ["Complète la chaîne alimentaire (la flèche veut dire « est mangé par ») :<br><strong>herbe → vache → ?</strong>", "l'être humain", ["la salade", "la souris"], "La vache mange l'herbe, et l'<strong>être humain</strong> mange la viande de la vache (ou boit son lait).", ['ferme', [e('vache', 50, 1.8)]], { n: 1 }],
+  ["Les plantes vertes…", "fabriquent leur propre nourriture", ["mangent des animaux", "mangent des cailloux"], "Avec la lumière, l'eau et l'air, les plantes <strong>fabriquent leur nourriture</strong> : c'est pour ça qu'elles sont au début des chaînes alimentaires.", ['jardin', [e('fleur', 40, 2), e('arbre', 72, 1.6)]], { n: 1 }],
+  ["Les dents pointues du chat lui servent à…", "déchirer la viande", ["brouter l'herbe", "casser des noix"], "Les carnivores ont des dents <strong>pointues</strong> (les crocs) pour attraper et déchirer leurs proies.", ['maison', [e('chat', 50, 2)]], { n: 1 }],
+  ["La vache a de grosses dents plates, qui lui servent à…", "écraser l'herbe", ["attraper des souris", "déchirer la viande"], "Les herbivores ont des dents <strong>plates</strong> pour broyer l'herbe longtemps.", ['ferme', [e('vache', 50, 1.8)]], { n: 1 }],
+  ["Au potager, les escargots mangent les salades. Pour les protéger sans produit chimique, on peut accueillir…", "des hérissons", ["des pucerons", "des chenilles"], "Le <strong>hérisson</strong> mange les escargots : c'est un allié du jardinier.", ['jardin', [e('salade', 40, 1.6), e('escargot', 66, 1.6)]], { n: 1 }],
+  ["Une chaîne alimentaire montre…", "qui mange qui", ["qui joue avec qui", "qui habite où"], "Une chaîne alimentaire montre <strong>qui mange qui</strong>, du végétal jusqu'au dernier animal.", ['foret', [e('lapin', 35, 1.6), e('renard', 68, 1.6)]]],
+  ["Le <strong>ver de terre</strong> se nourrit…", "de feuilles mortes et de terre", ["de souris", "de poissons"], "Le ver de terre mange les feuilles mortes mêlées à la terre : il aide à les transformer en <strong>terreau</strong>.", ['jardin', [e('ver', 45, 2), e('feuilles', 70, 1.4, {}, 185)]], { n: 1 }],
+  ["La <strong>coccinelle</strong> mange des pucerons. Elle est…", "carnivore", ["herbivore", "omnivore"], "Les pucerons sont de petits animaux : la coccinelle est <strong>carnivore</strong>.", ['jardin', [e('rosier', 45, 1.8), e('coccinelle', 70, 1.6)]], { n: 1 }],
+]);
+
+/* ---------- Les objets et le numérique ---------- */
+plusCE(B_OBJETS, [
+  ["À quoi sert un <strong>marteau</strong> ?", "à enfoncer des clous", ["à couper du papier", "à mesurer"], "Le <strong>marteau</strong> sert à taper sur les clous pour les enfoncer.", ['maison', [e('marteau', 50, 2.2)]]],
+  ["À quoi sert une <strong>règle</strong> graduée ?", "à tracer des traits droits et à mesurer", ["à couper", "à coller"], "La règle sert à <strong>tracer</strong> des traits droits et à <strong>mesurer</strong> des longueurs.", ['classe', [e('pupitre', 50, 2.2), e('regle', 50, 1.6, {}, 150)]]],
+  ["À quoi sert un <strong>réveil</strong> ?", "à sonner à l'heure choisie", ["à éclairer", "à chauffer"], "Le <strong>réveil</strong> indique l'heure et sonne au moment choisi.", ['maison', [e('reveil', 50, 2.2)]]],
+  ["À quoi sert une <strong>pelle</strong> ?", "à creuser la terre ou le sable", ["à écrire", "à se laver"], "La <strong>pelle</strong> sert à creuser et à déplacer la terre, le sable, la neige.", ['jardin', [e('pelle', 50, 2.2)]]],
+  ["À quoi sert un <strong>appareil photo</strong> ?", "à prendre des photos", ["à téléphoner", "à cuire"], "L'<strong>appareil photo</strong> enregistre des images.", ['parc', [e('appareilPhoto', 50, 2)]]],
+  ["À quoi sert un <strong>réfrigérateur</strong> ?", "à garder les aliments au frais", ["à chauffer les plats", "à laver la vaisselle"], "Le froid du <strong>réfrigérateur</strong> conserve les aliments plus longtemps.", ['cuisine', [e('frigo', 50, 2)]]],
+  ["À quoi sert une <strong>échelle</strong> ?", "à monter en hauteur", ["à couper du bois", "à mesurer"], "L'<strong>échelle</strong> permet de monter pour atteindre un endroit en hauteur.", ['jardin', [e('echelle', 50, 1.8)]]],
+  ["Lequel est fabriqué par l'être humain ?", "une paire de ciseaux", ["un arbre", "un caillou"], "Les <strong>ciseaux</strong> sont un objet technique, fabriqué pour couper. L'arbre et le caillou sont naturels.", ['jardin', [e('ciseaux', 22, 1.8), e('arbre', 55, 1.6), e('pierre', 84, 2)]]],
+  ["Lequel n'est <strong>pas</strong> fabriqué par l'être humain ?", "un rocher", ["une table", "un livre"], "Le <strong>rocher</strong> est naturel : personne ne l'a fabriqué.", ['montagne', [e('rocher', 25, 1.6), e('table', 58, 1.8), e('livre', 58, 1.2, {}, 131)]]],
+  ["Les <strong>pédales</strong> d'un vélo servent à…", "faire tourner les roues avec les pieds", ["freiner", "éclairer la route"], "En appuyant sur les <strong>pédales</strong>, on fait tourner le pédalier, la chaîne… et la roue arrière.", ['route', [e('velo', 50, 1.6)]]],
+  ["Une vitre de fenêtre est en…", "verre", ["bois", "tissu"], "La vitre est en <strong>verre</strong> : il laisse passer la lumière.", ['maison', [e('fenetre', 50, 2.2)]]],
+  ["Une casserole est en métal parce que le métal…", "supporte la chaleur du feu", ["est mou", "fond tout de suite"], "Le métal <strong>résiste à la chaleur</strong> et la transmet bien aux aliments.", ['cuisine', [e('casserole', 50, 3)]], { n: 1 }],
+  ["Un manteau d'hiver sert à…", "garder la chaleur du corps", ["refroidir", "faire de la lumière"], "Le manteau empêche la <strong>chaleur</strong> du corps de partir dans l'air froid.", ['neige', [e('manteau', 50, 2)]]],
+  ["Sur un ordinateur, l'<strong>écran</strong> sert à…", "voir les images et le texte", ["écrire le texte", "imprimer"], "L'<strong>écran</strong> affiche ce que fait l'ordinateur ; on écrit avec le clavier.", ['classe', [e('ordinateur', 50, 2)]]],
+  ["Pour aller sur Internet, un enfant…", "le fait avec un adulte", ["clique sur tout ce qu'il voit", "donne son adresse quand on la demande"], "Sur Internet, on est accompagné d'un <strong>adulte</strong>, qui aide à éviter les pièges.", ['maison', [e('tablette', 40, 2), e('maman', 70, 1.3)]]],
+  ["Avant de mettre la photo d'un camarade sur Internet, il faut…", "lui demander son accord", ["ne rien lui dire", "la changer pour rire"], "Chacun a le droit de décider où l'on montre sa photo : on <strong>demande toujours l'accord</strong>.", ['parc', [e('appareilPhoto', 35, 1.8), e('lina', 68, 1.4)]], { n: 1 }],
+  ["Un vieux jouet qui marche encore…", "peut être donné ou réparé", ["doit toujours être jeté", "devient dangereux"], "<strong>Donner</strong> ou <strong>réparer</strong> un objet évite de gaspiller et de faire des déchets.", ['maison', [e('boite', 50, 2)]], { n: 1 }],
+  ["Une bouteille en plastique vide va…", "dans la poubelle de tri, pour être recyclée", ["dans la nature", "dans les toilettes"], "Le plastique se <strong>recycle</strong> : on le met dans la poubelle de tri.", ['cuisine', [e('bouteille', 50, 2.4)]]],
+]);
+
+/* ---------- Les circuits électriques ---------- */
+plusCE(B_CIRCUIT, [
+  ["Lequel fonctionne avec une <strong>pile</strong> ?", "une lampe de poche", ["un vélo", "un livre"], "La <strong>lampe de poche</strong> a une pile qui fournit l'électricité à son ampoule.", ['maison', [e('pile', 50, 2.4)]]],
+  ["Les fils électriques sont entourés de plastique pour…", "protéger et empêcher de toucher le métal", ["les rendre jolis seulement", "faire passer le courant"], "Le plastique ne laisse pas passer le courant : c'est un <strong>isolant</strong> qui protège.", ['maison', [e('prise', 50, 2.4)]], { n: 1 }],
+  ["Lequel laisse passer le courant électrique ?", "une clé en métal", ["une gomme", "un bout de bois"], "Les <strong>métaux</strong> laissent passer le courant : ce sont des conducteurs.", ['classe', [e('pile', 35, 2), e('ampoule', 65, 2)]], { n: 1 }],
+  ["Lequel ne laisse <strong>pas</strong> passer le courant électrique ?", "une règle en plastique", ["un trombone en métal", "une pièce de monnaie"], "Le <strong>plastique</strong> ne laisse pas passer le courant : c'est un isolant.", ['classe', [e('pile', 35, 2), e('ampoule', 65, 2)]], { n: 1 }],
+  ["Une ampoule allumée donne…", "de la lumière et un peu de chaleur", ["de l'eau", "du vent"], "L'ampoule transforme l'électricité en <strong>lumière</strong>, et un peu en chaleur.", ['maison', [e('ampoule', 50, 2.6, { n: true })]]],
+  ["Quand la pile est usée, l'ampoule…", "s'éteint ou brille faiblement", ["brille plus fort", "change de couleur"], "Une pile usée ne fournit plus assez d'électricité : l'ampoule <strong>faiblit</strong> puis s'éteint.", ['classe', [e('pile', 35, 2), e('ampoule', 65, 2)]]],
+  ["Une pile usagée se jette…", "dans un bac de collecte spécial", ["dans la poubelle de la cuisine", "dans la nature"], "Les piles contiennent des produits qui <strong>polluent</strong> : on les dépose dans un bac de collecte (au supermarché, à l'école…).", ['maison', [e('pile', 50, 2.4)]], { n: 1 }],
+  ["L'interrupteur de la classe sert à…", "allumer et éteindre la lumière", ["ouvrir la porte", "chauffer la classe"], "L'<strong>interrupteur</strong> ferme le circuit (la lumière s'allume) ou l'ouvre (elle s'éteint).", ['classe', [e('tableauNoir', 50, 1.6)]]],
+  ["Pour allumer une ampoule avec une pile, il faut relier…", "l'ampoule aux deux bornes de la pile", ["l'ampoule à une seule borne", "l'ampoule à une prise de la maison"], "Le courant doit faire une <strong>boucle</strong> : il sort par une borne, traverse l'ampoule et revient par l'autre.", ['classe', [e('pile', 35, 2), e('ampoule', 65, 2)]], { n: 1 }],
+  ["Lequel a un petit moteur électrique ?", "une voiture télécommandée", ["un ballon", "une poupée en tissu"], "La voiture télécommandée a des <strong>piles</strong> et un moteur qui fait tourner ses roues.", ['maison', [e('voiture', 30, .8), e('ballon', 55, 1.3), e('poupee', 80, 1.3)]], { n: 1 }],
+  ["Il ne faut jamais…", "mettre un objet dans une prise électrique", ["allumer une lampe de poche", "changer une pile avec un adulte"], "Le courant des <strong>prises</strong> peut tuer : on n'y met jamais ni doigt ni objet.", ['maison', [e('prise', 50, 2.4)]]],
+  ["Les éclairs d'un orage sont…", "de l'électricité très dangereuse", ["de l'eau", "de la lumière sans danger"], "L'éclair est une énorme décharge d'<strong>électricité</strong> : pendant l'orage, on s'abrite dans un bâtiment.", ['ciel', [e('nuage', 50, 2, {}, 70)]], { n: 1 }],
+]);
+
+/* ---------- Les mécanismes ---------- */
+plusCE(B_MECA, [
+  ["Les <strong>roues</strong> servent à…", "faire rouler les objets facilement", ["couper", "éclairer"], "Grâce aux <strong>roues</strong>, on déplace des charges lourdes en les faisant rouler.", ['jardin', [e('brouette', 50, 2)]]],
+  ["Une <strong>paire de ciseaux</strong> est faite de…", "deux leviers", ["deux roues", "une poulie"], "Chaque lame est un <strong>levier</strong> qui tourne autour de la vis du milieu.", ['classe', [e('ciseaux', 50, 2.4)]], { n: 1 }],
+  ["Une <strong>grue</strong> soulève des charges très lourdes grâce…", "à des câbles et des poulies", ["à des ballons", "à des ressorts de lit"], "Les câbles passent dans des <strong>poulies</strong> : un moteur enroule le câble et la charge monte.", ['rue', [e('maison', 50, 1.4)]], { n: 1 }],
+  ["Sur une balançoire à bascule, le point d'appui est…", "au milieu", ["au bout", "sous un siège"], "La planche tourne autour du <strong>point d'appui</strong>, placé au milieu.", ['parc', [e('bascule', 50, 2)]]],
+  ["Une brouette permet de transporter…", "des charges lourdes plus facilement", ["seulement de l'eau", "des personnes très vite"], "La brouette est un <strong>levier</strong> avec une roue : on soulève facilement une lourde charge.", ['jardin', [e('brouette', 50, 2)]]],
+  ["Pour casser une noix facilement, on utilise…", "un casse-noix", ["une règle", "une cuillère"], "Le <strong>casse-noix</strong> est un levier : il multiplie la force de la main.", ['cuisine', [e('table', 50, 2.4), e('bol', 50, 1.6, {}, 131)]]],
+  ["Une grande roue dentée fait 1 tour. La petite roue, deux fois plus petite, qui s'engrène avec elle, fait…", "2 tours", ["1 tour", "un demi-tour"], "La petite roue a deux fois moins de dents : elle doit faire <strong>2 tours</strong> pendant que la grande en fait 1.", ['maison', [e('roueDentee', 40, 2.2), e('roueDentee', 70, 1.2)]], { n: 1 }],
+  ["Pour remonter le seau d'un puits, on tourne…", "une manivelle", ["une pédale", "un interrupteur"], "La <strong>manivelle</strong> fait tourner le treuil, qui enroule la corde.", ['ferme', [e('seau', 50, 2)]], { n: 1 }],
+  ["Une poignée de porte, un robinet, une clé dans une serrure : pour s'en servir, on les fait…", "tourner", ["glisser", "sauter"], "Ces objets <strong>tournent</strong> autour d'un axe.", ['maison', [e('porte', 50, 1.8)]]],
+  ["Une <strong>pince à linge</strong> est…", "un levier", ["une roue", "une poulie"], "En appuyant au bout, on ouvre la pince : chaque branche est un <strong>levier</strong>.", ['jardin', [e('filLinge', 50, 2)]], { n: 1 }],
+  ["Pour ouvrir une porte lourde en poussant le moins fort possible, on pousse…", "loin des gonds, du côté de la poignée", ["tout près des gonds", "au milieu du sol"], "Plus on pousse <strong>loin de l'axe</strong> (les gonds), moins il faut de force.", ['maison', [e('porte', 50, 1.8)]], { n: 1 }],
+  ["Un tourniquet du parc…", "tourne autour d'un axe", ["avance en ligne droite", "monte et descend"], "Le tourniquet <strong>tourne</strong> autour de son axe, au centre.", ['parc', [e('tourniquet', 50, 2)]]],
+]);
+
+/* ---------- La sécurité à la maison ---------- */
+plusCE(B_SECU, [
+  ["On ne touche pas la porte d'un four chaud, parce que…", "on peut se brûler", ["elle est sale", "elle est fragile"], "Le four devient très <strong>chaud</strong> : on peut se brûler gravement.", ['cuisine', [e('cuisinier', 50, 1.3)]]],
+  ["Pour sortir un plat chaud du four, un adulte prend…", "des gants de cuisine", ["ses doigts", "un torchon mouillé"], "Les <strong>gants de cuisine</strong> protègent de la chaleur. (Un tissu mouillé, lui, laisse passer la chaleur !)", ['cuisine', [e('casserole', 50, 2.6)]], { n: 1 }],
+  ["On s'est un peu brûlé le doigt. On met la brûlure…", "sous l'eau froide", ["sous l'eau très chaude", "au soleil"], "L'<strong>eau froide</strong> pendant plusieurs minutes calme la brûlure. Ensuite, on prévient un adulte.", ['cuisine', [e('verreEau', 50, 2.2)]], { n: 1 }],
+  ["Les allumettes et les briquets…", "ne sont pas des jouets", ["sont des jouets", "servent à éclairer la chambre"], "Le feu peut se propager très vite : allumettes et briquets <strong>ne sont pas des jouets</strong>.", ['maison', [e('table', 50, 2.4), e('bougie', 50, 1.6, {}, 131)]]],
+  ["Il y a de la fumée dans la maison. Il faut…", "sortir vite et faire appeler les pompiers", ["se cacher sous le lit", "aller chercher ses jouets"], "On <strong>sort</strong> tout de suite, sans revenir chercher ses affaires, et on fait appeler le 18 ou le 112.", ['maison', [e('fenetre', 50, 2)]]],
+  ["Dans une pièce pleine de fumée, on se déplace…", "à quatre pattes, près du sol", ["debout sur une chaise", "en courant les yeux fermés"], "La fumée monte : l'air est moins toxique <strong>près du sol</strong>.", ['maison', [e('porte', 50, 1.8)]], { n: 1 }],
+  ["Les produits ménagers se rangent…", "en hauteur, hors de portée des enfants", ["par terre", "dans le frigo avec les jus"], "On les range <strong>en hauteur</strong> ou dans un placard fermé, pour que les petits ne puissent pas les attraper.", ['maison', [e('etagere', 50, 1.8)]]],
+  ["On a avalé un produit dangereux par erreur. Il faut…", "prévenir tout de suite un adulte", ["attendre sans rien dire", "boire du soda"], "On prévient <strong>tout de suite</strong> un adulte, qui appellera le centre antipoison ou le 15.", ['maison', [e('flacon', 50, 2.2, { n: 'tete' })]]],
+  ["Le casque à vélo sert à…", "protéger la tête en cas de chute", ["avoir chaud", "écouter de la musique"], "En cas de chute, le <strong>casque</strong> protège la tête.", ['route', [e('velo', 50, 1.6)]]],
+  ["Pour traverser la rue, on passe…", "sur le passage piéton", ["n'importe où", "entre deux voitures garées"], "Sur le <strong>passage piéton</strong>, les conducteurs s'attendent à voir des piétons.", ['rue', [e('lina', 50, 1.4)]]],
+  ["Avant de traverser, on regarde…", "à gauche, à droite, puis encore à gauche", ["seulement devant soi", "son téléphone"], "On regarde des <strong>deux côtés</strong>, et on traverse quand aucune voiture n'arrive.", ['rue', [e('leo', 50, 1.4)]]],
+  ["Le feu des piétons est rouge. On…", "attend", ["traverse en courant", "traverse doucement"], "Feu <strong>rouge</strong> : on attend que le petit bonhomme passe au vert.", ['rue', [e('lina', 40, 1.4), e('voiture', 75, .7)]]],
+  ["En voiture, un enfant doit…", "être attaché, dans un siège adapté", ["rester debout", "s'asseoir sans ceinture"], "La <strong>ceinture</strong> et le siège adapté protègent en cas de freinage brusque ou d'accident.", ['route', [e('voiture', 50, 1)]]],
+  ["Au bord de la piscine, peut-on courir ?", "Non, on peut glisser et tomber", ["Oui, c'est plus rapide"], "Le sol mouillé <strong>glisse</strong> : on marche au bord du bassin.", ['piscine', [e('plongeoir', 60, 1.4)]]],
+  ["Quand on appelle les secours, on dit…", "son nom, l'adresse et ce qui se passe", ["seulement « au secours », puis on raccroche", "rien du tout"], "Les secours ont besoin de savoir <strong>qui</strong> appelle, <strong>où</strong> venir et <strong>ce qui se passe</strong>. On raccroche seulement quand ils le disent.", ['maison', [e('telephone', 50, 2.2)]], { n: 1 }],
+  ["Un chien qu'on ne connaît pas…", "on ne le caresse pas sans demander à son maître", ["on le caresse tout de suite", "on lui tire la queue"], "Un chien inconnu peut avoir peur et mordre : on <strong>demande d'abord</strong> à son maître.", ['rue', [e('chien', 50, 1.8)]]],
+  ["Les personnes sourdes ou malentendantes peuvent appeler les secours par SMS au…", 114, null, "Le <strong>114</strong> reçoit les SMS d'urgence des personnes qui ne peuvent pas parler ou entendre au téléphone.", ['maison', [e('telephone', 50, 2.2)]], { n: 1, v: "Les personnes sourdes ou malentendantes peuvent appeler les secours par message, à quel numéro ?" }],
+]);
+
+/* ---------- La Terre et le Soleil ---------- */
+plusCE(B_TERRE, [
+  ["Le Soleil se couche…", "à l'ouest", ["à l'est", "au nord"], "Le Soleil se lève à l'est et se couche à l'<strong>ouest</strong>.", ['montagne', [e('soleil', 50, 1.4, {}, 150)]]],
+  ["Vers midi, le Soleil est…", "au plus haut dans le ciel", ["caché sous la Terre", "tout près de l'horizon"], "Vers le milieu de la journée, le Soleil atteint sa position <strong>la plus haute</strong>.", ['jardin', [e('arbre', 40, 1.6)]]],
+  ["En été, en France, les jours sont…", "plus longs que les nuits", ["plus courts que les nuits", "de 6 heures seulement"], "En été, le Soleil se lève tôt et se couche tard : les jours sont <strong>plus longs</strong> que les nuits.", ['plage', [e('parasol', 50, 1.8)]]],
+  ["Combien y a-t-il de saisons dans une année ?", 4, null, "Printemps, été, automne, hiver : <strong>4</strong> saisons.", ['jardin', [e('pommier', 50, 1.8)]], { v: "Combien y a-t-il de saisons dans une année ?" }],
+  ["Combien d'heures dure une journée entière (le jour et la nuit) ?", 24, null, "La Terre fait un tour sur elle-même en <strong>24 heures</strong>.", ['maison', [e('reveil', 50, 2.2)]], { n: 1, u: 'h', v: "Combien d'heures dure une journée entière, le jour et la nuit ?" }],
+  ["La Terre a la forme…", "d'une boule", ["d'une assiette plate", "d'un cube"], "La Terre est une grosse <strong>boule</strong> : on le voit sur les photos prises depuis l'espace.", ['ciel', [e('nuage', 50, 1.6, {}, 80)]]],
+  ["L'étoile la plus proche de la Terre est…", "le Soleil", ["la Lune", "Mars"], "Le <strong>Soleil</strong> est une étoile, et c'est la plus proche de nous. La Lune n'est pas une étoile, et Mars est une planète.", ['nuit', [e('maison', 50, 1.4)]], { n: 1 }],
+  ["Au cours d'un mois, la forme éclairée de la Lune change : ce sont…", "les phases de la Lune", ["les saisons de la Lune", "les éclipses"], "Pleine lune, croissant… : ce sont les <strong>phases</strong> de la Lune.", ['nuit', [e('lune', 50, 1.6, {}, 70)]], { n: 1 }],
+  ["Ton ombre se trouve…", "du côté opposé au Soleil", ["du côté du Soleil", "toujours devant toi"], "Ton corps arrête la lumière : l'ombre se forme <strong>de l'autre côté</strong> que le Soleil.", ['parc', [e('leo', 50, 1.4)]], { n: 1 }],
+  ["Le matin, quand le Soleil est bas, ton ombre est…", "longue", ["courte", "absente"], "Soleil bas = ombre <strong>longue</strong> ; Soleil haut (midi) = ombre courte.", ['parc', [e('lina', 50, 1.4)]], { n: 1 }],
+  ["La Terre tourne autour…", "du Soleil", ["de la Lune", "de Mars"], "La Terre fait le tour du <strong>Soleil</strong> en un an.", ['nuit', [e('lune', 70, 1.2, {}, 60)]]],
+  ["Pour aller dans l'espace, les astronautes partent dans…", "une fusée", ["un avion", "un bateau"], "Seule une <strong>fusée</strong> est assez puissante pour quitter l'atmosphère.", ['ciel', [e('nuage', 40, 1.4, {}, 90)]]],
+  ["Les étoiles, on les voit…", "la nuit", ["seulement à midi", "jamais"], "Les étoiles sont toujours là, mais le jour la lumière du Soleil les cache : on les voit <strong>la nuit</strong>.", ['rue', [e('maison', 50, 1.4)]]],
+  ["Une année compte…", "12 mois", ["7 mois", "24 mois"], "De janvier à décembre : <strong>12 mois</strong>.", ['classe', [e('tableauNoir', 50, 1.6)]]],
+  ["Combien de jours compte une semaine ?", 7, null, "Du lundi au dimanche : <strong>7 jours</strong>.", ['classe', [e('tableauNoir', 50, 1.6)]], { u: 'jours' }],
+  ["On ne regarde jamais le Soleil directement, parce que…", "cela abîme les yeux", ["il est trop loin pour être vu", "cela fait éternuer"], "La lumière du Soleil est si forte qu'elle peut <strong>brûler les yeux</strong>, même avec des lunettes de soleil.", ['plage', [e('lunettesSoleil', 50, 2)]]],
+]);
 
 /* ============================================================
    MNEMOSCIENCES — LES SCHÉMAS À LA CRAIE (CM, 6e – 5e, 4e – 3e)
@@ -3515,6 +3805,112 @@ function schemaQuiz(cle, q) {
   const m = MOTS_QUIZ.find(([re, n]) => possibles.includes(n) && re.test(t));
   return m ? schemaPour(q, m[1]) : null;
 }
+
+/* ---------- 6e – 5e et 4e – 3e ---------- */
+Object.assign(SCHEMAS, {
+  balanceEprouvette: () => sch(chemin('M50 200 L170 200 L160 170 L60 170 Z') + chemin('M70 166 L150 166', CRAIE, 4) + `<rect x="85" y="182" width="50" height="10" fill="${VERT}" opacity=".7"/>` + chemin('M250 60 L250 200 L290 200 L290 60 M240 200 L300 200', CRAIE) + `<rect x="253" y="110" width="34" height="88" fill="${BLEU}" opacity=".5"/>` + [80, 100, 120, 140, 160, 180].map((y) => ligne(250, y, 262, y, CRAIE, 1.6)).join(''), 'Une balance et une éprouvette graduée'),
+  bougie: () => sch(`<rect x="170" y="130" width="40" height="80" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + ligne(190, 130, 190, 118, CRAIE, 2) + `<path d="M190 70 Q176 96 184 112 Q190 120 196 112 Q204 96 190 70 Z" fill="${JAUNE}"/><path d="M190 90 Q184 104 188 112 Q192 114 194 108 Q196 100 190 90 Z" fill="${ROUGE}" opacity=".7"/>` + chemin('M120 40 L120 215 L260 215 L260 40', CRAIE, 2) + chemin('M200 60 q-6 -10 0 -20 q6 -10 0 -20', '#aeb6bf', 2), 'Une bougie qui brûle sous une cloche'),
+  route: () => sch(chemin('M20 180 L360 180', CRAIE, 3) + [60, 120, 180, 240, 300].map((x) => ligne(x, 196, x + 26, 196, CRAIE, 2)).join('') + chemin('M60 176 L60 150 L80 140 L130 140 L150 156 L160 176 Z', JAUNE) + rond(80, 178, 10) + rond(140, 178, 10) + rond(290, 80, 26) + chemin('M290 80 L290 62 M290 80 L304 88', ROUGE) + `<rect x="284" y="46" width="12" height="6" fill="${CRAIE}"/>`, 'Une voiture sur une route et un chronomètre'),
+  circuitPile: () => sch(ligne(60, 60, 60, 105) + ligne(60, 145, 60, 200) + ligne(52, 105, 88, 105, CRAIE, 4) + ligne(60, 145, 80, 145, CRAIE, 8) + ligne(60, 60, 320, 60) + ligne(320, 60, 320, 200) + ligne(320, 200, 60, 200) + rond(190, 60, 18, CRAIE, '#22352b') + ligne(178, 48, 202, 72, CRAIE, 2) + ligne(202, 48, 178, 72, CRAIE, 2) + rond(190, 200, 18, CRAIE, '#22352b') + ligne(178, 188, 202, 212, CRAIE, 2) + ligne(202, 188, 178, 212, CRAIE, 2), 'Un circuit avec une pile et deux lampes'),
+  particules: () => sch([[20, 'solide'], [140, 'liquide'], [260, 'gaz']].map(([x, t], k) => `<rect x="${x}" y="60" width="100" height="130" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + (k === 0 ? [0, 1, 2, 3, 4].flatMap((i) => [0, 1, 2, 3, 4].map((j) => rond(x + 14 + i * 18, 114 + j * 18, 7, JAUNE, JAUNE, 1))).join('') : k === 1 ? [[16, 176], [34, 172], [52, 178], [70, 172], [86, 176], [24, 158], [44, 154], [62, 160], [80, 152], [14, 140], [36, 136], [58, 140], [78, 136], [92, 158]].map(([a, b]) => rond(x + a, b, 7, BLEU, BLEU, 1)).join('') : [[20, 80], [70, 90], [40, 130], [85, 150], [25, 175], [60, 170]].map(([a, b]) => rond(x + a, b, 7, ROSE, ROSE, 1)).join(''))).join(''), 'Trois boîtes : des particules serrées et rangées, serrées en désordre, très éloignées'),
+  del: () => sch(ligne(60, 60, 60, 105) + ligne(60, 145, 60, 200) + ligne(52, 105, 88, 105, CRAIE, 4) + ligne(60, 145, 80, 145, CRAIE, 8) + ligne(60, 60, 175, 60) + chemin('M175 44 L175 76 L205 60 Z', CRAIE, 3) + ligne(205, 44, 205, 76, CRAIE, 3) + chemin('M196 36 l12 -12 M206 40 l12 -12', JAUNE, 2) + ligne(205, 60, 320, 60) + ligne(320, 60, 320, 200) + ligne(320, 200, 60, 200), 'Un circuit avec une pile et une diode'),
+  ombre: () => sch(rond(60, 110, 16, JAUNE, JAUNE) + [[200, 90], [200, 150]].map(([x, y]) => ligne(72, 110, 330, y === 90 ? 40 : 200, JAUNE, 1.6)).join('') + `<rect x="190" y="88" width="20" height="64" fill="${CRAIE}"/>` + ligne(330, 20, 330, 220, CRAIE, 4) + `<rect x="326" y="40" width="8" height="160" fill="#0d1520" opacity=".8"/>`, 'Une lampe, un objet opaque et son ombre sur un mur'),
+  eclipse: () => sch(rond(60, 120, 34, JAUNE, JAUNE) + rond(200, 120, 10, '#aeb6bf', '#aeb6bf') + rond(320, 120, 34, BLEU, BLEU) + chemin('M70 86 L330 108 M70 154 L330 132', JAUNE, 1.4) + `<path d="M206 112 L320 104 L320 136 L206 128 Z" fill="#0d1520" opacity=".5"/>`, 'Le Soleil, la Lune et la Terre alignés'),
+  cellule: () => sch(`<ellipse cx="110" cy="120" rx="80" ry="64" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + rond(120, 112, 18, ROSE, ROSE, 2) + `<rect x="210" y="56" width="150" height="128" rx="6" fill="none" stroke="${VERT}" stroke-width="5"/><rect x="218" y="64" width="134" height="112" rx="4" fill="none" stroke="${CRAIE}" stroke-width="2"/>` + rond(300, 100, 16, ROSE, ROSE, 2) + [[240, 150], [262, 88], [330, 150], [250, 120]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="10" ry="6" fill="${VERT}"/>`).join(''), 'Deux cellules vues au microscope, sans légende'),
+  fermentation: () => sch(chemin('M60 110 L60 200 L140 200 L140 110 Z') + `<rect x="62" y="130" width="76" height="68" fill="${CRAIE}" opacity=".7"/>` + chemin('M54 110 L146 110', CRAIE, 5) + `<path d="M220 200 Q210 150 260 140 Q310 130 340 160 Q352 200 330 200 Z" fill="#e6a23c" opacity=".85"/>` + [[255, 165], [285, 160], [310, 176], [270, 185], [300, 150], [240, 182]].map(([x, y]) => rond(x, y, 4, '#7a4a12', '#7a4a12', 1)).join(''), 'Un pot de yaourt et un pain gonflé de petites bulles'),
+  photosynthese: () => sch(rond(60, 50, 24, JAUNE, JAUNE) + fleche(84, 64, 160, 100, JAUNE) + chemin('M190 210 L190 90') + chemin('M190 150 Q150 130 140 100 Q170 110 190 140 M190 120 Q230 100 250 70 Q220 80 190 110', VERT, 3, VERT) + chemin('M190 210 L170 236 M190 210 L190 238 M190 210 L212 236 M178 224 L166 232', '#c9a26b', 2.4) + `<rect x="0" y="210" width="380" height="30" fill="#5d4037" opacity=".5"/>` + fleche(300, 120, 250, 110, CRAIE) + fleche(240, 150, 300, 165, BLEU), 'Une plante éclairée par le Soleil, ses feuilles et ses racines'),
+  prototype: () => sch(`<rect x="30" y="60" width="130" height="150" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + [90, 110, 130, 150, 170].map((y) => ligne(45, y, 145, y, CRAIE, 1.4)).join('') + fleche(170, 135, 210, 135, JAUNE) + chemin('M240 170 L240 110 L290 90 L340 110 L340 170 L290 190 Z M240 110 L290 130 L340 110 M290 130 L290 190', JAUNE), 'Un cahier des charges puis un premier modèle en volume'),
+  systeme: () => sch(rond(20, 120, 50, JAUNE, JAUNE) + [[90, 4, '#b2babb'], [115, 6, '#f5cba7'], [145, 7, BLEU], [172, 5, ROUGE], [215, 18, '#f0b27a'], [270, 15, '#f7dc6f'], [318, 10, '#aed6f1'], [354, 10, '#5d6d7e']].map(([x, r, c]) => rond(x, 120, r, c, c, 1)).join(''), 'Le Soleil et les planètes, sans leurs noms'),
+  chaineInfo: () => sch([[20, 50], [140, 50], [260, 50], [20, 150], [140, 150], [260, 150]].map(([x, y]) => `<rect x="${x}" y="${y}" width="100" height="50" rx="8" fill="none" stroke="${y === 50 ? BLEU : JAUNE}" stroke-width="3"/>`).join('') + fleche(122, 75, 138, 75, BLEU) + fleche(242, 75, 258, 75, BLEU) + fleche(122, 175, 138, 175, JAUNE) + fleche(242, 175, 258, 175, JAUNE) + fleche(310, 102, 310, 148, CRAIE), 'Deux rangées de cases reliées par des flèches : la chaîne d\'information en haut, la chaîne d\'énergie en bas'),
+  pont: () => sch(chemin('M20 180 L360 180', CRAIE, 4) + [40, 100, 160, 220, 280].map((x) => chemin(`M${x} 180 L${x + 30} 120 L${x + 60} 180`, JAUNE, 3)).join('') + ligne(70, 120, 310, 120, JAUNE, 3) + `<rect x="10" y="180" width="30" height="50" fill="${CRAIE}" opacity=".5"/><rect x="340" y="180" width="30" height="50" fill="${CRAIE}" opacity=".5"/>`, 'Un pont fait de triangles'),
+  ordiCapteurs: () => sch(`<rect x="130" y="70" width="120" height="80" rx="6" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + ligne(170, 150, 210, 150, CRAIE, 6) + `<rect x="150" y="160" width="80" height="14" fill="none" stroke="${CRAIE}" stroke-width="2"/>` + rond(50, 110, 20, BLEU) + rond(50, 110, 8, BLEU, BLEU) + fleche(72, 110, 128, 110, BLEU) + fleche(252, 110, 300, 110, JAUNE) + rond(330, 110, 24, JAUNE) + chemin('M318 110 L342 110 M330 98 L330 122', JAUNE, 3), 'Un ordinateur entre un capteur et un moteur'),
+  molecules: () => sch([[90, 120, ROUGE], [60, 150, CRAIE], [120, 150, CRAIE]].map(([x, y, c]) => rond(x, y, 18, c, c, 1)).join('') + [[230, 130, ROUGE], [270, 130, '#555'], [310, 130, ROUGE]].map(([x, y, c]) => rond(x, y, 18, c, c, 1)).join(''), 'Deux modèles de molécules en boules'),
+  ohm: () => sch(ligne(60, 60, 60, 105) + ligne(60, 145, 60, 200) + ligne(52, 105, 88, 105, CRAIE, 4) + ligne(60, 145, 80, 145, CRAIE, 8) + ligne(60, 60, 160, 60) + `<rect x="160" y="50" width="60" height="20" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + ligne(220, 60, 320, 60) + ligne(320, 60, 320, 105) + rond(320, 125, 20, JAUNE) + ligne(306, 111, 334, 139, JAUNE, 2) + ligne(334, 111, 306, 139, JAUNE, 2) + ligne(320, 145, 320, 200) + ligne(320, 200, 60, 200) + ligne(170, 60, 170, 120, CRAIE, 2) + ligne(210, 60, 210, 120, CRAIE, 2) + rond(190, 130, 20, BLEU) + ligne(170, 120, 172, 125, CRAIE, 2), 'Un circuit avec une résistance et deux appareils de mesure, sans légende'),
+  son: () => sch(chemin('M40 110 L60 110 L90 80 L90 160 L60 130 L40 130 Z') + [0, 1, 2, 3].map((i) => chemin(`M${110 + i * 22} ${100 - i * 8} q${14 + i * 4} ${20 + i * 8} 0 ${40 + i * 16}`, CRAIE, 2.4)).join('') + chemin('M280 40 L262 100 L282 100 L264 170', JAUNE, 4) + chemin('M300 190 Q320 170 340 190 Q360 200 350 210 L300 210 Q290 200 300 190', CRAIE, 2), 'Un haut-parleur qui émet un son, un éclair et un nuage'),
+  atome: () => sch(rond(190, 120, 22, ROUGE, 'none') + [[182, 114, ROUGE], [196, 112, CRAIE], [188, 128, CRAIE], [200, 126, ROUGE]].map(([x, y, c]) => rond(x, y, 7, c, c, 1)).join('') + `<ellipse cx="190" cy="120" rx="120" ry="44" fill="none" stroke="${BLEU}" stroke-width="2"/><ellipse cx="190" cy="120" rx="120" ry="44" fill="none" stroke="${BLEU}" stroke-width="2" transform="rotate(60 190 120)"/><ellipse cx="190" cy="120" rx="120" ry="44" fill="none" stroke="${BLEU}" stroke-width="2" transform="rotate(-60 190 120)"/>` + [[310, 120], [130, 16], [130, 224]].map(([x, y]) => rond(x, y, 6, BLEU, BLEU)).join(''), 'Un atome : un noyau et des électrons autour'),
+  ph: () => sch(`<defs><linearGradient id="gph" x1="0" x2="1"><stop offset="0" stop-color="#e74c3c"/><stop offset=".3" stop-color="#f1c40f"/><stop offset=".5" stop-color="#2ecc71"/><stop offset=".75" stop-color="#3498db"/><stop offset="1" stop-color="#8e44ad"/></linearGradient></defs><rect x="30" y="100" width="320" height="40" rx="6" fill="url(#gph)"/>` + [0, 7, 14].map((v) => txt(30 + v * 320 / 14, 170, String(v), { taille: 18, gras: true })).join('') + becher(120, 80, 40, 50, 0.6, JAUNE) + becher(260, 80, 40, 50, 0.6, BLEU), 'L\'échelle de pH de 0 à 14 et deux solutions'),
+  forces: () => sch(rond(190, 230, 120, BLEU, BLEU) + rond(190, 60, 14, ROUGE, ROUGE) + ligne(190, 46, 194, 38, VERT, 3) + fleche(190, 78, 190, 120, JAUNE) + chemin('M300 60 l20 0 l0 40 l-6 0 l0 20 l-8 0 l0 -20 l-6 0 Z', CRAIE, 2), 'Une pomme attirée vers la Terre, et un dynamomètre'),
+  chute: () => sch(chemin('M40 210 L40 40 L120 40', CRAIE, 3) + rond(150, 50, 14, ROUGE, ROUGE) + [90, 130, 175].map((y, i) => rond(150, y, 14, ROUGE, 'none', 1.6)).join('') + fleche(180, 60, 180, 190, JAUNE) + chemin('M20 210 L360 210', CRAIE, 2), 'Une balle lâchée d\'en haut : elle tombe de plus en plus vite'),
+  plaques: () => sch(`<path d="M0 100 L200 100 L240 180 L0 180 Z" fill="#8d6e63" opacity=".6"/><path d="M200 100 L380 90 L380 170 L250 150 Z" fill="#5d4037" opacity=".7"/>` + chemin('M200 100 L240 180 M200 100 L380 90', CRAIE, 2) + fleche(90, 140, 150, 140, CRAIE) + fleche(340, 120, 290, 122, CRAIE) + `<path d="M0 180 L380 180 L380 240 L0 240 Z" fill="${ROUGE}" opacity=".35"/>` + chemin('M240 88 L250 60 L262 88', CRAIE, 2), 'Deux plaques qui se rapprochent : l\'une plonge sous l\'autre'),
+  neurone: () => sch(rond(110, 120, 22, ROSE, 'none') + rond(110, 120, 7, ROSE, ROSE) + [0, 60, 120, 180, 240].map((a) => chemin(`M${110 + 22 * Math.cos(a * Math.PI / 180)} ${120 + 22 * Math.sin(a * Math.PI / 180)} l${20 * Math.cos(a * Math.PI / 180)} ${20 * Math.sin(a * Math.PI / 180)}`, ROSE, 2)).join('') + chemin('M132 120 L300 120', ROSE, 4) + chemin('M300 120 l20 -16 M300 120 l22 0 M300 120 l20 16', ROSE, 2.4) + [180, 220, 260].map((x) => fleche(x, 106, x + 26, 106, JAUNE)).join(''), 'Un neurone : le message nerveux circule le long de la cellule'),
+  adn: () => sch(Array.from({ length: 13 }, (_, i) => { const y = 30 + i * 15, a = i * 0.6, x1 = 150 + 40 * Math.sin(a), x2 = 150 - 40 * Math.sin(a); return ligne(x1, y, x2, y, i % 2 ? BLEU : JAUNE, 3) + rond(x1, y, 4, ROSE, ROSE, 1) + rond(x2, y, 4, VERT, VERT, 1); }).join('') + `<g transform="translate(290 120)"><rect x="-30" y="-12" width="60" height="24" rx="12" fill="${ROSE}" transform="rotate(60)"/><rect x="-60" y="-12" width="120" height="24" rx="12" fill="${ROSE}" transform="rotate(-60)"/><rect x="-60" y="-12" width="120" height="24" rx="12" fill="${ROSE}" opacity=".85" transform="rotate(60)"/>` + rond(0, 0, 8, CRAIE, CRAIE, 1) + '</g>', 'La double hélice de l\'ADN et un chromosome'),
+  arbreVie: () => sch(chemin('M190 220 L190 160 L120 110 L80 50 M120 110 L150 50 M190 160 L260 110 L230 50 M260 110 L310 50', VERT, 4) + [[80, 50], [150, 50], [230, 50], [310, 50]].map(([x, y]) => rond(x, y - 10, 9, CRAIE, CRAIE)).join(''), 'Un arbre de parenté : des espèces qui ont des ancêtres communs'),
+  defenses: () => sch(rond(120, 120, 46, CRAIE, 'none') + rond(120, 120, 14, ROSE, ROSE) + chemin('M150 90 q20 -10 30 10', CRAIE, 2) + [[240, 80], [290, 120], [250, 170]].map(([x, y]) => `<rect x="${x - 16}" y="${y - 7}" width="32" height="14" rx="7" fill="${VERT}" opacity=".8"/>`).join('') + [[330, 60]].map(([x, y]) => rond(x, y, 10, ROUGE, 'none') + [0, 60, 120, 180, 240, 300].map((a) => ligne(x + 10 * Math.cos(a * Math.PI / 180), y + 10 * Math.sin(a * Math.PI / 180), x + 16 * Math.cos(a * Math.PI / 180), y + 16 * Math.sin(a * Math.PI / 180), ROUGE, 2)).join('')).join(''), 'Un globule blanc, des bactéries et un virus'),
+  carte: () => sch(`<rect x="110" y="40" width="160" height="160" rx="14" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + [0, 1, 2, 3, 4].flatMap((i) => [0, 1, 2, 3, 4].map((j) => `<rect x="${150 + i * 18}" y="${80 + j * 18}" width="8" height="8" fill="${(i + j) % 3 ? '#22352b' : ROUGE}" stroke="${CRAIE}" stroke-width="1"/>`)).join('') + rond(130, 120, 9, CRAIE) + rond(250, 120, 9, CRAIE) + txt(130, 150, 'A', { taille: 14, gras: true }) + txt(250, 150, 'B', { taille: 14, gras: true }), 'Une carte programmable avec ses petites lumières et deux boutons'),
+  simulation: () => sch(`<rect x="60" y="40" width="260" height="150" rx="6" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + chemin('M90 150 Q190 60 290 150', BLEU, 3) + [110, 150, 190, 230, 270].map((x) => ligne(x, 150 - (x === 190 ? 70 : x === 150 || x === 230 ? 50 : 20), x, 150, ROUGE, 2)).join('') + ligne(80, 150, 300, 150, CRAIE, 2) + ligne(170, 190, 210, 190, CRAIE, 6), 'Un écran d\'ordinateur qui simule un pont et ses efforts'),
+  cyber: () => sch(chemin('M150 120 L150 92 Q150 64 190 64 Q230 64 230 92 L230 120', CRAIE, 6) + `<rect x="130" y="120" width="120" height="90" rx="10" fill="${JAUNE}" opacity=".85"/>` + rond(190, 160, 10, '#22352b', '#22352b'), 'Un cadenas : la protection des données'),
+  organigramme: () => sch(`<ellipse cx="190" cy="30" rx="50" ry="16" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + fleche(190, 46, 190, 66) + `<rect x="140" y="66" width="100" height="32" fill="none" stroke="${BLEU}" stroke-width="3"/>` + fleche(190, 98, 190, 116) + chemin('M190 116 L240 146 L190 176 L140 146 Z', JAUNE) + fleche(190, 176, 190, 200) + `<ellipse cx="190" cy="216" rx="50" ry="16" fill="none" stroke="${CRAIE}" stroke-width="3"/>` + chemin('M240 146 L300 146 L300 82 L244 82', JAUNE, 2) + chemin('M244 82 l8 -5 l0 10 Z', JAUNE, 2), 'Un organigramme : des formes reliées par des flèches, sans texte'),
+});
+Object.assign(SCHEMA_NOTION, {
+  'Masse et volume': ['balanceEprouvette'],
+  'Les transformations chimiques': ['bougie'],
+  'La vitesse moyenne': ['route'],
+  'Circuits en série et en dérivation': ['circuitPile'],
+  'Le modèle particulaire': ['particules', [/molécule d'eau/i, 'molecules']],
+  'Le courant électrique': ['del', [/conducteur|isolant|corps humain|bois sec/i, 'testeur']],
+  'La lumière': ['ombre', [/éclipse|Lune|phases|Soleil met/i, 'eclipse']],
+  'La cellule': ['cellule'],
+  'Groupes emboîtés et parenté': ['groupes', [/arbre de parenté|chimpanzé|crocodile|proches parentes/i, 'arbreVie']],
+  'Micro-organismes et production alimentaire': ['fermentation', [/engrais|agriculture/i, 'photosynthese']],
+  'La Terre et le climat': ['meteo', [/courants marins|équateur|air chaud/i, 'climat']],
+  'Le corps humain et l\'effort': ['respiration', [/cœur|sang|artère|fréquence cardiaque|récupération/i, 'circulation']],
+  'La nutrition des plantes': ['photosynthese'],
+  'Cahier des charges et prototype': ['prototype'],
+  'Boucles et conditions': ['blocs'],
+  'La Terre dans le système solaire': ['systeme', [/météo et climat|Lune n'a pas/i, 'meteo']],
+  'Chaîne d\'énergie et chaîne d\'information': ['chaineInfo'],
+  'Matériaux et structures': ['pont'],
+  'L\'ordinateur, les capteurs et les actionneurs': ['ordiCapteurs'],
+  'Atomes, molécules et combustions': ['bougie', [/molécule est formée|eau de chaux/i, 'molecules']],
+  'Tension, intensité et loi d\'Ohm': ['ohm'],
+  'Le son et la lumière': ['son', [/lumière blanche|lumière se propage/i, 'eclipse']],
+  'L\'atome, les ions et le pH': ['atome', [/pH|acide|basique|dilue/i, 'ph']],
+  'Forces, poids et masse': ['forces'],
+  'Énergie et puissance': ['chute'],
+  'Tectonique, volcans et séismes': ['plaques', [/éruption|volcan|lave/i, 'volcan'], [/foyer|sismographe|parasismique/i, 'seisme']],
+  'Reproduction et hormones': [null, [/puberté/i, 'croissance']],
+  'Le système nerveux': ['neurone'],
+  'Chromosomes, ADN et gènes': ['adn'],
+  'L\'évolution et la sélection naturelle': ['arbreVie', [/fossile/i, 'fossile']],
+  'Microbes, défenses du corps et vaccination': ['defenses'],
+  'Les enjeux planétaires': ['climat', [/énergies renouvelables|transition/i, 'energies'], [/biodiversité/i, 'biodiv']],
+  'Les objets connectés': ['reseau'],
+  'La simulation numérique': ['simulation'],
+  'Variables, événements et capteurs': ['carte'],
+  'Projet et développement durable': ['recyclage', [/prototype|planning|Gantt|cahier/i, 'prototype']],
+  'Réseaux et cybersécurité': ['cyber', [/adresse IP|routage|DNS/i, 'reseau']],
+  'Représentation fonctionnelle et algorithmes': ['organigramme', [/chaîne|ascenseur|portail|diagramme fonctionnel/i, 'chaineInfo']],
+});
+PAS_DE_SCHEMA.push(/d'électrons|nucléons, dont/, /cellule végétale a en plus|Qu'a une cellule végétale/, /La Terre est la … planète|Les planètes géantes gazeuses/, /symbole d'une lampe/);
+Object.assign(NOTIONS_QUIZ, {
+  '65-matiere': ['Masse et volume', 'Les transformations chimiques', 'La vitesse moyenne', 'Circuits en série et en dérivation', 'Le modèle particulaire', 'Le courant électrique', 'La lumière'],
+  '65-vivant': ['La cellule', 'Groupes emboîtés et parenté', 'Micro-organismes et production alimentaire', 'La Terre et le climat', 'Le corps humain et l\'effort', 'La nutrition des plantes'],
+  '65-technique': ['Cahier des charges et prototype', 'Boucles et conditions', 'La Terre dans le système solaire', 'Chaîne d\'énergie et chaîne d\'information', 'Matériaux et structures', 'L\'ordinateur, les capteurs et les actionneurs'],
+  '43-matiere': ['Atomes, molécules et combustions', 'Tension, intensité et loi d\'Ohm', 'Le son et la lumière', 'L\'atome, les ions et le pH', 'Forces, poids et masse', 'Énergie et puissance'],
+  '43-vivant': ['Tectonique, volcans et séismes', 'Reproduction et hormones', 'Le système nerveux', 'Chromosomes, ADN et gènes', 'L\'évolution et la sélection naturelle', 'Microbes, défenses du corps et vaccination', 'Les enjeux planétaires'],
+  '43-technique': ['Les objets connectés', 'La simulation numérique', 'Variables, événements et capteurs', 'Projet et développement durable', 'Réseaux et cybersécurité', 'Représentation fonctionnelle et algorithmes'],
+});
+MOTS_QUIZ.push(
+  [/masse|volume|mL|kg/i, 'Masse et volume'], [/transformation chimique|glace qui fond/i, 'Les transformations chimiques'], [/vitesse|km\/h/i, 'La vitesse moyenne'],
+  [/série|dérivation|prises d'une maison|énergie peut-elle/i, 'Circuits en série et en dérivation'], [/particules|changement d'état/i, 'Le modèle particulaire'],
+  [/courant va|diode/i, 'Le courant électrique'], [/lumière|éclipse|Soleil est une source/i, 'La lumière'],
+  [/cellule|noyau|membrane|microscope|unicellulaire/i, 'La cellule'], [/groupes emboîtés|attributs|inclus/i, 'Groupes emboîtés et parenté'],
+  [/fermentation|levure|pain gonfle/i, 'Micro-organismes et production alimentaire'], [/climat se calcule|aléa/i, 'La Terre et le climat'],
+  [/effort|muscles|alvéoles/i, 'Le corps humain et l\'effort'], [/photosynthèse|stomates|sève/i, 'La nutrition des plantes'],
+  [/cahier des charges|prototype/i, 'Cahier des charges et prototype'], [/condition|boucle|variable/i, 'Boucles et conditions'],
+  [/vie est possible|planètes/i, 'La Terre dans le système solaire'], [/chaîne|capteur|actionneur|détecteur|moteur est/i, 'Chaîne d\'énergie et chaîne d\'information'],
+  [/corde|pilier|triangle/i, 'Matériaux et structures'], [/processeur|mémoire|clavier|écran|octet/i, 'L\'ordinateur, les capteurs et les actionneurs'],
+  [/molécule|feu|eau de chaux|atomes/i, 'Atomes, molécules et combustions'], [/tension|intensité|loi d'Ohm|série, les/i, 'Tension, intensité et loi d\'Ohm'],
+  [/son|lumière est/i, 'Le son et la lumière'], [/noyau d'un atome|atome est|pH/i, 'L\'atome, les ions et le pH'],
+  [/force|poids|g vaut/i, 'Forces, poids et masse'], [/énergie cinétique|puissance|E = /i, 'Énergie et puissance'],
+  [/plaque|épicentre|subduction/i, 'Tectonique, volcans et séismes'], [/hormones|asexuée/i, 'Reproduction et hormones'],
+  [/neurone|synapse/i, 'Le système nerveux'], [/chromosomes|gène|allèles|mitose|méiose/i, 'Chromosomes, ADN et gènes'],
+  [/Darwin|mutation|sélection/i, 'L\'évolution et la sélection naturelle'], [/phagocytose|anticorps|antibiotiques|vaccin/i, 'Microbes, défenses du corps et vaccination'],
+  [/développement durable/i, 'Les enjeux planétaires'], [/objet connecté|protocole|fibre/i, 'Les objets connectés'],
+  [/simulation/i, 'La simulation numérique'], [/microcontrôleur|événement|téléverser/i, 'Variables, événements et capteurs'],
+  [/piliers|écoconception|Gantt/i, 'Projet et développement durable'], [/adresse IP|IPv4|DNS|hameçonnage|RGPD/i, 'Réseaux et cybersécurité'],
+  [/organigramme|Acquérir/i, 'Représentation fonctionnelle et algorithmes'],
+);
 
 /* ------------------------------------------------------------
    L'ACCUEIL : les quatre onglets de niveau, les trois parties, la liste des exercices
@@ -3646,7 +4042,9 @@ function showQuestion() {
   const q = game.questions[game.index];
   game.essais = 0; game.repondu = false;
   $('nat-sentence').innerHTML = `<span class="mm-enonce">${nbspFr(q.enonce)}</span>${q.figure ? `<span class="mm-figure">${q.figure}</span>` : ''}`;
+  clearTimeout(minuteurSorcier);
   $('nat-character-stage').innerHTML = '';
+  $('nat-character-stage').classList.remove('part');
   $('nat-correction').classList.add('hidden');
   $('nat-verdict-square').className = 'verdict-square';
   $('nat-instruction').textContent = q.saisie ? 'Écris ta réponse :' : 'Choisis la bonne réponse :';
@@ -3719,8 +4117,23 @@ function erreur(choisie) {
   const q = game.questions[game.index];
   if (game.essais === 0) game.erreurs.push({ question: q.court || voixMaths(q.voix || q.enonce).slice(0, 90), bonne: q.rep, choisie, notion: q.notion });
   game.essais += 1;
-  if (game.essais < 2) showCharacter('bad');
+  if (game.essais < 2) { showCharacter('bad'); retireSorcier(3000); }
 }
+/* Le sorcier se place sur le tableau, par-dessus la figure (thermomètre, schéma…). Après une erreur, le joueur
+   doit la revoir pour réessayer : le sorcier s'en va donc tout seul au bout de quelques secondes, ou dès que
+   le joueur touche une réponse ou une touche du clavier. */
+let minuteurSorcier = null;
+function retireSorcier(delai = 0) {
+  clearTimeout(minuteurSorcier);
+  minuteurSorcier = setTimeout(() => {
+    const st = $('nat-character-stage');
+    if (!st.firstChild || st.classList.contains('part')) return;
+    st.classList.add('part');
+    setTimeout(() => { if (st.classList.contains('part')) { st.innerHTML = ''; st.classList.remove('part'); } }, 400);
+  }, delai);
+}
+document.addEventListener('pointerdown', (e) => { if (e.target.closest('#mm-zone') && !game.repondu) retireSorcier(); });
+document.addEventListener('keydown', () => { if (!game.repondu && $('nat-character-stage')?.firstChild) retireSorcier(); });
 function repondu(juste) {
   const q = game.questions[game.index];
   game.repondu = true;
@@ -3737,6 +4150,8 @@ function repondu(juste) {
   $('nat-score-label').textContent = scoreLabel(game.score);
   $('nat-next-button').textContent = game.index + 1 < game.questions.length ? 'Suivant →' : 'Voir mon score →';
   showCharacter(juste ? 'good' : 'bad');
+  /* s'il y a une figure (souvent complétée par la correction), le sorcier la libère au bout de 4 secondes */
+  if (q.figure || q.figureCorrection) retireSorcier(4000);
   setTimeout(() => $('nat-next-button').focus({ preventScroll: true }), 60);
 }
 function nextQuestion() {
@@ -3785,6 +4200,7 @@ function showCharacter(camp) {
   }
   if (/\{[rR]ep\}/.test(msg)) msg = pick(ch.messages.filter((m) => !/\{[rR]ep\}/.test(m)));
   recentMessages.push(msg); if (recentMessages.length > 4) recentMessages.shift();
+  clearTimeout(minuteurSorcier);
   const stage = $('nat-character-stage');
   stage.className = `character-stage ${camp}`;
   stage.innerHTML = `<div class="bubble${photo ? ' has-photo' : ''}">${photo ? `<img class="bubble-photo" src="${photo}" alt="" />` : ''}<div><span class="who">${ch.nom}</span>${nbspFr(msg)}</div></div>${characterSvg(id)}`;
@@ -3920,6 +4336,9 @@ if (firebaseReady) {
     auth = firebase.auth();
     db = firebase.firestore();
     try { db.settings({ experimentalAutoDetectLongPolling: true }); } catch (e) {}
+    /* v8 : hors connexion, Firestore garde une copie des scores sur l'appareil ; un score fait sans internet
+       attend dans cette réserve et part tout seul quand la connexion revient. */
+    db.enablePersistence({ synchronizeTabs: true }).catch((e) => console.warn('Mode hors connexion des scores', e.code));
   } catch (e) { console.warn('Firebase', e); }
 }
 
@@ -4010,7 +4429,7 @@ function profileFieldsHtml(prefix, p, withConsent) {
     <button type="button" class="secondary-button add-adulte" id="${prefix}-add-adulte">+ Ajouter un proche (papi, mamie, tonton…)</button>
     <!-- v12 : deux options à cocher -->
     <label class="account-option"><input type="checkbox" id="${prefix}-opt-sorciers"${optSorciers(p) ? ' checked' : ''} />
-      <span><b>Les sorciers encouragent le joueur</b> (option plutôt réservée aux enfants).<br>Après chaque réponse, un sorcier apparaît ; les prénoms servent à personnaliser ses encouragements (« Joseph, tu es un génie de la grammaire ! », « Ton papa Marc sera fier de toi ! »).</span></label>
+      <span><b>Les sorciers encouragent le joueur</b> (option plutôt réservée aux enfants).<br>Après chaque réponse, un sorcier apparaît ; les prénoms servent à personnaliser ses encouragements (« Joseph, tu es un génie des sciences ! », « Ton papa Marc sera fier de toi ! »).</span></label>
     <label class="account-option"><input type="checkbox" id="${prefix}-opt-envoi"${optEnvoi(p) ? ' checked' : ''} />
       <span><b>Envoyer les résultats par e-mail</b>.<br>Les adresses e-mail des proches servent seulement à leur envoyer les scores et le bilan de progression.</span></label>
     ${withConsent ? `<label class="account-consent"><input type="checkbox" id="${prefix}-consent" required /><span>Je suis le parent ou l'adulte responsable de cet enfant, et je crée ce compte pour lui.</span></label>` : ''}`;
@@ -4551,3 +4970,9 @@ $('fiche-modal').addEventListener('click', (e) => { if (e.target.id === 'fiche-m
 if (auth) wireAccount();
 updateAccountBar();
 showPanel('welcome');
+
+/* v8 : HORS CONNEXION. Le « service worker » (sw.js) range une copie de l'application sur l'appareil
+   à la première visite, puis la sert quand internet manque. */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Hors connexion', e)));
+}
