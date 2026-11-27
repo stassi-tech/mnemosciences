@@ -8,8 +8,11 @@
 'use strict';
 
 /* Numéro de version affiché à l'écran (bandeau du haut) : à augmenter à chaque modification.
-   v1 : l'ossature (copie de MNEMOMATHS), les personnages, la mosaïque, et tout le CE1 – CE2. */
-const APP_VERSION = 'v1';
+   v1 : l'ossature (copie de MNEMOMATHS), les personnages, la mosaïque, et tout le CE1 – CE2.
+   v2 : tout le CM1 – CM2 (matériaux, mélanges, énergies, trajectoires, classification, digestion, respiration, puberté, algorithmes avec le lutin, réseaux, climat…).
+   v3 : tout le 6e – 5e (masse et volume, vitesse, circuits en série et en dérivation, modèle particulaire, lumière, cellule, photosynthèse, effort, boucles et conditions, chaînes d'énergie et d'information, structures, ordinateur…).
+   v4 : tout le 4e – 3e (combustions, loi d'Ohm, son, atomes et pH, poids, énergie ; tectonique, hormones, système nerveux, génétique, évolution, immunologie ; objets connectés, simulation, cartes programmables, cybersécurité…) : tout le programme est construit. */
+const APP_VERSION = 'v4';
 
 const $ = (id) => document.getElementById(id);
 const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -485,25 +488,53 @@ const PARCOURS = {
     { jeu: 'ce-bilan-mat', mix: ['etats', 'eau', 'air', 'mouv'], n: 14, titre: 'Tout sur la matière, le mouvement et l\'énergie', classes: ['ce'], bilan: true,
       consigne: `<strong>Bilan</strong> : tout ce que tu as appris sur la matière, le mouvement et l'énergie, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
     { jeu: 'ce-quiz-mat', quiz: 'ce-matiere', n: 12, titre: 'Quiz de cours : matière, mouvement, énergie', classes: ['ce'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
-    { titre: 'Les familles de matériaux et leurs propriétés', classes: ['cm'], avenir: true },
-    { titre: 'Mélanges, dissolution, filtration, décantation', classes: ['cm'], avenir: true },
-    { titre: 'Les sources d\'énergie, renouvelables ou non', classes: ['cm'], avenir: true },
-    { titre: 'Décrire un mouvement : trajectoire et vitesse', classes: ['cm'], avenir: true },
-    { titre: 'Les chaînes d\'énergie', classes: ['cm'], avenir: true },
-    { titre: 'Les signaux et l\'information', classes: ['cm'], avenir: true },
-    { titre: 'Masse et volume', classes: ['65'], avenir: true },
-    { titre: 'Transformations chimiques simples', classes: ['65'], avenir: true },
-    { titre: 'La vitesse moyenne', classes: ['65'], avenir: true },
-    { titre: 'Les circuits en série et en dérivation', classes: ['65'], avenir: true },
-    { titre: 'Le modèle particulaire et la conservation de la masse (5e)', classes: ['65'], avenir: true },
-    { titre: 'Conducteurs et isolants, sens du courant (5e)', classes: ['65'], avenir: true },
-    { titre: 'La lumière : sources, propagation, ombres et éclipses (5e)', classes: ['65'], avenir: true },
-    { titre: 'Atomes, molécules et combustions (4e)', classes: ['43'], avenir: true },
-    { titre: 'Tension, intensité et loi d\'Ohm (4e)', classes: ['43'], avenir: true },
-    { titre: 'Le son et la lumière (4e)', classes: ['43'], avenir: true },
-    { titre: 'L\'atome, les ions et le pH (3e)', classes: ['43'], avenir: true },
-    { titre: 'Forces, poids et masse, gravitation (3e)', classes: ['43'], avenir: true },
-    { titre: 'Énergie, puissance et énergie électrique (3e)', classes: ['43'], avenir: true },
+    { jeu: 'cm-materiaux', gen: 'materiaux', titre: 'Les familles de matériaux et leurs propriétés', classes: ['cm'],
+      consigne: `Métal, verre, plastique, matériaux minéraux ou d'origine vivante : d'où viennent-ils ? Lesquels sont attirés par un aimant, lesquels conduisent le courant ? ${regle}` },
+    { jeu: 'cm-melanges', gen: 'melanges', titre: 'Mélanges, dissolution, filtration, décantation', classes: ['cm'],
+      consigne: `Mélange homogène ou hétérogène ? Comment séparer le sable de l'eau, récupérer le sel d'une eau salée ? Attention : se dissoudre n'est pas fondre ! ${regle}` },
+    { jeu: 'cm-energie', gen: 'energie', titre: 'Les sources d\'énergie, renouvelables ou non', classes: ['cm'],
+      consigne: `Soleil, vent, eau, bois, pétrole, charbon, gaz, uranium : quelles énergies s'épuisent, lesquelles se renouvellent ? ${regle}` },
+    { jeu: 'cm-mouv', gen: 'mouv2', titre: 'Décrire un mouvement : trajectoire et vitesse', classes: ['cm'],
+      consigne: `Des objets photographiés à intervalles réguliers : leur trajectoire est-elle droite, circulaire ou courbe ? Leur vitesse augmente-t-elle, diminue-t-elle ou reste-t-elle la même ? ${regle}` },
+    { jeu: 'cm-conv', gen: 'conv', titre: 'Les chaînes d\'énergie', classes: ['cm'],
+      consigne: `Source → convertisseur → énergie utile : une lampe, un moteur, un radiateur, une éolienne transforment l'énergie d'une forme en une autre. ${regle}` },
+    { jeu: 'cm-signaux', gen: 'signaux', titre: 'Les signaux et l\'information', classes: ['cm'],
+      consigne: `Signal lumineux, sonore ou radio : comment transmettre une information, de l'émetteur au récepteur ? ${regle}` },
+    { jeu: 'cm-bilan-mat', mix: ['materiaux', 'melanges', 'energie', 'mouv2', 'conv', 'signaux'], n: 14, titre: 'Tout sur la matière, le mouvement et l\'énergie (CM)', classes: ['cm'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris au CM sur la matière, le mouvement, l'énergie et les signaux, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: 'cm-quiz-mat', quiz: 'cm-matiere', n: 12, titre: 'Quiz de cours : matière, mouvement, énergie (CM)', classes: ['cm'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
+    { jeu: '65-masse', gen: 'masse', titre: 'Masse et volume', classes: ['65'],
+      consigne: `Balance, éprouvette, conversions (g, kg, mL, L, cm³), et le volume d'un caillou mesuré par déplacement d'eau. ${regle}` },
+    { jeu: '65-transfo', gen: 'transfo', titre: 'Transformations chimiques simples', classes: ['65'],
+      consigne: `Changement d'état, mélange ou transformation chimique ? Une transformation chimique fait apparaître de nouvelles substances. ${regle}` },
+    { jeu: '65-vitesse', gen: 'vitesse', titre: 'La vitesse moyenne', classes: ['65'],
+      consigne: `v = d ÷ t, d = v × t, t = d ÷ v : calcule des vitesses, des distances et des durées, en km/h et en m/s. ${regle}` },
+    { jeu: '65-circuits', gen: 'circuits65', titre: 'Les circuits en série et en dérivation', classes: ['65'],
+      consigne: `Deux lampes sur une même boucle ou sur deux boucles ? Que se passe-t-il si on en dévisse une ? Et où passe l'énergie perdue ? ${regle}` },
+    { jeu: '65-particules', gen: 'particules', titre: 'Le modèle particulaire et la conservation de la masse (5e)', classes: ['65'],
+      consigne: `Comment sont rangées les particules dans un solide, un liquide, un gaz ? Pourquoi la masse se conserve-t-elle ? ${regle}` },
+    { jeu: '65-courant', gen: 'courant', titre: 'Conducteurs et isolants, sens du courant (5e)', classes: ['65'],
+      consigne: `Le sens conventionnel du courant, la diode, les conducteurs et les isolants, les symboles et le court-circuit. ${regle}` },
+    { jeu: '65-lumiere', gen: 'lumiere', titre: 'La lumière : sources, propagation, ombres et éclipses (5e)', classes: ['65'],
+      consigne: `Sources primaires et objets diffusants, propagation en ligne droite, ombres, éclipses et phases de la Lune. ${regle}` },
+    { jeu: '65-bilan-mat', mix: ['masse', 'transfo', 'vitesse', 'circuits65', 'particules', 'courant', 'lumiere'], n: 14, titre: 'Tout sur la matière, le mouvement et l\'énergie (6e – 5e)', classes: ['65'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris en 6e et en 5e en physique-chimie, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: '65-quiz-mat', quiz: '65-matiere', n: 12, titre: 'Quiz de cours : matière, mouvement, énergie (6e – 5e)', classes: ['65'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
+    { jeu: '43-combustion', gen: 'combustion', titre: 'Atomes, molécules et combustions (4e)', classes: ['43'],
+      consigne: `Formules des molécules, triangle du feu, produits d'une combustion, conservation des atomes et de la masse. ${regle}` },
+    { jeu: '43-ohm', gen: 'ohm', titre: 'Tension, intensité et loi d\'Ohm (4e)', classes: ['43'],
+      consigne: `Voltmètre et ampèremètre, U = R × I, et les lois des tensions et des intensités en série et en dérivation. ${regle}` },
+    { jeu: '43-son', gen: 'son', titre: 'Le son et la lumière (4e)', classes: ['43'],
+      consigne: `Vitesses du son et de la lumière (calcule la distance d'un orage !), fréquences, spectre de la lumière blanche. ${regle}` },
+    { jeu: '43-atome', gen: 'atome', titre: 'L\'atome, les ions et le pH (3e)', classes: ['43'],
+      consigne: `Protons, neutrons, électrons ; ions positifs et négatifs ; solutions acides, neutres ou basiques. ${regle}` },
+    { jeu: '43-forces', gen: 'forces', titre: 'Forces, poids et masse, gravitation (3e)', classes: ['43'],
+      consigne: `P = m × g sur la Terre et sur la Lune, actions de contact et à distance, gravitation universelle. ${regle}` },
+    { jeu: '43-energie', gen: 'energie43', titre: 'Énergie, puissance et énergie électrique (3e)', classes: ['43'],
+      consigne: `Énergie cinétique et potentielle, E = P × t en joules et en kilowattheures, Ec = ½ m v². ${regle}` },
+    { jeu: '43-bilan-mat', mix: ['combustion', 'ohm', 'son', 'atome', 'forces', 'energie43'], n: 14, titre: 'Tout sur la physique-chimie (4e – 3e)', classes: ['43'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris en 4e et en 3e en physique-chimie, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: '43-quiz-mat', quiz: '43-matiere', n: 12, titre: 'Quiz de cours : physique-chimie (4e – 3e)', classes: ['43'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions, les formules et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
   ],
   vivant: [
     { jeu: 'ce-vivant', gen: 'vivant', titre: 'Le vivant et ses besoins', classes: ['ce'],
@@ -517,25 +548,53 @@ const PARCOURS = {
     { jeu: 'ce-bilan-viv', mix: ['vivant', 'sante', 'cycle', 'chaine'], n: 14, titre: 'Tout sur le vivant', classes: ['ce'], bilan: true,
       consigne: `<strong>Bilan</strong> : tout ce que tu as appris sur le vivant, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
     { jeu: 'ce-quiz-viv', quiz: 'ce-vivant', n: 12, titre: 'Quiz de cours : le vivant', classes: ['ce'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
-    { titre: 'Classer les êtres vivants', classes: ['cm'], avenir: true },
-    { titre: 'La digestion', classes: ['cm'], avenir: true },
-    { titre: 'Décomposition et recyclage de la matière organique', classes: ['cm'], avenir: true },
-    { titre: 'Respiration et circulation sanguine', classes: ['cm'], avenir: true },
-    { titre: 'La puberté et la reproduction humaine', classes: ['cm'], avenir: true },
-    { titre: 'La biodiversité et l\'évolution', classes: ['cm'], avenir: true },
-    { titre: 'La cellule', classes: ['65'], avenir: true },
-    { titre: 'Groupes emboîtés et parenté', classes: ['65'], avenir: true },
-    { titre: 'Micro-organismes et production alimentaire', classes: ['65'], avenir: true },
-    { titre: 'La Terre et le climat (5e)', classes: ['65'], avenir: true },
-    { titre: 'Le corps humain et l\'effort (5e)', classes: ['65'], avenir: true },
-    { titre: 'La nutrition des plantes (5e)', classes: ['65'], avenir: true },
-    { titre: 'Tectonique des plaques, volcans et séismes (4e)', classes: ['43'], avenir: true },
-    { titre: 'Reproduction et hormones (4e)', classes: ['43'], avenir: true },
-    { titre: 'Le système nerveux (4e)', classes: ['43'], avenir: true },
-    { titre: 'Chromosomes, ADN et gènes (3e)', classes: ['43'], avenir: true },
-    { titre: 'L\'évolution et la sélection naturelle (3e)', classes: ['43'], avenir: true },
-    { titre: 'Microbes, défenses du corps et vaccination (3e)', classes: ['43'], avenir: true },
-    { titre: 'Les enjeux planétaires (3e)', classes: ['43'], avenir: true },
+    { jeu: 'cm-classe', gen: 'classe', titre: 'Classer les êtres vivants', classes: ['cm'],
+      consigne: `On classe les animaux selon ce qu'ils possèdent : squelette, poils, plumes, mamelles, nombre de pattes. La chauve-souris est-elle un oiseau ? ${regle}` },
+    { jeu: 'cm-digestion', gen: 'digestion', titre: 'La digestion', classes: ['cm'],
+      consigne: `Le trajet des aliments dans le tube digestif, de la bouche à l'intestin, et ce que deviennent les nutriments. ${regle}` },
+    { jeu: 'cm-decompo', gen: 'decompo', titre: 'Décomposition et recyclage de la matière organique', classes: ['cm'],
+      consigne: `Vers de terre, champignons, bactéries : les décomposeurs transforment les feuilles mortes et les épluchures en humus et en compost. ${regle}` },
+    { jeu: 'cm-respi', gen: 'respi', titre: 'Respiration et circulation sanguine', classes: ['cm'],
+      consigne: `Les poumons, le cœur, le sang : comment le dioxygène et les nutriments arrivent jusqu'aux muscles. ${regle}` },
+    { jeu: 'cm-repro', gen: 'repro', titre: 'La puberté et la reproduction humaine', classes: ['cm'],
+      consigne: `Les changements du corps à la puberté, les cellules reproductrices, la fécondation et la grossesse. ${regle}` },
+    { jeu: 'cm-biodiv', gen: 'biodiv', titre: 'La biodiversité et l\'évolution', classes: ['cm'],
+      consigne: `Les fossiles, les espèces éteintes, l'évolution, et ce que font les humains pour abîmer ou protéger la biodiversité. ${regle}` },
+    { jeu: 'cm-bilan-viv', mix: ['classe', 'digestion', 'decompo', 'respi', 'repro', 'biodiv'], n: 14, titre: 'Tout sur le vivant (CM)', classes: ['cm'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris au CM sur le vivant, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: 'cm-quiz-viv', quiz: 'cm-vivant', n: 12, titre: 'Quiz de cours : le vivant (CM)', classes: ['cm'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
+    { jeu: '65-cellule', gen: 'cellule', titre: 'La cellule', classes: ['65'],
+      consigne: `Noyau, membrane, cytoplasme, paroi et chloroplastes ; unicellulaires et pluricellulaires ; le grossissement du microscope. ${regle}` },
+    { jeu: '65-parente', gen: 'parente', titre: 'Groupes emboîtés et parenté', classes: ['65'],
+      consigne: `Classer par attributs partagés, des groupes qui s'emboîtent, et ce qu'un arbre de parenté nous apprend. ${regle}` },
+    { jeu: '65-microbes', gen: 'microbes', titre: 'Micro-organismes et production alimentaire', classes: ['65'],
+      consigne: `Yaourt, pain, fromage : les fermentations ; conserver les aliments ; l'agriculture raisonnée. ${regle}` },
+    { jeu: '65-climat', gen: 'climat65', titre: 'La Terre et le climat (5e)', classes: ['65'],
+      consigne: `Météo et climat, masses d'air et courants marins, instruments de mesure, aléas et risques. ${regle}` },
+    { jeu: '65-effort', gen: 'effort', titre: 'Le corps humain et l\'effort (5e)', classes: ['65'],
+      consigne: `Comment le cœur et les poumons apportent dioxygène et nutriments aux muscles ; calcule une fréquence cardiaque. ${regle}` },
+    { jeu: '65-plantes', gen: 'plantes', titre: 'La nutrition des plantes (5e)', classes: ['65'],
+      consigne: `La photosynthèse, les racines, les stomates, la sève brute et la sève élaborée. ${regle}` },
+    { jeu: '65-bilan-viv', mix: ['cellule', 'parente', 'microbes', 'climat65', 'effort', 'plantes'], n: 14, titre: 'Tout sur le vivant (6e – 5e)', classes: ['65'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris en 6e et en 5e en sciences de la vie et de la Terre, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: '65-quiz-viv', quiz: '65-vivant', n: 12, titre: 'Quiz de cours : le vivant (6e – 5e)', classes: ['65'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
+    { jeu: '43-tecto', gen: 'tecto', titre: 'Tectonique des plaques, volcans et séismes (4e)', classes: ['43'],
+      consigne: `Plaques, dorsales et subductions, éruptions effusives et explosives, foyer et épicentre, prévention des risques. ${regle}` },
+    { jeu: '43-repro', gen: 'repro43', titre: 'Reproduction et hormones (4e)', classes: ['43'],
+      consigne: `Reproduction sexuée et asexuée, gamètes, hormones, cycle menstruel, contraception. ${regle}` },
+    { jeu: '43-nerfs', gen: 'nerfs', titre: 'Le système nerveux (4e)', classes: ['43'],
+      consigne: `Cerveau, moelle épinière, nerfs et neurones ; perception ; sommeil, réflexes et effets des substances sur les synapses. ${regle}` },
+    { jeu: '43-genetique', gen: 'genetique', titre: 'Chromosomes, ADN et gènes (3e)', classes: ['43'],
+      consigne: `46 chromosomes, gènes et allèles, XX et XY, mitose et méiose, ce qui fait de chacun un être unique. ${regle}` },
+    { jeu: '43-evolution', gen: 'evolution', titre: 'L\'évolution et la sélection naturelle (3e)', classes: ['43'],
+      consigne: `Darwin, mutations, sélection naturelle, résistance aux antibiotiques, ancêtres communs. ${regle}` },
+    { jeu: '43-immuno', gen: 'immuno', titre: 'Microbes, défenses du corps et vaccination (3e)', classes: ['43'],
+      consigne: `Barrières naturelles, phagocytose, lymphocytes et anticorps, vaccins, antibiotiques et virus. ${regle}` },
+    { jeu: '43-enjeux', gen: 'enjeux', titre: 'Les enjeux planétaires (3e)', classes: ['43'],
+      consigne: `Ressources, transition énergétique, climat, biodiversité, développement durable. ${regle}` },
+    { jeu: '43-bilan-viv', mix: ['tecto', 'repro43', 'nerfs', 'genetique', 'evolution', 'immuno', 'enjeux'], n: 14, titre: 'Tout sur les SVT (4e – 3e)', classes: ['43'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris en 4e et en 3e en sciences de la vie et de la Terre, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: '43-quiz-viv', quiz: '43-vivant', n: 12, titre: 'Quiz de cours : SVT (4e – 3e)', classes: ['43'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions, les formules et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
   ],
   technique: [
     { jeu: 'ce-objets', gen: 'objets', titre: 'Les objets et le numérique', classes: ['ce'],
@@ -551,24 +610,51 @@ const PARCOURS = {
     { jeu: 'ce-bilan-tec', mix: ['objets', 'circuit', 'meca', 'secu', 'terre'], n: 14, titre: 'Tout sur les objets techniques et la Terre', classes: ['ce'], bilan: true,
       consigne: `<strong>Bilan</strong> : tout ce que tu as appris sur les objets techniques et la Terre, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
     { jeu: 'ce-quiz-tec', quiz: 'ce-technique', n: 12, titre: 'Quiz de cours : objets techniques et Terre', classes: ['ce'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
-    { titre: 'Analyser un objet technique', classes: ['cm'], avenir: true },
-    { titre: 'Algorithmes et programmation (Scratch)', classes: ['cm'], avenir: true },
-    { titre: 'Les mouvements de la Terre, les séismes et les volcans', classes: ['cm'], avenir: true },
-    { titre: 'Choisir un matériau, le recyclage', classes: ['cm'], avenir: true },
-    { titre: 'Les réseaux informatiques', classes: ['cm'], avenir: true },
-    { titre: 'Ressources, risques naturels et changement climatique', classes: ['cm'], avenir: true },
-    { titre: 'Cahier des charges et prototype', classes: ['65'], avenir: true },
-    { titre: 'Programmer avec des boucles et des conditions', classes: ['65'], avenir: true },
-    { titre: 'La Terre dans le système solaire, météo et climat', classes: ['65'], avenir: true },
-    { titre: 'Chaîne d\'énergie et chaîne d\'information (5e)', classes: ['65'], avenir: true },
-    { titre: 'Matériaux et structures (5e)', classes: ['65'], avenir: true },
-    { titre: 'L\'ordinateur, les capteurs et les actionneurs (5e)', classes: ['65'], avenir: true },
-    { titre: 'Les objets connectés (4e)', classes: ['43'], avenir: true },
-    { titre: 'La simulation numérique (4e)', classes: ['43'], avenir: true },
-    { titre: 'Variables, événements et capteurs (4e)', classes: ['43'], avenir: true },
-    { titre: 'Projet et développement durable (3e)', classes: ['43'], avenir: true },
-    { titre: 'Réseaux, adresses IP et cybersécurité (3e)', classes: ['43'], avenir: true },
-    { titre: 'Représentation fonctionnelle et algorithmes (3e)', classes: ['43'], avenir: true },
+    { jeu: 'cm-analyse', gen: 'analyse', titre: 'Analyser un objet technique', classes: ['cm'],
+      consigne: `Le besoin, la fonction d'usage, la fonction d'estime, et la fonction technique de chaque pièce. ${regle}` },
+    { jeu: 'cm-algo', gen: 'algo', titre: 'Algorithmes et programmation (Scratch)', classes: ['cm'],
+      consigne: `Suis le programme du lutin pas à pas sur le quadrillage, puis (au CM2) avec la boucle « répéter ». Tourner à droite ou à gauche, c'est par rapport au lutin ! ${regle}` },
+    { jeu: 'cm-terre2', gen: 'terre2', titre: 'Les mouvements de la Terre, les séismes et les volcans', classes: ['cm'],
+      consigne: `Rotation, révolution, saisons ; et la Terre qui bouge : séismes, volcans, plaques, tsunamis. ${regle}` },
+    { jeu: 'cm-recycle', gen: 'recycle', titre: 'Choisir un matériau, le recyclage', classes: ['cm'],
+      consigne: `Pourquoi choisir le verre, le cuivre ou l'acier pour un objet ? Comment trier, réduire, réutiliser et recycler ? ${regle}` },
+    { jeu: 'cm-reseau', gen: 'reseau', titre: 'Les réseaux informatiques', classes: ['cm'],
+      consigne: `La box, le Wi-Fi, le routeur, le serveur, Internet : comment les informations voyagent d'un ordinateur à l'autre. ${regle}` },
+    { jeu: 'cm-climat', gen: 'climat', titre: 'Ressources, risques naturels et changement climatique', classes: ['cm'],
+      consigne: `L'eau douce et l'énergie à économiser, les risques naturels à prévoir, l'effet de serre et le réchauffement du climat. ${regle}` },
+    { jeu: 'cm-bilan-tec', mix: ['analyse', 'algo', 'terre2', 'recycle', 'reseau', 'climat'], n: 14, titre: 'Tout sur les objets techniques et la Terre (CM)', classes: ['cm'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris au CM sur les objets techniques, l'informatique et la Terre, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: 'cm-quiz-tec', quiz: 'cm-technique', n: 12, titre: 'Quiz de cours : objets techniques et Terre (CM)', classes: ['cm'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
+    { jeu: '65-cdc', gen: 'cdc', titre: 'Cahier des charges et prototype', classes: ['65'],
+      consigne: `Du besoin au prototype : cahier des charges, contraintes, modélisation 3D, essais et améliorations. ${regle}` },
+    { jeu: '65-cond', gen: 'cond', titre: 'Programmer avec des boucles et des conditions', classes: ['65'],
+      consigne: `Suis des petits programmes : boucles, variables, « si … alors … sinon », capteurs. Que vaut le score ? Que fait le robot ? ${regle}` },
+    { jeu: '65-systsol', gen: 'systsol', titre: 'La Terre dans le système solaire, météo et climat', classes: ['65'],
+      consigne: `Pourquoi la vie est-elle possible sur Terre ? Planètes rocheuses et géantes, eau liquide, atmosphère. ${regle}` },
+    { jeu: '65-chaines', gen: 'chaines', titre: 'Chaîne d\'énergie et chaîne d\'information (5e)', classes: ['65'],
+      consigne: `Acquérir, traiter, communiquer ; alimenter, distribuer, convertir, transmettre : le rôle de chaque élément d'un système automatisé. ${regle}` },
+    { jeu: '65-struct', gen: 'struct', titre: 'Matériaux et structures (5e)', classes: ['65'],
+      consigne: `Traction, compression, flexion, torsion ; pourquoi des triangles ; quel matériau choisir. ${regle}` },
+    { jeu: '65-ordi', gen: 'ordi', titre: 'L\'ordinateur, les capteurs et les actionneurs (5e)', classes: ['65'],
+      consigne: `Processeur, mémoires, périphériques d'entrée et de sortie, binaire ; capteurs qui mesurent et actionneurs qui agissent. ${regle}` },
+    { jeu: '65-bilan-tec', mix: ['cdc', 'cond', 'systsol', 'chaines', 'struct', 'ordi'], n: 14, titre: 'Tout sur la technologie et la Terre (6e – 5e)', classes: ['65'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris en 6e et en 5e en technologie et sur la Terre, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: '65-quiz-tec', quiz: '65-technique', n: 12, titre: 'Quiz de cours : technologie et Terre (6e – 5e)', classes: ['65'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
+    { jeu: '43-connecte', gen: 'connecte', titre: 'Les objets connectés (4e)', classes: ['43'],
+      consigne: `Objets connectés, protocoles, Bluetooth, Wi-Fi et fibre optique, débit et données personnelles. ${regle}` },
+    { jeu: '43-simu', gen: 'simu', titre: 'La simulation numérique (4e)', classes: ['43'],
+      consigne: `Modèles, variables d'entrée, simulations de ponts, de crash-tests ou de la météo, et validation par des essais réels. ${regle}` },
+    { jeu: '43-carte', gen: 'carte', titre: 'Variables, événements et capteurs (4e)', classes: ['43'],
+      consigne: `Programmer une carte comme la Micro:bit : événements, variables, boucles, conditions, capteurs et actionneurs. ${regle}` },
+    { jeu: '43-projet', gen: 'projet', titre: 'Projet et développement durable (3e)', classes: ['43'],
+      consigne: `Cycle de vie, écoconception, planning, validation d'un prototype, obsolescence programmée. ${regle}` },
+    { jeu: '43-cyber', gen: 'cyber', titre: 'Réseaux, adresses IP et cybersécurité (3e)', classes: ['43'],
+      consigne: `Adresses IP, routage, DNS, mots de passe, hameçonnage, chiffrement et RGPD. ${regle}` },
+    { jeu: '43-fonc', gen: 'fonc43', titre: 'Représentation fonctionnelle et algorithmes (3e)', classes: ['43'],
+      consigne: `Organigrammes (ovale, rectangle, losange), chaînes d'information et d'énergie, et petits programmes à suivre, comme à l'épreuve du brevet. ${regle}` },
+    { jeu: '43-bilan-tec', mix: ['connecte', 'simu', 'carte', 'projet', 'cyber', 'fonc43'], n: 14, titre: 'Tout sur la technologie (4e – 3e)', classes: ['43'], bilan: true,
+      consigne: `<strong>Bilan</strong> : tout ce que tu as appris en 4e et en 3e en technologie, mélangé. Quatorze questions, de plus en plus difficiles. ${regle}` },
+    { jeu: '43-quiz-tec', quiz: '43-technique', n: 12, titre: 'Quiz de cours : technologie (4e – 3e)', classes: ['43'], quizCours: true, consigne: `<strong>Quiz de cours</strong> : 12 questions tirées au hasard parmi les définitions, les formules et le vocabulaire à savoir par cœur. Ce sont toujours les mêmes questions qui reviennent : rejoue jusqu'à toutes les connaître ! ${regle}` },
   ],
 };
 
@@ -777,10 +863,18 @@ const ligne = (x1, y1, x2, y2, c = CRAIE, w = 3) => `<line x1="${x1}" y1="${y1}"
    e: explication, n: 0 (facile, 1re année du cycle) ou 1 (plus difficile, 2e année), u: unité, fig: schéma (texte ou fonction), v: phrase lue }.
    Au début de la partie on tire surtout des questions faciles, à la fin surtout des difficiles. */
 function genBanque(B, notion) {
+  /* la banque se souvient des questions qu'elle vient de poser, pour ne pas les reposer dans la même partie */
+  let recents = [];
   return (p) => {
+    const neuf = (L) => L.filter((x) => !recents.includes(x));
     const faciles = B.filter((x) => !x.n), dures = B.filter((x) => x.n);
-    const L = p < 0.45 ? (faciles.length ? faciles : B) : (dures.length && Math.random() < 0.8 ? dures : B);
-    return depuisBanque(pick(L), notion);
+    const voulu = p < 0.45 ? faciles : dures;
+    let L = neuf(voulu);
+    if (!L.length || Math.random() < 0.15) L = neuf(B);
+    if (!L.length) L = B;
+    const x = pick(L);
+    recents = [...recents, x].slice(-(B.length - 1));
+    return depuisBanque(x, notion);
   };
 }
 function depuisBanque(x, notion) {
@@ -1147,6 +1241,1156 @@ const B_TERRE = [
 GEN.terre = genMixte(B_TERRE, 'La Terre et le Soleil', fabJourNuit, 0.3);
 
 /* ============================================================
+   CM1 – CM2 : SCHÉMAS FABRIQUÉS À CHAQUE PARTIE
+   - les trajectoires (chronophotographie : la position de l'objet à intervalles de temps réguliers)
+   - les programmes de déplacement d'un lutin (comme dans Scratch), avec la boucle « répéter » au CM2
+   ============================================================ */
+const nomCase = (c, l, nl) => `${'ABCDEFGH'[c]}${nl - l}`;
+
+function figTrajectoire(forme, vitesse) {
+  const N = 7, pas = (i) => (vitesse === 'uniforme' ? i : vitesse === 'accelere' ? (i * i) / (N - 1) : (N - 1) - ((N - 1 - i) ** 2) / (N - 1));
+  const P = [];
+  for (let i = 0; i < N; i += 1) {
+    const t = pas(i) / (N - 1);
+    if (forme === 'rectiligne') P.push([40 + t * 300, 110]);
+    else if (forme === 'circulaire') { const a = -Math.PI / 2 + t * 1.6 * Math.PI; P.push([190 + 80 * Math.cos(a), 115 + 80 * Math.sin(a)]); }
+    else P.push([40 + t * 300, 190 - 300 * t * (1 - t) * 1.6]);
+  }
+  let s = '';
+  if (forme === 'circulaire') s += `<circle cx="190" cy="115" r="80" fill="none" stroke="${CRAIE}" stroke-width="1.5" stroke-dasharray="4 6" opacity=".5"/>`;
+  s += P.map(([x, y], i) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="${i === 0 ? JAUNE : i === N - 1 ? ROSE : CRAIE}" opacity="${0.55 + 0.45 * i / (N - 1)}"/>`).join('');
+  s += txt(P[0][0], P[0][1] + 24, 'départ', { taille: 12, c: JAUNE });
+  return svgArdoise(380, 230, s, 'Les positions successives d\'un objet, photographiées à intervalles de temps réguliers');
+}
+function fabTrajectoire(p) {
+  const notion = 'Décrire un mouvement';
+  if (Math.random() < 0.45) {
+    const forme = pick(['rectiligne', 'circulaire', 'curviligne']);
+    const nom = { rectiligne: 'rectiligne (une ligne droite)', circulaire: 'circulaire (un cercle)', curviligne: 'curviligne (une courbe qui n\'est pas un cercle)' };
+    return { enonce: 'On a photographié un objet à intervalles de temps réguliers. Sa <strong>trajectoire</strong> est…', figure: figTrajectoire(forme, 'uniforme'), choix: Object.values(nom).map((v) => ({ v, html: v })), bonne: nom[forme], rep: forme, notion,
+      explication: `La trajectoire, c'est la <strong>ligne</strong> que dessine l'objet en se déplaçant. Ici, les positions sont ${forme === 'rectiligne' ? 'sur une <strong>ligne droite</strong> : la trajectoire est rectiligne (comme une voiture sur une route droite)' : forme === 'circulaire' ? 'sur un <strong>cercle</strong> : la trajectoire est circulaire (comme une nacelle de grande roue)' : 'sur une <strong>courbe</strong> qui n\'est pas un cercle : la trajectoire est curviligne (comme un ballon lancé en l\'air)'}.` };
+  }
+  const v = pick(['uniforme', 'accelere', 'ralenti']);
+  const nom = { uniforme: 'sa vitesse reste la même', accelere: 'sa vitesse augmente', ralenti: 'sa vitesse diminue' };
+  return { enonce: 'Une petite voiture est photographiée à intervalles de temps <strong>réguliers</strong> (par exemple toutes les secondes). Pendant ce trajet…', figure: figTrajectoire('rectiligne', v), choix: Object.values(nom).map((x) => ({ v: x, html: x })), bonne: nom[v], rep: nom[v], notion,
+    explication: `Entre deux photos, il s'écoule toujours le même temps. ${v === 'uniforme' ? 'Les points sont <strong>également espacés</strong> : la voiture parcourt la même distance à chaque seconde, sa vitesse est constante (mouvement uniforme).' : v === 'accelere' ? 'Les points sont de plus en plus <strong>écartés</strong> : la voiture parcourt une distance de plus en plus grande à chaque seconde, elle <strong>accélère</strong>.' : 'Les points sont de plus en plus <strong>rapprochés</strong> : la voiture parcourt une distance de plus en plus petite à chaque seconde, elle <strong>ralentit</strong>.'}` };
+}
+
+/* --- Le lutin programmé (comme dans Scratch) --- */
+function fabProg(p) {
+  const notion = 'Algorithmes et programmation';
+  const n = 6, DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+  const boucle = p >= 0.5 && Math.random() < 0.6;
+  let c0, l0, c, l, o, chemin, lignes, ok, pasApas;
+  do {
+    c0 = rnd(0, n - 1); l0 = rnd(0, n - 1); c = c0; l = l0; o = 0; chemin = [[c, l]]; ok = true; lignes = []; pasApas = [];
+    const av = (k) => { for (let j = 0; j < k; j += 1) { c += DIRS[o][0]; l += DIRS[o][1]; if (c < 0 || l < 0 || c >= n || l >= n) { ok = false; return; } chemin.push([c, l]); } };
+    const tourne = (t) => { o = (o + (t === 'droite' ? 1 : 3)) % 4; };
+    if (boucle) {
+      const k = rnd(2, 3), a = rnd(1, 2), t = pick(['droite', 'gauche', null]);
+      lignes.push(`répéter <strong>${k} fois</strong> :<ul class="mm-boucle"><li>avancer de ${a}</li>${t ? `<li>tourner à ${t}</li>` : ''}</ul>`);
+      for (let i = 0; i < k && ok; i += 1) { av(a); if (t) tourne(t); }
+      pasApas.push(`la boucle répète ${k} fois « avancer de ${a}${t ? `, tourner à ${t}` : ''} »`);
+    } else {
+      const nb = p < 0.5 ? 2 : 3;
+      for (let i = 0; i < nb && ok; i += 1) {
+        if (i > 0) { const t = pick(['droite', 'gauche']); tourne(t); lignes.push(`tourner à ${t}`); }
+        const k = rnd(1, 3); av(k); lignes.push(`avancer de ${k}`);
+      }
+    }
+  } while (!ok || (c === c0 && l === l0));
+  const bonne = nomCase(c, l, n), opts = new Set([bonne]);
+  [[c + 1, l], [c - 1, l], [c, l + 1], [c, l - 1], [c + 2, l], [c, l - 2]].forEach(([x, y]) => { if (opts.size < 4 && x >= 0 && y >= 0 && x < n && y < n) opts.add(nomCase(x, y, n)); });
+  while (opts.size < 4) opts.add(nomCase(rnd(0, n - 1), rnd(0, n - 1), n));
+  return { enonce: `Le lutin 🐱 est en <strong>${nomCase(c0, l0, n)}</strong> et regarde vers la <strong>droite</strong> →. Il exécute ce programme :<ol class="mm-prog">${lignes.map((x) => `<li>${x}</li>`).join('')}</ol>Sur quelle case arrive-t-il ?`,
+    voix: `Le lutin est en ${nomCase(c0, l0, n)} et regarde vers la droite. Il suit le programme : ${lignes.map((x) => x.replace(/<\/li><li>/g, ', ').replace(/<[^>]+>|&nbsp;/g, ' ')).join(', ').replace(/\s+/g, ' ')}. Sur quelle case arrive-t-il ?`,
+    figure: figQuadrillage(n, n, [], { reperes: true, icones: [[c0, l0, '🐱']] }), figureCorrection: figQuadrillage(n, n, [], { reperes: true, icones: [[c0, l0, '🐱'], [c, l, '🏁']], chemin }),
+    choix: shuffle([...opts]).map((v) => ({ v, html: v })), bonne, rep: bonne, notion,
+    explication: `On suit l'algorithme pas à pas, en se mettant à la place du lutin : « tourner à droite » ou « à gauche », c'est par rapport à <strong>sa</strong> direction.${boucle ? ` Ici, ${pasApas[0]} : une <strong>boucle</strong> évite d'écrire plusieurs fois les mêmes instructions.` : ''} Le lutin arrive en <strong>${bonne}</strong> (le chemin est dessiné sur le quadrillage).` };
+}
+
+/* ============================================================
+   CM1 – CM2 : MATIÈRE, MOUVEMENT, ÉNERGIE, SIGNAUX
+   n: 0 = plutôt CM1, n: 1 = plutôt CM2
+   ============================================================ */
+const B_MATERIAUX = [
+  { q: 'Une casserole, une cuillère, une canette sont en…', r: 'métal', f: ['plastique', 'verre'], e: 'Ces objets sont en <strong>métal</strong> (acier, aluminium) : solide, il conduit bien la chaleur et l\'électricité.' },
+  { q: 'Une bouteille d\'eau minérale transparente et légère est en…', r: 'plastique', f: ['verre', 'métal'], e: 'Légère, souple et transparente : c\'est du <strong>plastique</strong>, fabriqué à partir du pétrole.' },
+  { q: 'Le bois, le coton, le papier et la laine sont des matériaux…', r: 'd\'origine vivante (matière organique)', f: ['d\'origine minérale', 'métalliques'], e: 'Ils viennent d\'êtres vivants : le bois et le papier des arbres, le coton d\'une plante, la laine du mouton. C\'est de la <strong>matière organique</strong>.' },
+  { q: 'Le sable, l\'argile et les pierres sont des matériaux…', r: 'minéraux', f: ['organiques', 'plastiques'], e: 'Ils viennent des roches de la Terre : ce sont des matériaux <strong>minéraux</strong>. Le verre est fabriqué en faisant fondre du sable.' },
+  { q: 'Le verre est fabriqué à partir de…', r: 'sable fondu', f: ['pétrole', 'bois'], e: 'On chauffe du <strong>sable</strong> à plus de 1 400 °C : il fond et devient du verre en refroidissant.' },
+  { q: 'Le plastique est fabriqué surtout à partir de…', r: 'pétrole', f: ['sable', 'laine'], e: 'La plupart des plastiques viennent du <strong>pétrole</strong>.' },
+  { q: 'Un aimant attire…', r: 'le fer (et l\'acier)', f: ['tous les métaux', 'le bois et le plastique'], e: 'L\'aimant attire les objets en <strong>fer</strong> ou en acier (et quelques autres métaux rares). Il n\'attire ni l\'aluminium d\'une canette, ni le cuivre, ni le bois.' },
+  { q: 'Une canette en aluminium est-elle attirée par un aimant ?', r: 'Non', f: ['Oui, car c\'est un métal'], e: 'Attention au piège : <strong>tous les métaux ne sont pas attirés</strong> par l\'aimant. L\'aluminium ne l\'est pas. C\'est ainsi qu\'on trie les canettes d\'acier et d\'aluminium.' },
+  { q: 'Un matériau qui laisse passer le courant électrique est…', r: 'conducteur', f: ['isolant', 'magnétique'], e: 'Les <strong>métaux</strong> sont conducteurs : c\'est pourquoi les fils électriques sont en cuivre.' },
+  { q: 'Le plastique autour des fils électriques est là parce qu\'il est…', r: 'isolant', f: ['conducteur', 'magnétique'], e: 'Le plastique ne laisse pas passer le courant : il est <strong>isolant</strong>. Il nous protège.' },
+  { q: 'Pour fabriquer une poignée de casserole qui ne brûle pas les doigts, on choisit…', r: 'du bois ou du plastique dur', f: ['du métal', 'du verre fin'], e: 'Le métal conduit très bien la <strong>chaleur</strong>. Le bois et certains plastiques la conduisent mal : ce sont des <strong>isolants thermiques</strong>.', n: 1 },
+  { q: 'Pour tester si un matériau est conducteur, on le place…', r: 'dans un circuit avec une pile et une ampoule', f: ['près d\'un aimant', 'dans l\'eau'], e: 'Si l\'ampoule brille, le courant traverse le matériau : il est <strong>conducteur</strong>. Sinon, il est isolant.', n: 1 },
+  { q: 'Le magnétisme, c\'est la propriété…', r: 'd\'être attiré par un aimant', f: ['de laisser passer le courant', 'de flotter'], e: 'Un matériau <strong>magnétique</strong> est attiré par un aimant : le fer, l\'acier, le nickel.', n: 1 },
+  { q: 'Le cuivre est un métal…', r: 'conducteur, mais pas attiré par l\'aimant', f: ['isolant', 'attiré par l\'aimant'], e: 'Le cuivre conduit très bien le courant, mais l\'aimant ne l\'attire pas. Conducteur et magnétique, ce sont <strong>deux propriétés différentes</strong>.', n: 1 },
+  { q: 'L\'eau du robinet…', r: 'conduit un peu le courant', f: ['est un parfait isolant', 'est magnétique'], e: 'L\'eau du robinet contient des sels dissous : elle <strong>conduit</strong> un peu le courant. C\'est pourquoi l\'électricité et l\'eau sont un mélange dangereux.', n: 1 },
+];
+GEN.materiaux = genBanque(B_MATERIAUX, 'Les matériaux et leurs propriétés');
+
+const B_MELANGES = [
+  { q: 'Du sel bien mélangé dans de l\'eau : on ne le voit plus. On dit que le sel…', r: 's\'est dissous', f: ['a disparu', 's\'est évaporé'], e: 'Le sel est toujours là (l\'eau est salée !), mais en tout petits morceaux invisibles : il s\'est <strong>dissous</strong>.' },
+  { q: 'Un mélange où l\'on ne distingue plus les constituants (eau sucrée) est…', r: 'homogène', f: ['hétérogène'], e: '<strong>Homogène</strong> : on ne voit qu\'une seule chose, partout pareille.' },
+  { q: 'Un mélange où l\'on voit plusieurs constituants (eau et sable) est…', r: 'hétérogène', f: ['homogène'], e: '<strong>Hétérogène</strong> : on distingue plusieurs choses à l\'œil nu.' },
+  { q: 'L\'eau et l\'huile, mélangées puis laissées au repos…', r: 'se séparent : l\'huile flotte au-dessus', f: ['forment un mélange homogène', 'l\'huile coule au fond'], e: 'L\'huile ne se mélange pas à l\'eau et elle est plus légère : elle <strong>remonte</strong>. Le mélange est hétérogène.' },
+  { q: 'Le sucre se dissout dans l\'eau. On dit qu\'il est…', r: 'soluble', f: ['insoluble'], e: 'Le sucre est <strong>soluble</strong> dans l\'eau. Le sable, lui, est insoluble.' },
+  { q: 'Le sable dans l\'eau…', r: 'ne se dissout pas et tombe au fond', f: ['se dissout', 'flotte toujours'], e: 'Le sable est <strong>insoluble</strong> : il ne se dissout pas, et laissé au repos il <strong>tombe au fond</strong>.' },
+  { q: 'Pour séparer le sable de l\'eau, on peut…', r: 'filtrer avec un filtre à café', f: ['ajouter du sel', 'secouer très fort'], e: 'La <strong>filtration</strong> : l\'eau passe à travers le filtre, les grains de sable restent dedans.' },
+  { q: 'Laisser reposer de l\'eau boueuse pour que la terre tombe au fond, c\'est…', r: 'la décantation', f: ['la filtration', 'la dissolution'], e: 'La <strong>décantation</strong> : les particules lourdes tombent au fond. On peut ensuite verser doucement l\'eau du dessus.' },
+  { q: 'Peut-on récupérer le sel dissous dans de l\'eau salée en la filtrant ?', r: 'Non, il passe à travers le filtre', f: ['Oui, il reste dans le filtre'], e: 'Le sel dissous est en morceaux si petits qu\'il <strong>traverse le filtre</strong>. Pour le récupérer, on fait évaporer l\'eau : c\'est ainsi que fonctionnent les marais salants.', n: 1 },
+  { q: 'Comment récupérer le sel d\'une eau salée ?', r: 'en faisant évaporer l\'eau', f: ['en la filtrant', 'en la mettant au congélateur'], e: 'L\'eau s\'<strong>évapore</strong>, le sel reste. C\'est le principe des marais salants.', n: 1 },
+  { q: 'On met de plus en plus de sel dans un verre d\'eau. À la fin…', r: 'le sel ne se dissout plus et reste au fond', f: ['on peut en mettre sans fin', 'l\'eau devient solide'], e: 'Une quantité d\'eau ne peut dissoudre qu\'une quantité <strong>limitée</strong> de sel : on dit que la solution est <strong>saturée</strong>.', n: 1 },
+  { q: 'Le sucre fond-il dans le café ?', r: 'Non, il se dissout', f: ['Oui, il fond'], e: 'Fondre, c\'est passer de solide à liquide par la <strong>chaleur</strong> (la glace fond). Le sucre, lui, se <strong>dissout</strong> : il se disperse dans le liquide. Les deux mots ne veulent pas dire la même chose.', n: 1 },
+  { q: 'Dans une station d\'épuration, pour nettoyer l\'eau, on utilise…', r: 'la décantation et la filtration', f: ['la dissolution', 'l\'aimantation'], e: 'On laisse <strong>décanter</strong> l\'eau dans de grands bassins, puis on la <strong>filtre</strong> (et des bactéries mangent les saletés).', n: 1 },
+  { q: 'Mélanger de l\'eau et du sirop donne un mélange…', r: 'homogène', f: ['hétérogène'], e: 'Une fois bien remué, on ne distingue plus l\'eau et le sirop : le mélange est <strong>homogène</strong>.', n: 1 },
+];
+GEN.melanges = genBanque(B_MELANGES, 'Les mélanges');
+
+const B_ENERGIE = [
+  { q: 'Le soleil, le vent et l\'eau des rivières sont des sources d\'énergie…', r: 'renouvelables', f: ['non renouvelables'], e: 'Elles ne s\'épuisent pas à l\'échelle humaine : ce sont des énergies <strong>renouvelables</strong>.' },
+  { q: 'Le pétrole, le charbon et le gaz naturel sont des sources d\'énergie…', r: 'non renouvelables', f: ['renouvelables'], e: 'Ils se sont formés en des millions d\'années : les réserves <strong>s\'épuisent</strong>. Ce sont des énergies non renouvelables (et fossiles).' },
+  { q: 'Les panneaux solaires transforment la lumière du Soleil en…', r: 'électricité', f: ['pétrole', 'vent'], e: 'Les panneaux <strong>photovoltaïques</strong> produisent de l\'électricité à partir de la lumière.' },
+  { q: 'Une éolienne utilise l\'énergie…', r: 'du vent', f: ['du charbon', 'de l\'uranium'], e: 'L\'énergie du <strong>vent</strong> fait tourner les pales, qui entraînent un alternateur : il produit de l\'électricité.' },
+  { q: 'Un barrage hydraulique utilise l\'énergie…', r: 'de l\'eau', f: ['du soleil', 'du gaz'], e: 'L\'eau qui tombe du barrage fait tourner des turbines : énergie <strong>hydraulique</strong>, renouvelable.' },
+  { q: 'Le bois de chauffage est une énergie renouvelable si…', r: 'on replante les arbres coupés', f: ['on le brûle vite', 'jamais'], e: 'Le bois repousse : c\'est une énergie <strong>renouvelable</strong>, à condition de replanter autant d\'arbres qu\'on en coupe.' },
+  { q: 'Brûler du pétrole, du charbon ou du gaz rejette dans l\'air…', r: 'du dioxyde de carbone, qui réchauffe le climat', f: ['de l\'oxygène pur', 'rien du tout'], e: 'Leur combustion rejette du <strong>dioxyde de carbone</strong> (CO₂), un gaz à effet de serre qui contribue au réchauffement climatique.' },
+  { q: 'Pour se déplacer, notre corps utilise l\'énergie…', r: 'des aliments', f: ['du soleil directement', 'de l\'électricité'], e: 'Les <strong>aliments</strong> sont le « carburant » du corps : ils nous donnent l\'énergie pour bouger, grandir, garder notre température.' },
+  { q: 'L\'énergie des centrales nucléaires vient…', r: 'de l\'uranium, non renouvelable', f: ['du vent', 'du soleil'], e: 'Les centrales nucléaires utilisent l\'<strong>uranium</strong>, un minerai dont les réserves s\'épuisent : c\'est une énergie non renouvelable. Elle ne rejette pas de CO₂ mais produit des déchets radioactifs.', n: 1 },
+  { q: 'Laquelle est une énergie <strong>fossile</strong> ?', r: 'le charbon', f: ['le vent', 'le soleil'], e: 'Le charbon, le pétrole et le gaz viennent de restes d\'êtres vivants enfouis il y a des millions d\'années : ce sont des énergies <strong>fossiles</strong>.', n: 1 },
+  { q: 'Pour économiser l\'énergie à la maison, on peut…', r: 'éteindre la lumière en quittant une pièce', f: ['laisser la télé en veille toute la nuit', 'ouvrir les fenêtres avec le chauffage allumé'], e: 'Chaque geste compte : <strong>éteindre</strong> les lumières, ne pas laisser les appareils en veille, baisser un peu le chauffage.', n: 1 },
+  { q: 'Le principal inconvénient du soleil et du vent pour produire de l\'électricité, c\'est…', r: 'qu\'ils ne sont pas toujours disponibles', f: ['qu\'ils polluent beaucoup', 'qu\'ils vont s\'épuiser bientôt'], e: 'Pas de soleil la nuit, pas toujours de vent : leur production est <strong>irrégulière</strong>. Il faut savoir stocker l\'énergie ou la compléter.', n: 1 },
+  { q: 'Une source d\'énergie <strong>renouvelable</strong> est une source qui…', r: 'se renouvelle assez vite pour ne pas s\'épuiser', f: ['ne coûte rien', 'ne sert qu\'une fois'], e: 'Renouvelable : la nature la <strong>reconstitue</strong> à notre échelle de temps (le soleil revient chaque jour, le vent souffle, la pluie remplit les rivières).', n: 1 },
+];
+GEN.energie = genBanque(B_ENERGIE, 'Les sources d\'énergie');
+
+const B_MOUV2 = [
+  { q: 'La ligne que dessine un objet en se déplaçant s\'appelle…', r: 'sa trajectoire', f: ['sa vitesse', 'sa distance'], e: 'La <strong>trajectoire</strong> : le chemin suivi par l\'objet.' },
+  { q: 'La trajectoire d\'une nacelle de grande roue est…', r: 'circulaire', f: ['rectiligne', 'curviligne'], e: 'La nacelle tourne autour de l\'axe de la roue : elle dessine un <strong>cercle</strong>.' },
+  { q: 'Un ballon lancé en l\'air a une trajectoire…', r: 'curviligne', f: ['rectiligne', 'circulaire'], e: 'Il monte puis redescend en dessinant une <strong>courbe</strong> (qui n\'est pas un cercle) : trajectoire curviligne.' },
+  { q: 'Une bille qui tombe tout droit a une trajectoire…', r: 'rectiligne', f: ['circulaire', 'curviligne'], e: 'Elle tombe en <strong>ligne droite</strong>, verticalement : trajectoire rectiligne.', n: 1 },
+  { q: 'Une voiture roule toujours à 50 km/h. Son mouvement est…', r: 'uniforme', f: ['accéléré', 'ralenti'], e: 'Sa vitesse ne change pas : le mouvement est <strong>uniforme</strong>.', n: 1 },
+  { q: 'Une voiture qui freine devant un feu rouge a un mouvement…', r: 'ralenti', f: ['accéléré', 'uniforme'], e: 'Sa vitesse <strong>diminue</strong> : le mouvement est ralenti.', n: 1 },
+  { q: 'Un objet qui tombe…', r: 'va de plus en plus vite', f: ['va toujours à la même vitesse', 'ralentit'], e: 'En tombant, un objet <strong>accélère</strong> : la Terre l\'attire vers le bas (dans l\'air, le frottement finit par limiter sa vitesse).', n: 1 },
+  { q: 'Pour décrire un mouvement, on dit…', r: 'quelle est sa trajectoire et comment varie sa vitesse', f: ['de quelle couleur est l\'objet', 'combien l\'objet pèse'], e: 'Décrire un mouvement : la <strong>trajectoire</strong> (droite, cercle, courbe) et la <strong>vitesse</strong> (constante, qui augmente, qui diminue).' },
+];
+GEN.mouv2 = genMixte(B_MOUV2, 'Décrire un mouvement', fabTrajectoire, 0.55);
+
+const B_CONV = [
+  { q: 'Une lampe de poche transforme l\'énergie électrique de la pile en…', r: 'lumière', f: ['mouvement', 'son'], e: 'L\'ampoule est un <strong>convertisseur</strong> : énergie électrique → <strong>lumière</strong> (et un peu de chaleur).' },
+  { q: 'Le moteur d\'un ventilateur transforme l\'électricité en…', r: 'mouvement', f: ['lumière', 'froid'], e: 'Le moteur électrique : énergie électrique → énergie de <strong>mouvement</strong>.' },
+  { q: 'Un radiateur électrique transforme l\'électricité en…', r: 'chaleur', f: ['lumière', 'son'], e: 'Énergie électrique → énergie <strong>thermique</strong> (de la chaleur).' },
+  { q: 'Un haut-parleur transforme l\'électricité en…', r: 'son', f: ['chaleur seulement', 'lumière'], e: 'Énergie électrique → <strong>son</strong> : la membrane vibre et fait vibrer l\'air.' },
+  { q: 'Un panneau solaire transforme la lumière en…', r: 'électricité', f: ['chaleur seulement', 'mouvement'], e: 'Lumière du Soleil → énergie <strong>électrique</strong>.' },
+  { q: 'Dans une chaîne d\'énergie, l\'ordre est :', r: 'source → convertisseur → forme d\'énergie utile', f: ['convertisseur → source → énergie', 'énergie → source → convertisseur'], e: 'Exemple : pile (<strong>source</strong>) → ampoule (<strong>convertisseur</strong>) → lumière (<strong>énergie utile</strong>).', n: 1 },
+  { q: 'Dans la chaîne « vent → éolienne → électricité », l\'éolienne est…', r: 'le convertisseur', f: ['la source', 'l\'énergie utile'], e: 'Le vent est la <strong>source</strong>, l\'éolienne le <strong>convertisseur</strong>, l\'électricité la forme d\'énergie obtenue.', n: 1 },
+  { q: 'Une ampoule chauffe un peu en éclairant. Cette chaleur est…', r: 'une énergie perdue', f: ['le but de l\'ampoule', 'impossible'], e: 'Le but est la lumière ; la chaleur est de l\'énergie <strong>perdue</strong>. Les ampoules LED en perdent beaucoup moins : elles consomment moins.', n: 1 },
+  { q: 'Dans une voiture à essence, le moteur transforme l\'énergie du carburant en…', r: 'mouvement (et beaucoup de chaleur perdue)', f: ['lumière', 'électricité seulement'], e: 'Carburant (<strong>source</strong>) → moteur (<strong>convertisseur</strong>) → <strong>mouvement</strong>. Le moteur chauffe beaucoup : une grande partie de l\'énergie est perdue en chaleur.', n: 1 },
+  { q: 'Une dynamo de vélo transforme le mouvement de la roue en…', r: 'électricité', f: ['chaleur seulement', 'son'], e: 'Mouvement → énergie <strong>électrique</strong> : la dynamo allume le phare quand on pédale.', n: 1 },
+  { q: 'Un grille-pain transforme l\'électricité en…', r: 'chaleur', f: ['mouvement', 'son'], e: 'Ses fils rougissent et chauffent : énergie électrique → énergie <strong>thermique</strong>.' },
+];
+GEN.conv = genBanque(B_CONV, 'Les chaînes d\'énergie');
+
+const B_SIGNAUX = [
+  { q: 'Un feu tricolore donne une information grâce à un signal…', r: 'lumineux', f: ['sonore', 'radio'], e: 'Les couleurs du feu sont un signal <strong>lumineux</strong> : rouge, orange, vert.' },
+  { q: 'La sonnerie de l\'école est un signal…', r: 'sonore', f: ['lumineux', 'radio'], e: 'On l\'entend : c\'est un signal <strong>sonore</strong>.' },
+  { q: 'Un téléphone portable communique grâce à des ondes…', r: 'radio', f: ['sonores', 'lumineuses visibles'], e: 'Le téléphone envoie et reçoit des ondes <strong>radio</strong>, invisibles, qui vont jusqu\'aux antennes-relais.' },
+  { q: 'Le phare au bord de la mer envoie aux bateaux un signal…', r: 'lumineux', f: ['sonore', 'radio'], e: 'Ses éclats de lumière sont un signal <strong>lumineux</strong> ; chaque phare a son rythme pour être reconnu.' },
+  { q: 'La sirène des pompiers est un signal…', r: 'sonore', f: ['lumineux', 'radio'], e: 'On l\'entend de loin : c\'est un signal <strong>sonore</strong> (et le gyrophare, un signal lumineux).' },
+  { q: 'Le code Morse peut être transmis…', r: 'par des sons, des lumières ou la radio', f: ['seulement par écrit', 'seulement par la voix'], e: 'Le Morse code les lettres avec des points et des traits : on peut l\'envoyer en <strong>sons</strong>, en <strong>éclairs de lumière</strong> ou par <strong>radio</strong>.', n: 1 },
+  { q: 'Un signal sert à…', r: 'transmettre une information', f: ['produire de l\'énergie', 'mesurer une masse'], e: 'Un signal porte une <strong>information</strong> d\'un émetteur à un récepteur.', n: 1 },
+  { q: 'Dans « la télécommande envoie un ordre à la télévision », l\'émetteur est…', r: 'la télécommande', f: ['la télévision', 'le canapé'], e: 'La télécommande <strong>émet</strong> le signal (infrarouge, invisible), la télévision le <strong>reçoit</strong>.', n: 1 },
+  { q: 'La télécommande de la télévision envoie un signal…', r: 'infrarouge, une lumière invisible', f: ['sonore', 'qu\'on voit à l\'œil nu'], e: 'C\'est une <strong>lumière infrarouge</strong>, invisible pour nos yeux. L\'appareil photo d\'un téléphone peut parfois la voir clignoter !', n: 1 },
+  { q: 'La radio FM reçoit…', r: 'des ondes radio transformées en son', f: ['du son venu directement de la station', 'de la lumière'], e: 'La station émet des <strong>ondes radio</strong> ; le poste les reçoit et les transforme en <strong>son</strong>.', n: 1 },
+  { q: 'Le son se propage…', r: 'dans l\'air, l\'eau et les solides, mais pas dans le vide', f: ['seulement dans l\'air', 'aussi dans le vide de l\'espace'], e: 'Le son a besoin de <strong>matière</strong> pour se propager : dans l\'espace, il n\'y a pas de son.', n: 1 },
+];
+GEN.signaux = genBanque(B_SIGNAUX, 'Les signaux et l\'information');
+
+/* ============================================================
+   CM1 – CM2 : LE VIVANT
+   ============================================================ */
+const B_CLASSE = [
+  { q: 'Pour classer les animaux, on regarde…', r: 'ce qu\'ils ont (leurs attributs)', f: ['où ils vivent', 'ce qu\'ils mangent'], e: 'En sciences, on classe selon ce que les animaux <strong>possèdent</strong> en commun (squelette, poils, plumes, mamelles…), pas selon leur milieu ou leur régime.' },
+  { q: 'Le chat, le pigeon, la truite et le lézard ont tous…', r: 'un squelette intérieur (ce sont des vertébrés)', f: ['des poils', 'des plumes'], e: 'Ils ont une <strong>colonne vertébrale</strong> et un squelette intérieur : ce sont des <strong>vertébrés</strong>.' },
+  { q: 'Les animaux qui ont des <strong>poils</strong> et des <strong>mamelles</strong> sont…', r: 'les mammifères', f: ['les oiseaux', 'les reptiles'], e: 'Poils et mamelles (pour allaiter les petits) : ce sont les <strong>mammifères</strong>.' },
+  { q: 'Les animaux qui ont des <strong>plumes</strong> sont…', r: 'les oiseaux', f: ['les mammifères', 'les insectes'], e: 'Seuls les <strong>oiseaux</strong> ont des plumes.' },
+  { q: 'La <strong>chauve-souris</strong> vole. C\'est…', r: 'un mammifère', f: ['un oiseau', 'un insecte'], e: 'Elle a des <strong>poils</strong> et allaite ses petits : c\'est un mammifère. Voler ne suffit pas à être un oiseau : il faut des plumes !' },
+  { q: 'La <strong>baleine</strong> vit dans la mer. C\'est…', r: 'un mammifère', f: ['un poisson', 'un reptile'], e: 'La baleine respire avec des poumons et allaite son petit : c\'est un <strong>mammifère</strong>.' },
+  { q: 'Le <strong>manchot</strong> ne vole pas. C\'est…', r: 'un oiseau', f: ['un mammifère', 'un poisson'], e: 'Il a des <strong>plumes</strong> et un bec : c\'est un oiseau, même s\'il ne vole pas.' },
+  { q: 'Les insectes ont…', r: '6 pattes', f: ['8 pattes', '4 pattes'], e: 'Un <strong>insecte</strong> a 6 pattes (et souvent des ailes). L\'araignée, avec 8 pattes, n\'est pas un insecte.', n: 1 },
+  { q: 'L\'<strong>araignée</strong> a 8 pattes. Est-ce un insecte ?', r: 'Non', f: ['Oui'], e: 'Les insectes ont 6 pattes. L\'araignée en a <strong>8</strong> : c\'est un arachnide.', n: 1 },
+  { q: 'Un animal sans squelette intérieur (escargot, ver de terre, insecte) est…', r: 'un invertébré', f: ['un vertébré', 'un mammifère'], e: 'Pas de colonne vertébrale : c\'est un <strong>invertébré</strong>.', n: 1 },
+  { q: 'Qu\'ont en commun le chat et le dauphin ?', r: 'des mamelles', f: ['des nageoires', 'des plumes'], e: 'Les deux allaitent leurs petits avec des <strong>mamelles</strong> : ce sont des mammifères.', n: 1 },
+  { q: 'Qu\'ont en commun le lézard, la grenouille, le pigeon et le chat ?', r: 'quatre membres', f: ['des écailles', 'des poils'], e: 'Ils ont tous <strong>quatre membres</strong> (pattes, ou ailes et pattes chez l\'oiseau) : ce sont des tétrapodes.', n: 1 },
+  { q: 'Le <strong>serpent</strong> a des écailles et pas de pattes. C\'est…', r: 'un reptile', f: ['un poisson', 'un mammifère'], e: 'Peau à <strong>écailles</strong>, respire de l\'air : c\'est un reptile, comme le lézard et la tortue.', n: 1 },
+];
+GEN.classe = genBanque(B_CLASSE, 'Classer les êtres vivants');
+
+const B_DIGESTION = [
+  { q: 'La digestion commence…', r: 'dans la bouche', f: ['dans l\'estomac', 'dans l\'intestin'], e: 'Dans la <strong>bouche</strong>, les dents broient les aliments et la salive commence à les transformer.' },
+  { q: 'Après la bouche, les aliments descendent par…', r: 'l\'œsophage', f: ['la trachée', 'l\'intestin grêle'], e: 'L\'<strong>œsophage</strong> est le tuyau qui va de la bouche à l\'estomac. (La trachée, elle, conduit l\'air aux poumons.)' },
+  { q: 'Dans l\'ordre, les aliments passent par :', r: 'bouche → œsophage → estomac → intestin grêle → gros intestin', f: ['bouche → estomac → œsophage → gros intestin → intestin grêle', 'bouche → intestin grêle → estomac → œsophage'], e: 'C\'est le <strong>tube digestif</strong>, long de presque 9 mètres chez l\'adulte !' },
+  { q: 'L\'estomac…', r: 'brasse les aliments et les transforme avec des sucs', f: ['fabrique les dents', 'envoie l\'air aux poumons'], e: 'L\'<strong>estomac</strong> malaxe les aliments et les mélange aux sucs digestifs : ils deviennent une bouillie.' },
+  { q: 'Les nutriments passent dans le sang au niveau…', r: 'de l\'intestin grêle', f: ['de l\'œsophage', 'des dents'], e: 'Dans l\'<strong>intestin grêle</strong>, les aliments transformés en nutriments traversent la paroi et passent dans le <strong>sang</strong>.' },
+  { q: 'Ce qui n\'est pas digéré…', r: 'est rejeté sous forme d\'excréments', f: ['reste dans l\'estomac pour toujours', 'repart dans la bouche'], e: 'Les restes passent dans le <strong>gros intestin</strong> puis sont rejetés : ce sont les excréments.' },
+  { q: 'À quoi servent les dents ?', r: 'à couper et broyer les aliments', f: ['à digérer les nutriments', 'à respirer'], e: 'Les <strong>incisives</strong> coupent, les canines déchirent, les <strong>molaires</strong> broient.' },
+  { q: 'Les aliments transformés en très petits éléments qui passent dans le sang s\'appellent…', r: 'les nutriments', f: ['les excréments', 'les sucs'], e: 'Les <strong>nutriments</strong> : le sang les apporte à toutes les parties du corps.', n: 1 },
+  { q: 'Les sucs digestifs (salive, suc gastrique…) servent à…', r: 'transformer les aliments en nutriments', f: ['colorer les aliments', 'refroidir l\'estomac'], e: 'Les <strong>sucs digestifs</strong> découpent les aliments en morceaux minuscules : les nutriments.', n: 1 },
+  { q: 'Pourquoi faut-il bien mâcher ?', r: 'pour faciliter la digestion', f: ['pour avaler plus vite', 'ça ne sert à rien'], e: 'Des morceaux plus petits sont plus vite <strong>transformés</strong> par les sucs digestifs.', n: 1 },
+  { q: 'Le foie et le pancréas…', r: 'fabriquent des sucs qui aident la digestion', f: ['font partie du tube digestif', 'servent à respirer'], e: 'Le foie et le pancréas ne sont pas traversés par les aliments, mais ils envoient leurs <strong>sucs digestifs</strong> dans l\'intestin.', n: 1 },
+  { q: 'Les fibres des fruits, des légumes et du pain complet…', r: 'aident l\'intestin à bien fonctionner', f: ['sont dangereuses', 'ne servent à rien'], e: 'Les <strong>fibres</strong> ne sont pas digérées, mais elles aident les restes à avancer dans l\'intestin.', n: 1 },
+];
+GEN.digestion = genBanque(B_DIGESTION, 'La digestion');
+
+const B_DECOMPO = [
+  { q: 'En automne, les feuilles mortes tombées au sol…', r: 'se décomposent peu à peu', f: ['restent intactes pour toujours', 'repartent sur l\'arbre'], e: 'Des petits êtres vivants les mangent et les <strong>décomposent</strong> : elles deviennent de l\'humus.' },
+  { q: 'Les êtres vivants qui décomposent la matière morte s\'appellent…', r: 'les décomposeurs', f: ['les prédateurs', 'les herbivores'], e: 'Les <strong>décomposeurs</strong> : vers de terre, cloportes, champignons, bactéries…' },
+  { q: 'Lequel est un décomposeur ?', r: 'le ver de terre', f: ['le renard', 'la vache'], e: 'Le <strong>ver de terre</strong> mange les feuilles mortes et la terre, et rend le sol fertile.' },
+  { q: 'L\'humus, c\'est…', r: 'la terre noire riche faite de matière décomposée', f: ['du sable', 'une roche'], e: 'L\'<strong>humus</strong> se forme avec les restes décomposés des êtres vivants : il nourrit les plantes.' },
+  { q: 'Dans un composteur, on met…', r: 'les épluchures et les restes de végétaux', f: ['le plastique et le verre', 'les piles usagées'], e: 'Les <strong>déchets organiques</strong> (épluchures, marc de café, feuilles) se décomposent en compost.' },
+  { q: 'Le compost sert à…', r: 'nourrir les plantes du jardin', f: ['fabriquer du plastique', 'nourrir les chats'], e: 'Le <strong>compost</strong> rend aux plantes les sels minéraux contenus dans les déchets : la matière est <strong>recyclée</strong>.' },
+  { q: 'Une bouteille en plastique jetée dans la nature…', r: 'met des centaines d\'années à se dégrader', f: ['se décompose en un mois', 'devient du compost'], e: 'Les décomposeurs ne savent pas « manger » le plastique : il reste des <strong>centaines d\'années</strong>.', n: 1 },
+  { q: 'Les champignons et les bactéries du sol…', r: 'décomposent la matière morte', f: ['fabriquent de la lumière', 'mangent les cailloux'], e: 'Invisibles ou presque, ils sont les plus grands <strong>décomposeurs</strong> : ils transforment les restes en sels minéraux.', n: 1 },
+  { q: 'Grâce aux décomposeurs, la matière des êtres morts…', r: 'retourne au sol et nourrit de nouvelles plantes', f: ['disparaît complètement', 'devient du pétrole tout de suite'], e: 'C\'est un <strong>cycle</strong> : plante → animal → restes → décomposeurs → sels minéraux → plante. Rien ne se perd.', n: 1 },
+  { q: 'Sans décomposeurs, la forêt…', r: 'serait couverte de feuilles et de cadavres', f: ['pousserait plus vite', 'ne changerait pas'], e: 'Les décomposeurs « nettoient » le sol et <strong>recyclent</strong> la matière : sans eux, les plantes manqueraient de sels minéraux.', n: 1 },
+  { q: 'Une épluchure de banane dans le compost se décompose plus vite quand…', r: 'il fait doux et humide', f: ['il gèle', 'elle est dans un sac fermé'], e: 'Les décomposeurs aiment la <strong>chaleur douce</strong>, l\'<strong>humidité</strong> et l\'air.', n: 1 },
+];
+GEN.decompo = genBanque(B_DECOMPO, 'La décomposition');
+
+const B_RESPI = [
+  { q: 'Quand on inspire, l\'air entre dans…', r: 'les poumons', f: ['l\'estomac', 'le cœur'], e: 'L\'air passe par le nez ou la bouche, la <strong>trachée</strong>, puis arrive dans les <strong>poumons</strong>.' },
+  { q: 'Notre corps prend dans l\'air…', r: 'le dioxygène', f: ['le dioxyde de carbone', 'la vapeur d\'eau'], e: 'Les poumons font passer le <strong>dioxygène</strong> de l\'air dans le sang.' },
+  { q: 'Quand on expire, on rejette surtout plus de…', r: 'dioxyde de carbone', f: ['dioxygène', 'azote'], e: 'L\'air expiré contient moins de dioxygène et plus de <strong>dioxyde de carbone</strong>, un déchet produit par le corps.' },
+  { q: 'Le cœur est…', r: 'un muscle qui pompe le sang', f: ['un os', 'un poumon'], e: 'Le <strong>cœur</strong> est un muscle creux : il se contracte et envoie le sang dans tout le corps.' },
+  { q: 'Le sang circule dans…', r: 'des vaisseaux sanguins', f: ['l\'œsophage', 'les nerfs'], e: 'Les <strong>vaisseaux sanguins</strong> : artères, veines et tout petits capillaires.' },
+  { q: 'Pendant un effort, le cœur bat…', r: 'plus vite', f: ['moins vite', 'à la même vitesse'], e: 'Les muscles ont besoin de plus de dioxygène et de nutriments : le cœur bat <strong>plus vite</strong> et on respire plus vite.' },
+  { q: 'Le sang transporte…', r: 'le dioxygène et les nutriments vers les organes', f: ['seulement de l\'eau', 'l\'air jusqu\'à l\'estomac'], e: 'Le sang apporte à chaque organe le <strong>dioxygène</strong> (venu des poumons) et les <strong>nutriments</strong> (venus de l\'intestin).', n: 1 },
+  { q: 'Le sang rapporte des organes vers les poumons…', r: 'le dioxyde de carbone', f: ['le dioxygène', 'les nutriments'], e: 'Le sang emporte le <strong>dioxyde de carbone</strong>, déchet des organes, qui est rejeté par les poumons.', n: 1 },
+  { q: 'Les échanges de gaz se font dans les poumons au niveau…', r: 'de minuscules sacs, les alvéoles', f: ['de la trachée', 'du cœur'], e: 'Les <strong>alvéoles pulmonaires</strong> sont entourées de capillaires : le dioxygène y passe dans le sang, le dioxyde de carbone en sort.', n: 1 },
+  { q: 'Les vaisseaux qui partent du cœur vers les organes s\'appellent…', r: 'les artères', f: ['les veines', 'les bronches'], e: '<strong>Artères</strong> : du cœur vers les organes. <strong>Veines</strong> : des organes vers le cœur.', n: 1 },
+  { q: 'Le tabac abîme surtout…', r: 'les poumons et le cœur', f: ['les dents seulement', 'les cheveux'], e: 'La fumée de tabac encrasse les <strong>poumons</strong> et fatigue le <strong>cœur</strong> et les vaisseaux.', n: 1 },
+  { q: 'On sent son cœur battre au poignet ou au cou : c\'est…', r: 'le pouls', f: ['la respiration', 'la digestion'], e: 'Le <strong>pouls</strong> : chaque battement du cœur fait gonfler les artères. On peut le compter en une minute.', n: 1 },
+];
+GEN.respi = genBanque(B_RESPI, 'Respiration et circulation');
+
+const B_REPRO = [
+  { q: 'La <strong>puberté</strong>, c\'est…', r: 'la période où le corps de l\'enfant devient capable de se reproduire', f: ['une maladie', 'la naissance'], e: 'Entre 10 et 16 ans environ, le corps change : c\'est la <strong>puberté</strong>. Chacun la vit à son rythme.' },
+  { q: 'Pendant la puberté…', r: 'chacun change à son rythme, plus tôt ou plus tard', f: ['tout le monde change au même âge', 'seuls les garçons changent'], e: 'Il n\'y a pas d\'âge « normal » précis : la puberté commence plus tôt chez certains, plus tard chez d\'autres. C\'est <strong>normal</strong>.' },
+  { q: 'Pendant la puberté, chez les filles comme chez les garçons…', r: 'des poils apparaissent et on grandit vite', f: ['on rapetisse', 'rien ne change'], e: 'On grandit vite, des <strong>poils</strong> poussent (aisselles, pubis), la peau et la transpiration changent.' },
+  { q: 'Pendant la puberté, chez les garçons, la voix…', r: 'devient plus grave', f: ['devient plus aiguë', 'disparaît'], e: 'La voix des garçons <strong>mue</strong> : elle devient plus grave.' },
+  { q: 'Chez les filles, la puberté s\'accompagne…', r: 'du développement des seins et des premières règles', f: ['d\'une voix plus grave', 'de la barbe'], e: 'Les <strong>seins</strong> se développent et les <strong>règles</strong> apparaissent : le corps devient capable d\'avoir un bébé.' },
+  { q: 'La cellule reproductrice de la femme s\'appelle…', r: 'l\'ovule', f: ['le spermatozoïde', 'le placenta'], e: 'L\'<strong>ovule</strong> est produit par les ovaires.', n: 1 },
+  { q: 'La cellule reproductrice de l\'homme s\'appelle…', r: 'le spermatozoïde', f: ['l\'ovule', 'l\'embryon'], e: 'Les <strong>spermatozoïdes</strong> sont produits par les testicules.', n: 1 },
+  { q: 'La rencontre d\'un ovule et d\'un spermatozoïde s\'appelle…', r: 'la fécondation', f: ['la naissance', 'la digestion'], e: 'La <strong>fécondation</strong> donne une cellule-œuf, qui va se développer en embryon puis en fœtus.', n: 1 },
+  { q: 'Chez l\'être humain, la grossesse dure environ…', r: '9 mois', f: ['3 mois', '2 ans'], e: 'Environ <strong>9 mois</strong> : le bébé grandit dans l\'utérus de sa mère.', n: 1 },
+  { q: 'Pendant la grossesse, le bébé se développe dans…', r: 'l\'utérus de sa mère', f: ['l\'estomac de sa mère', 'un œuf pondu'], e: 'Le fœtus grandit dans l\'<strong>utérus</strong>, protégé par une poche remplie de liquide.', n: 1 },
+  { q: 'Le bébé reçoit nourriture et dioxygène de sa mère par…', r: 'le cordon ombilical et le placenta', f: ['sa bouche', 'ses poumons'], e: 'Le <strong>placenta</strong> fait passer les nutriments et le dioxygène du sang de la mère à celui du bébé, par le <strong>cordon ombilical</strong>. Le nombril en est la trace !', n: 1 },
+  { q: 'Pendant la puberté, il faut se laver chaque jour parce que…', r: 'la transpiration devient plus forte', f: ['la peau devient sale toute seule', 'ce n\'est pas utile'], e: 'Les glandes de la peau travaillent plus : une <strong>douche quotidienne</strong> et des vêtements propres suffisent.', n: 1 },
+];
+GEN.repro = genBanque(B_REPRO, 'Puberté et reproduction');
+
+const B_BIODIV = [
+  { q: 'La <strong>biodiversité</strong>, c\'est…', r: 'la diversité de tous les êtres vivants', f: ['le nombre d\'êtres humains', 'la couleur des fleurs'], e: 'La <strong>biodiversité</strong> : toutes les espèces vivantes (animaux, plantes, champignons, microbes) et leurs milieux.' },
+  { q: 'Les dinosaures (sauf les ancêtres des oiseaux) ont disparu. On dit que ces espèces sont…', r: 'éteintes', f: ['endormies', 'cachées'], e: 'Une espèce <strong>éteinte</strong> n\'existe plus. On la connaît par ses fossiles.' },
+  { q: 'Un fossile, c\'est…', r: 'la trace d\'un être vivant très ancien, conservée dans la roche', f: ['un caillou ordinaire', 'un animal vivant'], e: 'Les <strong>fossiles</strong> (os, coquilles, empreintes) montrent que les êtres vivants ont changé au cours du temps.' },
+  { q: 'Les êtres vivants ont changé au cours des millions d\'années : c\'est…', r: 'l\'évolution', f: ['la digestion', 'la germination'], e: 'L\'<strong>évolution</strong> : les espèces se transforment très lentement, de génération en génération.' },
+  { q: 'Les oiseaux descendent…', r: 'de dinosaures', f: ['des poissons volants', 'des chauves-souris'], e: 'Des fossiles de dinosaures à plumes le montrent : les <strong>oiseaux</strong> sont des descendants de dinosaures.', n: 1 },
+  { q: 'Couper une forêt pour construire une route…', r: 'détruit le milieu de vie de nombreuses espèces', f: ['n\'a aucun effet sur les animaux', 'augmente la biodiversité'], e: 'Détruire un <strong>milieu</strong> est la première cause de disparition des espèces.' },
+  { q: 'Quelle action protège la biodiversité ?', r: 'laisser une haie et un coin de jardin sauvage', f: ['utiliser beaucoup d\'insecticides', 'goudronner les jardins'], e: 'Les haies et les coins sauvages offrent <strong>abri et nourriture</strong> aux insectes, aux oiseaux, aux hérissons.' },
+  { q: 'Pourquoi les abeilles sont-elles si importantes ?', r: 'elles pollinisent beaucoup de plantes que nous mangeons', f: ['elles mangent les moustiques', 'elles nettoient l\'eau'], e: 'En transportant le pollen, elles permettent aux fleurs de devenir des <strong>fruits</strong> : sans pollinisateurs, beaucoup de fruits et légumes disparaîtraient.', n: 1 },
+  { q: 'Une espèce venue d\'ailleurs qui se répand et nuit aux espèces locales est dite…', r: 'invasive', f: ['éteinte', 'fossile'], e: 'Une espèce <strong>invasive</strong> (comme le frelon asiatique en France) prend la place des espèces locales.', n: 1 },
+  { q: 'Les parcs nationaux et les réserves naturelles servent à…', r: 'protéger des milieux et leurs espèces', f: ['élever des animaux pour les manger', 'construire des usines'], e: 'Ce sont des espaces <strong>protégés</strong> où la nature est préservée.', n: 1 },
+  { q: 'La pollution des rivières par des produits chimiques…', r: 'peut tuer les poissons et les plantes aquatiques', f: ['nourrit les poissons', 'n\'a aucun effet'], e: 'Les produits toxiques empoisonnent les êtres vivants du milieu, et toute la <strong>chaîne alimentaire</strong> est touchée.', n: 1 },
+  { q: 'Les espèces vivantes d\'aujourd\'hui…', r: 'descendent d\'espèces plus anciennes', f: ['existent sans changer depuis toujours', 'sont toutes apparues en même temps'], e: 'C\'est l\'idée de l\'<strong>évolution</strong> : chaque espèce a des ancêtres, et les espèces ont une parenté entre elles.', n: 1 },
+];
+GEN.biodiv = genBanque(B_BIODIV, 'La biodiversité et l\'évolution');
+
+/* ============================================================
+   CM1 – CM2 : OBJETS TECHNIQUES, INFORMATIQUE ET PLANÈTE TERRE
+   ============================================================ */
+const B_ANALYSE = [
+  { q: 'Un objet technique est fabriqué pour répondre à…', r: 'un besoin', f: ['une couleur', 'un hasard'], e: 'Tout objet technique répond à un <strong>besoin</strong> : se déplacer, s\'éclairer, conserver les aliments…' },
+  { q: 'La fonction d\'usage d\'un réfrigérateur est…', r: 'conserver les aliments au froid', f: ['être joli dans la cuisine', 'faire de la lumière'], e: 'Sa <strong>fonction d\'usage</strong> : à quoi il sert. Ici, garder les aliments au frais.' },
+  { q: 'La fonction d\'usage d\'un vélo est…', r: 'se déplacer', f: ['avoir une belle couleur', 'faire du bruit'], e: 'Le vélo sert à <strong>se déplacer</strong>.' },
+  { q: 'On choisit une trousse parce qu\'elle a son héros préféré dessus. C\'est sa fonction…', r: 'd\'estime', f: ['d\'usage', 'technique'], e: 'La <strong>fonction d\'estime</strong>, c\'est ce qui fait qu\'on aime l\'objet : sa couleur, sa forme, sa marque, sa beauté.' },
+  { q: 'La couleur et le design d\'un téléphone correspondent à sa fonction…', r: 'd\'estime', f: ['d\'usage', 'de sécurité'], e: 'Ce qui plaît, ce qui donne envie : c\'est la fonction d\'<strong>estime</strong>.' },
+  { q: 'La fonction technique d\'un élément de l\'objet, c\'est…', r: 'le rôle de cette pièce dans l\'objet', f: ['le prix de l\'objet', 'sa couleur'], e: 'Par exemple, la <strong>fonction technique</strong> du frein du vélo : ralentir la roue. Celle de la chaîne : transmettre le mouvement.', n: 1 },
+  { q: 'Dans une lampe de poche, la fonction technique de la pile est…', r: 'fournir l\'énergie électrique', f: ['éclairer', 'protéger les doigts'], e: 'La pile <strong>fournit</strong> l\'énergie ; l\'ampoule éclaire ; le boîtier protège.', n: 1 },
+  { q: 'Un objet technique évolue au cours du temps parce que…', r: 'on l\'améliore avec de nouvelles techniques et de nouveaux matériaux', f: ['il se transforme tout seul', 'il ne change jamais'], e: 'Du téléphone à cadran au smartphone, de la bougie à la LED : les objets <strong>évoluent</strong> grâce aux inventions.', n: 1 },
+  { q: 'Pour comprendre comment fonctionne un objet technique, on peut…', r: 'le démonter et observer le rôle de chaque pièce', f: ['le peindre', 'le regarder de loin'], e: 'On <strong>observe</strong> chaque élément et on cherche sa fonction technique : c\'est analyser l\'objet.', n: 1 },
+  { q: 'La fonction d\'usage d\'une montre est…', r: 'indiquer l\'heure', f: ['être en or', 'faire tic-tac'], e: 'Sa fonction d\'<strong>usage</strong> : donner l\'heure. Être en or, c\'est sa fonction d\'estime.' },
+  { q: 'La fonction d\'usage d\'une gourde est…', r: 'transporter de l\'eau pour boire', f: ['avoir de jolies couleurs', 'faire de la lumière'], e: 'Sa fonction d\'<strong>usage</strong> : contenir et transporter une boisson.' },
+  { q: 'Dans un vélo, la fonction technique du frein est…', r: 'ralentir et arrêter la roue', f: ['faire avancer le vélo', 'éclairer la route'], e: 'Chaque pièce a sa <strong>fonction technique</strong> : le frein ralentit la roue.', n: 1 },
+  { q: 'Un parapluie de couleur vive qu\'on achète parce qu\'il est beau : c\'est sa fonction…', r: 'd\'estime', f: ['d\'usage', 'technique'], e: 'La beauté, la couleur, la mode : fonction d\'<strong>estime</strong>. La fonction d\'usage reste de protéger de la pluie.', n: 1 },
+];
+GEN.analyse = genBanque(B_ANALYSE, 'Analyser un objet technique');
+
+const B_ALGO = [
+  { q: 'Un <strong>algorithme</strong>, c\'est…', r: 'une suite d\'instructions pour faire une tâche', f: ['un ordinateur', 'un jeu vidéo'], e: 'Un <strong>algorithme</strong> est une suite ordonnée d\'instructions. Une recette de cuisine en est un !' },
+  { q: 'Scratch est…', r: 'un logiciel pour programmer avec des blocs', f: ['un jeu de cartes', 'un moteur de recherche'], e: 'Dans <strong>Scratch</strong>, on assemble des blocs d\'instructions pour faire bouger des lutins.' },
+  { q: 'Dans un programme, l\'ordre des instructions…', r: 'est important', f: ['n\'a aucune importance'], e: '« Avancer puis tourner » ne donne pas le même résultat que « tourner puis avancer » : l\'<strong>ordre</strong> compte.' },
+  { q: 'Pour répéter plusieurs fois les mêmes instructions, on utilise…', r: 'une boucle « répéter »', f: ['un interrupteur', 'une souris'], e: 'La boucle <strong>« répéter … fois »</strong> évite d\'écrire plusieurs fois les mêmes blocs.', n: 1 },
+  { q: 'Pour tracer un carré, le lutin peut faire :', r: 'répéter 4 fois : avancer, tourner d\'un quart de tour', f: ['répéter 3 fois : avancer, tourner d\'un quart de tour', 'avancer 4 fois sans tourner'], e: 'Un carré a 4 côtés égaux et 4 angles droits : on <strong>répète 4 fois</strong> « avancer, tourner de 90° ».', n: 1 },
+  { q: 'Un « bug », c\'est…', r: 'une erreur dans un programme', f: ['un ordinateur neuf', 'une instruction qui marche'], e: 'Un <strong>bug</strong> est une erreur. On le cherche et on le corrige : c\'est « déboguer ».', n: 1 },
+];
+GEN.algo = genMixte(B_ALGO, 'Algorithmes et programmation', fabProg, 0.6);
+
+const B_TERRE2 = [
+  { q: 'La Terre tourne sur elle-même : c\'est la…', r: 'rotation', f: ['révolution', 'gravitation'], e: 'La <strong>rotation</strong> de la Terre sur elle-même dure 24 heures : elle explique le jour et la nuit.' },
+  { q: 'La Terre tourne autour du Soleil : c\'est la…', r: 'révolution', f: ['rotation', 'germination'], e: 'La <strong>révolution</strong> autour du Soleil dure un an (365 jours et un quart).' },
+  { q: 'Les saisons existent parce que…', r: 'l\'axe de la Terre est penché', f: ['la Terre s\'éloigne beaucoup du Soleil en hiver', 'la Lune cache le Soleil'], e: 'L\'axe de la Terre est <strong>incliné</strong> : en été, notre moitié de la Terre reçoit les rayons du Soleil plus directement et plus longtemps. (La distance au Soleil n\'y est presque pour rien.)', n: 1 },
+  { q: 'Quand c\'est l\'été en France, en Australie c\'est…', r: 'l\'hiver', f: ['l\'été aussi', 'le printemps'], e: 'Les deux moitiés de la Terre (hémisphères) ont des saisons <strong>inversées</strong> : Noël est en plein été en Australie !', n: 1 },
+  { q: 'Un volcan rejette…', r: 'de la lave, des cendres et des gaz', f: ['de l\'eau douce', 'du sable de plage'], e: 'La roche fondue (le <strong>magma</strong>) monte des profondeurs et sort en <strong>lave</strong>, avec des cendres et des gaz.' },
+  { q: 'Un tremblement de terre s\'appelle aussi…', r: 'un séisme', f: ['une éruption', 'une marée'], e: 'Un <strong>séisme</strong> : le sol tremble parce que des roches cassent et glissent en profondeur.' },
+  { q: 'La lave est…', r: 'de la roche fondue', f: ['de l\'eau très chaude', 'du feu'], e: 'La <strong>lave</strong> est de la roche fondue, à plus de 1 000 °C. En refroidissant, elle redevient une roche dure.' },
+  { q: 'Pendant un séisme, à l\'école, il faut…', r: 'se protéger sous une table, loin des fenêtres', f: ['courir dans l\'escalier', 'sortir sous les balcons'], e: 'On se met <strong>sous une table solide</strong>, loin des vitres, et on attend la fin des secousses.', n: 1 },
+  { q: 'L\'enveloppe rigide de la Terre est découpée en…', r: 'plaques', f: ['volcans', 'saisons'], e: 'La surface de la Terre est faite de grandes <strong>plaques</strong> qui bougent très lentement : c\'est surtout à leurs limites qu\'il y a des volcans et des séismes.', n: 1 },
+  { q: 'Un séisme sous la mer peut provoquer…', r: 'un tsunami', f: ['une tornade', 'une éclipse'], e: 'Le fond de la mer bouge et soulève une énorme <strong>vague</strong> : le tsunami.', n: 1 },
+  { q: 'Les volcans d\'Auvergne, en France…', r: 'sont éteints ou endormis depuis des milliers d\'années', f: ['crachent de la lave chaque année', 'n\'ont jamais existé'], e: 'La <strong>chaîne des Puys</strong> compte de nombreux volcans ; la dernière éruption date d\'environ 7 000 ans. Il y a en revanche des volcans actifs dans les territoires d\'outre-mer, comme le piton de la Fournaise à La Réunion.', n: 1 },
+];
+GEN.terre2 = genBanque(B_TERRE2, 'La Terre : mouvements, séismes et volcans');
+
+const B_RECYCLE = [
+  { q: 'Pour fabriquer une vitre, on choisit…', r: 'le verre, car il est transparent', f: ['le bois', 'le métal'], e: 'On choisit le matériau selon ses <strong>propriétés</strong> : pour voir à travers, il faut un matériau <strong>transparent</strong>.' },
+  { q: 'Pour un câble électrique, on choisit du cuivre parce que…', r: 'il conduit bien le courant', f: ['il est joli', 'il est isolant'], e: 'Le cuivre est un très bon <strong>conducteur</strong> électrique.' },
+  { q: 'Les bouteilles en verre se jettent…', r: 'dans le conteneur à verre', f: ['avec les épluchures', 'dans la nature'], e: 'Le verre se recycle <strong>à l\'infini</strong> : on le refond pour faire de nouvelles bouteilles.' },
+  { q: 'Recycler, c\'est…', r: 'transformer un déchet en nouvelle matière première', f: ['jeter un déchet dans la nature', 'brûler tous les déchets'], e: 'Avec des bouteilles en plastique recyclées, on fabrique par exemple des fibres pour des pulls polaires.' },
+  { q: 'Une canette en aluminium…', r: 'se recycle et peut redevenir une canette', f: ['ne se recycle pas', 'se décompose en un mois'], e: 'L\'aluminium se <strong>recycle</strong> très bien, en économisant beaucoup d\'énergie par rapport à l\'aluminium neuf.' },
+  { q: 'Le meilleur déchet est…', r: 'celui qu\'on ne produit pas', f: ['celui qu\'on brûle', 'celui qu\'on enterre'], e: 'Avant de recycler, on peut <strong>réduire</strong> (moins d\'emballages) et <strong>réutiliser</strong> (gourde plutôt que bouteilles jetables).', n: 1 },
+  { q: 'Les piles usagées…', r: 'se rapportent dans un point de collecte', f: ['se jettent à la poubelle ordinaire', 'se mettent au compost'], e: 'Les piles contiennent des métaux <strong>polluants</strong> : on les dépose dans les bacs de collecte (magasins, déchetterie).', n: 1 },
+  { q: 'Pour une gourde réutilisable, l\'acier inoxydable est un bon choix parce qu\'il…', r: 'est solide, ne rouille pas et dure longtemps', f: ['est jetable', 'fond au soleil'], e: 'Solide, durable, lavable : le choix d\'un matériau tient compte de ses propriétés et de son <strong>impact sur l\'environnement</strong>.', n: 1 },
+  { q: 'Fabriquer un objet en plastique neuf utilise…', r: 'du pétrole, une ressource qui s\'épuise', f: ['seulement de l\'eau', 'du sable'], e: 'Le plastique vient du <strong>pétrole</strong> : en le recyclant, on économise cette ressource.', n: 1 },
+  { q: 'Le papier recyclé permet…', r: 'de couper moins d\'arbres', f: ['d\'utiliser plus de pétrole', 'de fabriquer du verre'], e: 'Recycler le papier, c\'est économiser du <strong>bois</strong>, de l\'eau et de l\'énergie.', n: 1 },
+  { q: 'Pour une casserole, on choisit un métal parce qu\'il…', r: 'résiste à la chaleur et la conduit bien', f: ['est transparent', 'est isolant électrique'], e: 'La casserole doit chauffer les aliments : le métal <strong>conduit la chaleur</strong> et ne fond pas sur le feu.' },
+  { q: 'Les emballages en carton se jettent…', r: 'dans la poubelle de tri (recyclage)', f: ['dans le conteneur à verre', 'dans la nature'], e: 'Le carton se <strong>recycle</strong> en nouveau carton ou papier.' },
+];
+GEN.recycle = genBanque(B_RECYCLE, 'Choisir un matériau, recycler');
+
+const B_RESEAU = [
+  { q: 'Plusieurs ordinateurs reliés entre eux forment…', r: 'un réseau', f: ['un algorithme', 'un circuit électrique'], e: 'Des appareils reliés qui échangent des informations forment un <strong>réseau</strong>.' },
+  { q: 'Internet, c\'est…', r: 'un immense réseau qui relie des réseaux du monde entier', f: ['un seul gros ordinateur', 'un logiciel de dessin'], e: '<strong>Internet</strong> relie des milliards d\'appareils, dans le monde entier.' },
+  { q: 'À la maison, la « box » sert à…', r: 'relier les appareils de la maison à Internet', f: ['recharger les piles', 'imprimer'], e: 'La <strong>box</strong> relie le réseau local de la maison (ordinateurs, téléphones) au réseau Internet.' },
+  { q: 'Le Wi-Fi permet de se connecter…', r: 'sans fil, par des ondes radio', f: ['seulement avec un câble', 'avec de la lumière visible'], e: 'Le <strong>Wi-Fi</strong> utilise des ondes radio : pas besoin de câble.' },
+  { q: 'Un réseau local, c\'est par exemple…', r: 'les ordinateurs d\'une école reliés entre eux', f: ['tous les ordinateurs du monde', 'une seule tablette'], e: 'Un <strong>réseau local</strong> relie les appareils d\'un même lieu (maison, école).', n: 1 },
+  { q: 'Un serveur est…', r: 'un ordinateur qui fournit des services aux autres', f: ['un câble', 'un clavier'], e: 'Le <strong>serveur</strong> stocke des fichiers, des sites ou des messages et les envoie aux ordinateurs qui les demandent.', n: 1 },
+  { q: 'Pour envoyer un message sur Internet, celui-ci est découpé en…', r: 'petits paquets', f: ['lettres de l\'alphabet séparées', 'images'], e: 'Les données voyagent en <strong>paquets</strong>, qui peuvent prendre des chemins différents et sont rassemblés à l\'arrivée.', n: 1 },
+  { q: 'Le matériel qui oriente les informations entre les réseaux s\'appelle…', r: 'un routeur', f: ['une imprimante', 'une souris'], e: 'Le <strong>routeur</strong> envoie chaque paquet dans la bonne direction, comme un aiguilleur. La box de la maison en contient un.', n: 1 },
+  { q: 'Pourquoi ne pas publier sa photo et son adresse sur Internet ?', r: 'parce qu\'elles peuvent être vues et copiées par n\'importe qui', f: ['parce qu\'Internet les efface tout de suite', 'il n\'y a aucun risque'], e: 'Ce qui est publié peut être <strong>copié et partagé</strong> sans qu\'on le sache, et très difficile à effacer.', n: 1 },
+  { q: 'Un câble réseau (Ethernet) sert à…', r: 'relier un ordinateur au réseau par un fil', f: ['recharger la souris', 'imprimer des photos'], e: 'Le câble <strong>Ethernet</strong> relie un appareil à la box ou au réseau : la liaison est stable et rapide.' },
+  { q: 'Une adresse de site Internet sécurisé commence par…', r: 'https://', f: ['@', 'www.fr'], e: 'Le <strong>https</strong> indique que la connexion au site est sécurisée (le petit cadenas dans la barre d\'adresse).', n: 1 },
+  { q: 'Un courriel (e-mail) passe…', r: 'par des serveurs de messagerie avant d\'arriver', f: ['directement d\'un écran à l\'autre', 'par la poste'], e: 'Le message est déposé sur un <strong>serveur</strong> de messagerie, qui le transmet au serveur du destinataire.', n: 1 },
+  { q: 'Le « cloud » (le nuage), ce sont…', r: 'des fichiers stockés sur des serveurs, loin de chez soi', f: ['des données cachées dans les nuages du ciel', 'des fichiers sur une clé USB'], e: 'Le <strong>cloud</strong> : nos photos ou documents sont gardés sur des serveurs, dans de grands centres de données.', n: 1 },
+  { q: 'Pour aller sur Internet, il faut…', r: 'être connecté à un réseau relié à Internet', f: ['avoir seulement un clavier', 'une imprimante'], e: 'L\'appareil doit être relié à un <strong>réseau</strong> (Wi-Fi, câble ou réseau mobile) connecté à Internet.' },
+];
+GEN.reseau = genBanque(B_RESEAU, 'Les réseaux informatiques');
+
+const B_CLIMAT = [
+  { q: 'L\'eau douce, le pétrole, les forêts sont…', r: 'des ressources naturelles', f: ['des déchets', 'des objets techniques'], e: 'Ce que la nature nous fournit et que nous utilisons : les <strong>ressources naturelles</strong>. Certaines s\'épuisent.' },
+  { q: 'Pour économiser l\'eau, on peut…', r: 'prendre une douche plutôt qu\'un bain', f: ['laisser couler le robinet en se brossant les dents', 'arroser en plein soleil'], e: 'Une douche rapide consomme bien moins d\'eau qu\'un bain : l\'eau douce est une <strong>ressource précieuse</strong>.' },
+  { q: 'Le climat de la Terre se réchauffe surtout à cause…', r: 'des gaz rejetés par les activités humaines', f: ['de la Lune', 'des volcans éteints'], e: 'Brûler du pétrole, du charbon et du gaz rejette du <strong>dioxyde de carbone</strong> : il renforce l\'effet de serre et réchauffe la planète.' },
+  { q: 'Une conséquence du réchauffement climatique est…', r: 'la fonte des glaciers', f: ['des hivers toujours plus froids partout', 'la disparition des océans'], e: 'Les <strong>glaciers fondent</strong>, le niveau de la mer monte, les canicules et les sécheresses sont plus fréquentes.' },
+  { q: 'Un moyen de transport qui rejette peu de dioxyde de carbone :', r: 'le vélo', f: ['l\'avion', 'la voiture seule pour 1 km'], e: 'Le <strong>vélo</strong> et la marche ne rejettent rien ; le train et le bus beaucoup moins que la voiture ou l\'avion.' },
+  { q: 'Les inondations, les tempêtes, les séismes sont des…', r: 'risques naturels', f: ['ressources naturelles', 'énergies renouvelables'], e: 'Ce sont des <strong>risques naturels</strong>. On ne peut pas les empêcher, mais on peut les prévoir et s\'en protéger.', n: 1 },
+  { q: 'Pour réduire le risque d\'inondation, on évite…', r: 'de construire des maisons au bord des rivières qui débordent', f: ['de planter des arbres', 'de nettoyer les fossés'], e: 'Des cartes indiquent les <strong>zones inondables</strong> : on n\'y construit pas, ou on adapte les bâtiments.', n: 1 },
+  { q: 'L\'effet de serre, c\'est…', r: 'des gaz de l\'atmosphère qui retiennent la chaleur de la Terre', f: ['une serre de jardin géante', 'un trou dans le Soleil'], e: 'Sans effet de serre, il ferait −18 °C sur Terre ! Mais trop de gaz à effet de serre <strong>réchauffe</strong> la planète.', n: 1 },
+  { q: 'Les prévisions de Météo-France servent à…', r: 'prévenir des orages, tempêtes ou canicules', f: ['empêcher la pluie', 'changer le climat'], e: 'Les <strong>vigilances</strong> météo (jaune, orange, rouge) permettent de se protéger à temps.', n: 1 },
+  { q: 'La météo, c\'est le temps qu\'il fait…', r: 'un jour donné, à un endroit', f: ['en moyenne sur 30 ans', 'sur toute la planète pour toujours'], e: '<strong>Météo</strong> : le temps d\'un jour précis. <strong>Climat</strong> : le temps habituel d\'une région, en moyenne sur une trentaine d\'années.', n: 1 },
+  { q: 'Les arbres aident à lutter contre le réchauffement parce qu\'ils…', r: 'absorbent du dioxyde de carbone', f: ['rejettent du pétrole', 'chauffent l\'air'], e: 'Pour fabriquer leur matière, les arbres <strong>absorbent du dioxyde de carbone</strong> : les forêts sont des puits de carbone.' },
+  { q: 'Une canicule, c\'est…', r: 'une période de très fortes chaleurs, jour et nuit', f: ['une tempête de neige', 'une petite pluie'], e: 'Pendant une <strong>canicule</strong>, on boit souvent, on reste au frais et on veille sur les personnes âgées.' },
+];
+GEN.climat = genBanque(B_CLIMAT, 'Ressources, risques et climat');
+
+/* ============================================================
+   6e – 5e : QUESTIONS FABRIQUÉES À CHAQUE PARTIE
+   conversions de masse et de volume, vitesse moyenne, circuits à deux lampes,
+   grossissement du microscope, fréquence cardiaque, petits programmes (boucles et conditions)
+   ============================================================ */
+function fabMasse(p) {
+  const notion = 'Masse et volume';
+  const C = pick(p < 0.5 ? [
+    () => { const x = rnd(2, 9) * pick([100, 250, 500]); return [`${fmtN(x)} g = … kg`, x / 1000, 'kg', `1 kg = 1 000 g : on divise par 1 000. ${fmtN(x)} g = <strong>${fmtN(x / 1000)} kg</strong>.`]; },
+    () => { const x = pick([1, 2, 3, 1.5, 2.5, 0.5]); return [`${fmtN(x)} kg = … g`, x * 1000, 'g', `1 kg = 1 000 g : on multiplie par 1 000. <strong>${fmtN(x * 1000)} g</strong>.`]; },
+    () => { const x = pick([1, 2, 1.5, 0.5, 0.25, 0.75]); return [`${fmtN(x)} L = … mL`, x * 1000, 'mL', `1 L = 1 000 mL. ${fmtN(x)} L = <strong>${fmtN(x * 1000)} mL</strong>.`]; },
+    () => { const x = rnd(1, 9) * 50; return [`${fmtN(x)} mL = … cL`, x / 10, 'cL', `1 cL = 10 mL : on divise par 10. <strong>${fmtN(x / 10)} cL</strong>.`]; },
+  ] : [
+    () => { const x = rnd(1, 9) * 25; return [`${fmtN(x)} cm³ = … mL`, x, 'mL', `1 cm³ = <strong>1 mL</strong> : un petit cube de 1 cm de côté contient exactement 1 millilitre. Donc ${fmtN(x)} cm³ = <strong>${fmtN(x)} mL</strong>.`]; },
+    () => { const x = pick([1, 2, 5, 1.5, 0.5]); return [`${fmtN(x)} dm³ = … L`, x, 'L', `1 dm³ = <strong>1 L</strong>. Donc ${fmtN(x)} dm³ = <strong>${fmtN(x)} L</strong>.`]; },
+    () => { const x = rnd(2, 9) * 100; return [`${fmtN(x)} mg = … g`, x / 1000, 'g', `1 g = 1 000 mg : on divise par 1 000. <strong>${fmtN(x / 1000)} g</strong>.`]; },
+    () => { const v1 = rnd(20, 45), v2 = v1 + rnd(5, 30); return [`On verse de l'eau dans une éprouvette jusqu'à <strong>${v1} mL</strong>, puis on plonge un caillou : l'eau monte à <strong>${v2} mL</strong>. Volume du caillou (en mL) ?`, v2 - v1, 'mL', `Le caillou prend la place de l'eau qu'il fait monter : ${v2} − ${v1} = <strong>${v2 - v1} mL</strong>, soit ${v2 - v1} cm³. C'est la mesure du volume par <strong>déplacement d'eau</strong>.`]; },
+    () => { const m1 = rnd(100, 300), m2 = rnd(20, 90); return [`Un bécher vide pèse <strong>${m1} g</strong>. Rempli d'eau, il pèse <strong>${m1 + m2} g</strong>. Quelle est la masse de l'eau (en g) ?`, m2, 'g', `On enlève la masse du récipient : ${m1 + m2} − ${m1} = <strong>${m2} g</strong>. (On peut aussi « tarer » la balance avec le bécher vide.)`]; },
+  ])();
+  const [q, r, u, e] = C;
+  const phrase = q.includes('…') ? `Convertis :<br><strong>${q.replace('…', '<span class="mm-trou">…</span>')}</strong>` : q;
+  return { enonce: phrase, saisie: { type: 'nombre', bonne: r, unite: u }, rep: `${fmtN(r)} ${u}`, notion, explication: e };
+}
+
+function fabVitesse(p) {
+  const notion = 'La vitesse moyenne';
+  const type = pick(p < 0.5 ? [0, 0, 1] : [0, 1, 2, 3]);
+  if (type === 0) {
+    const T = pick([1, 2, 3, 4, 0.5]), v = pick([4, 5, 12, 15, 20, 30, 60, 80, 90]), d = v * T;
+    return { enonce: `<span class="mm-pb">Un cycliste parcourt <strong>${fmtN(d)} km</strong> en <strong>${T === 0.5 ? '30 min' : `${T} h`}</strong>. Quelle est sa vitesse moyenne (en km/h) ?</span>`, saisie: { type: 'nombre', bonne: v, unite: 'km/h' }, rep: `${v} kilomètres heure`, notion,
+      explication: `v = <strong>d ÷ t</strong> = ${fmtN(d)} km ÷ ${fmtN(T)} h = <strong>${v} km/h</strong>.${T === 0.5 ? ' 30 min, c\'est 0,5 h.' : ''}` };
+  }
+  if (type === 1) {
+    const t = rnd(5, 20), v = rnd(2, 9), d = v * t;
+    return { enonce: `<span class="mm-pb">Un élève court <strong>${d} m</strong> en <strong>${t} s</strong>. Quelle est sa vitesse moyenne (en m/s) ?</span>`, saisie: { type: 'nombre', bonne: v, unite: 'm/s' }, rep: `${v} mètres par seconde`, notion,
+      explication: `v = d ÷ t = ${d} m ÷ ${t} s = <strong>${v} m/s</strong> : il parcourt ${v} mètres chaque seconde.` };
+  }
+  if (type === 2) {
+    const v = pick([50, 60, 80, 90, 100, 120]), t = pick([2, 3, 1.5, 0.5, 2.5]), d = v * t;
+    return { enonce: `<span class="mm-pb">Un train roule à <strong>${v} km/h</strong> pendant <strong>${fmtN(t)} h</strong>. Quelle distance parcourt-il (en km) ?</span>`, saisie: { type: 'nombre', bonne: d, unite: 'km' }, rep: `${fmtN(d)} kilomètres`, notion,
+      explication: `d = <strong>v × t</strong> = ${v} × ${fmtN(t)} = <strong>${fmtN(d)} km</strong>.` };
+  }
+  const v = pick([4, 5, 10, 20, 50, 60, 80]), t = rnd(2, 6), d = v * t;
+  return { enonce: `<span class="mm-pb">Combien de temps (en heures) faut-il pour parcourir <strong>${d} km</strong> à <strong>${v} km/h</strong> ?</span>`, saisie: { type: 'nombre', bonne: t, unite: 'h' }, rep: `${t} heures`, notion,
+    explication: `t = <strong>d ÷ v</strong> = ${d} ÷ ${v} = <strong>${t} h</strong>.` };
+}
+
+/* Circuit à deux lampes, en série ou en dérivation ; une lampe peut être dévissée */
+function figDeuxLampes(montage, devissee) {
+  let s = '';
+  const lampe = (x, y, allume, vide) => {
+    if (vide) return `<circle cx="${x}" cy="${y}" r="18" fill="none" stroke="${CRAIE}" stroke-width="2" stroke-dasharray="4 4"/>` + txt(x, y + 34, 'dévissée', { taille: 12, c: ROSE });
+    let t = allume ? [0, 60, 120, 180, 240, 300].map((a) => { const r = a * Math.PI / 180; return ligne(x + 23 * Math.cos(r), y + 23 * Math.sin(r), x + 31 * Math.cos(r), y + 31 * Math.sin(r), JAUNE, 2.5); }).join('') : '';
+    return t + `<circle cx="${x}" cy="${y}" r="18" fill="${allume ? JAUNE : '#22352b'}" fill-opacity="${allume ? 0.55 : 1}" stroke="${CRAIE}" stroke-width="3"/>` + ligne(x - 12, y - 12, x + 12, y + 12, CRAIE, 2) + ligne(x + 12, y - 12, x - 12, y + 12, CRAIE, 2);
+  };
+  const pile = ligne(42, 120, 78, 120, CRAIE, 4) + ligne(50, 140, 70, 140, CRAIE, 8) + txt(30, 116, '+', { taille: 15, gras: true }) + txt(30, 146, '−', { taille: 15, gras: true });
+  if (montage === 'serie') {
+    const allume = !devissee;
+    s += pile + ligne(60, 120, 60, 50) + ligne(60, 160, 60, 140) + ligne(60, 50, 132, 50) + ligne(168, 50, 232, 50) + ligne(268, 50, 320, 50) + ligne(320, 50, 320, 210) + ligne(320, 210, 60, 210) + ligne(60, 210, 60, 160);
+    s += lampe(150, 50, allume, devissee === 1) + lampe(250, 50, allume, devissee === 2);
+    s += txt(150, 18, 'L1', { taille: 14, gras: true, c: JAUNE }) + txt(250, 18, 'L2', { taille: 14, gras: true, c: JAUNE });
+  } else {
+    s += pile + ligne(60, 120, 60, 50) + ligne(60, 140, 60, 210) + ligne(60, 50, 300, 50) + ligne(60, 210, 300, 210);
+    s += ligne(200, 50, 200, 82) + ligne(200, 118, 200, 210) + ligne(300, 50, 300, 82) + ligne(300, 118, 300, 210);
+    s += `<circle cx="200" cy="50" r="4" fill="${CRAIE}"/><circle cx="200" cy="210" r="4" fill="${CRAIE}"/>`;
+    s += lampe(200, 100, devissee !== 1, devissee === 1) + lampe(300, 100, devissee !== 2, devissee === 2);
+    s += txt(152, 100, 'L1', { taille: 14, gras: true, c: JAUNE }) + txt(350, 100, 'L2', { taille: 14, gras: true, c: JAUNE });
+  }
+  return svgArdoise(380, 240, s, montage === 'serie' ? 'Deux lampes branchées l\'une après l\'autre' : 'Deux lampes branchées chacune sur sa propre boucle');
+}
+function fabDeuxLampes(p) {
+  const notion = 'Circuits en série et en dérivation';
+  const montage = pick(['serie', 'derivation']);
+  if (p < 0.4 || Math.random() < 0.35) {
+    const b = montage === 'serie' ? 'en série' : 'en dérivation';
+    return { enonce: 'Comment les deux lampes sont-elles branchées ?', figure: figDeuxLampes(montage, 0), choix: ['en série', 'en dérivation'].map((v) => ({ v, html: capitalize(v) })), bonne: b, rep: b, notion,
+      explication: montage === 'serie' ? 'Les lampes sont l\'une <strong>après</strong> l\'autre, sur une <strong>seule boucle</strong> : le montage est <strong>en série</strong>.' : 'Chaque lampe est sur sa <strong>propre boucle</strong> avec la pile (les fils se séparent en deux branches) : le montage est <strong>en dérivation</strong>.' };
+  }
+  const dev = pick([1, 2]), autre = dev === 1 ? 2 : 1, brille = montage === 'derivation';
+  return { enonce: `On <strong>dévisse</strong> la lampe L${dev}. La lampe <strong>L${autre}</strong> brille-t-elle encore ?`, figure: figDeuxLampes(montage, 0), figureCorrection: figDeuxLampes(montage, dev), choix: [{ v: 'oui', html: 'Oui, elle brille' }, { v: 'non', html: 'Non, elle s\'éteint' }], bonne: brille ? 'oui' : 'non', rep: brille ? 'oui, elle brille encore' : 'non, elle s\'éteint', notion,
+    explication: montage === 'serie' ? 'En <strong>série</strong>, il n\'y a qu\'une boucle : dévisser une lampe <strong>ouvre</strong> tout le circuit, et l\'autre s\'éteint (comme une vieille guirlande de Noël).' : 'En <strong>dérivation</strong>, chaque lampe a sa propre boucle avec la pile : l\'autre boucle reste fermée, la lampe <strong>brille encore</strong>. C\'est ainsi que sont branchées les prises et les lampes d\'une maison.' };
+}
+
+function fabMicroscope() {
+  const oc = pick([10, 15]), ob = pick([4, 10, 40]);
+  return { enonce: `Un microscope a un oculaire <strong>×${oc}</strong> et un objectif <strong>×${ob}</strong>. Quel est son grossissement total ?`, saisie: { type: 'nombre', bonne: oc * ob, unite: 'fois' }, rep: `${oc * ob} fois`, notion: 'La cellule',
+    voix: `Un microscope a un oculaire qui grossit ${oc} fois et un objectif qui grossit ${ob} fois. Quel est son grossissement total ?`,
+    explication: `On <strong>multiplie</strong> les deux grossissements : ${oc} × ${ob} = <strong>${oc * ob}</strong>. L'objet paraît ${oc * ob} fois plus grand.` };
+}
+
+function fabPouls(p) {
+  const notion = 'Le corps humain et l\'effort';
+  const duree = pick([15, 20, 30]), f = pick(p < 0.5 ? [60, 72, 80, 84, 90] : [120, 132, 140, 150, 160]), n = (f * duree) / 60;
+  if (!Number.isInteger(n)) return fabPouls(p);
+  return { enonce: `${p < 0.5 ? 'Au repos' : 'Après une course'}, Inès compte <strong>${n} battements</strong> de cœur en <strong>${duree} secondes</strong>. Quelle est sa fréquence cardiaque, en battements par minute ?`, saisie: { type: 'nombre', bonne: f, unite: 'battements/min' }, rep: `${f} battements par minute`, notion,
+    explication: `Une minute = 60 s = ${60 / duree} fois ${duree} s. ${n} × ${60 / duree} = <strong>${f} battements par minute</strong>. ${f > 100 ? 'Après l\'effort, le cœur bat plus vite pour apporter plus de dioxygène et de nutriments aux muscles.' : 'Au repos, le cœur d\'un enfant bat environ 70 à 100 fois par minute.'}` };
+}
+
+/* Petits programmes : boucles, variables et conditions (si … alors … sinon) */
+function fabAlgo65(p) {
+  const notion = 'Boucles et conditions';
+  const type = pick(p < 0.5 ? [0, 1] : [0, 1, 2, 3]);
+  const prog = (L) => `<ol class="mm-prog">${L.map((x) => `<li>${x}</li>`).join('')}</ol>`;
+  if (type === 0) {
+    const d = rnd(0, 5), k = rnd(3, 6), a = rnd(2, 5);
+    return { enonce: `Que vaut <strong>score</strong> à la fin de ce programme ?${prog([`mettre score à ${d}`, `répéter <strong>${k} fois</strong> :<ul class="mm-boucle"><li>ajouter ${a} à score</li></ul>`])}`, saisie: { type: 'nombre', bonne: d + k * a }, rep: String(d + k * a), notion,
+      voix: `Mettre score à ${d}. Répéter ${k} fois : ajouter ${a} à score. Que vaut score à la fin ?`,
+      explication: `La boucle ajoute ${a} à chaque tour, ${k} fois : ${d} + ${k} × ${a} = <strong>${d + k * a}</strong>.` };
+  }
+  if (type === 1) {
+    const x = rnd(1, 20), s = rnd(5, 15), op = pick(['&gt;', '&lt;']), vrai = op === '&gt;' ? x > s : x < s;
+    const [m1, m2] = pick([['Bravo !', 'Essaie encore'], ['Allumer la lampe', 'Éteindre la lampe'], ['Ouvrir la porte', 'Fermer la porte']]);
+    return { enonce: `La variable <strong>température</strong> vaut <strong>${x}</strong>. Que fait ce programme ?${prog([`si température ${op} ${s} alors :<ul class="mm-boucle"><li>${m1}</li></ul>sinon :<ul class="mm-boucle"><li>${m2}</li></ul>`])}`, choix: [m1, m2].map((v) => ({ v, html: v })), bonne: vrai ? m1 : m2, rep: vrai ? m1 : m2, notion,
+      voix: `La température vaut ${x}. Si température ${op === '&gt;' ? 'plus grande que' : 'plus petite que'} ${s}, alors ${m1}, sinon ${m2}. Que fait le programme ?`,
+      explication: `On teste la <strong>condition</strong> : ${x} ${op} ${s} est <strong>${vrai ? 'vrai' : 'faux'}</strong>. ${vrai ? 'On fait donc ce qui suit « alors »' : 'On fait donc ce qui suit « sinon »'} : <strong>${vrai ? m1 : m2}</strong>.` };
+  }
+  if (type === 2) {
+    const k = rnd(3, 6), a = rnd(2, 4), seuil = rnd(5, 12);
+    let n = 0, lampe = 0; for (let i = 0; i < k; i += 1) { n += a; if (n > seuil) lampe += 1; }
+    return { enonce: `Combien de fois le programme dit-il « Bip » ?${prog(['mettre n à 0', `répéter <strong>${k} fois</strong> :<ul class="mm-boucle"><li>ajouter ${a} à n</li><li>si n &gt; ${seuil} alors dire « Bip »</li></ul>`])}`, saisie: { type: 'nombre', bonne: lampe }, rep: String(lampe), notion,
+      voix: `Mettre n à 0. Répéter ${k} fois : ajouter ${a} à n, et si n est plus grand que ${seuil}, dire bip. Combien de fois le programme dit-il bip ?`,
+      explication: `On suit les tours : n vaut ${Array.from({ length: k }, (_, i) => (i + 1) * a).join(', ')}. La condition n &gt; ${seuil} est vraie <strong>${lampe} fois</strong>.` };
+  }
+  const c = rnd(1, 3), dist = rnd(5, 40);
+  const obst = dist < 10 * c;
+  return { enonce: `Un robot aspirateur lit son <strong>capteur de distance</strong> : <strong>${dist} cm</strong>. Que fait-il ?${prog([`si distance &lt; ${10 * c} cm alors :<ul class="mm-boucle"><li>tourner</li></ul>sinon :<ul class="mm-boucle"><li>avancer</li></ul>`])}`, choix: ['tourner', 'avancer'].map((v) => ({ v, html: capitalize(v) })), bonne: obst ? 'tourner' : 'avancer', rep: obst ? 'tourner' : 'avancer', notion,
+    voix: `Le capteur de distance du robot lit ${dist} centimètres. Si la distance est plus petite que ${10 * c} centimètres, il tourne, sinon il avance. Que fait-il ?`,
+    explication: `${dist} &lt; ${10 * c} est <strong>${obst ? 'vrai' : 'faux'}</strong> : le robot <strong>${obst ? 'tourne' : 'avance'}</strong>. Le capteur <strong>acquiert</strong> l'information, le programme la <strong>traite</strong>, les moteurs (actionneurs) <strong>agissent</strong>.` };
+}
+
+/* ============================================================
+   6e – 5e : MATIÈRE, MOUVEMENT, ÉNERGIE (physique-chimie)
+   n: 0 = plutôt 6e, n: 1 = plutôt 5e
+   ============================================================ */
+const B_MASSE = [
+  { q: 'La masse d\'un objet se mesure avec…', r: 'une balance', f: ['une éprouvette', 'un thermomètre'], e: 'La <strong>balance</strong> mesure la masse, en grammes (g) ou kilogrammes (kg).' },
+  { q: 'Le volume d\'un liquide se mesure avec…', r: 'une éprouvette graduée', f: ['une balance', 'un dynamomètre'], e: 'L\'<strong>éprouvette graduée</strong> mesure un volume en millilitres (mL). On lit en bas du ménisque, les yeux à la hauteur du liquide.' },
+  { q: 'L\'unité de masse du système international est…', r: 'le kilogramme', f: ['le litre', 'le mètre'], e: 'Le <strong>kilogramme</strong> (kg). On utilise aussi le gramme et la tonne.' },
+  { q: 'Pour lire le volume dans une éprouvette, l\'œil doit être…', r: 'à la hauteur du bas du ménisque', f: ['au-dessus de l\'éprouvette', 'en dessous de l\'éprouvette'], e: 'La surface de l\'eau est un peu creusée (le <strong>ménisque</strong>) : on lit le bas de ce creux, l\'œil à sa hauteur.', n: 1 },
+  { q: '1 L d\'eau a une masse d\'environ…', r: '1 kg', f: ['1 g', '10 kg'], e: '1 L d\'eau pèse environ <strong>1 kg</strong> (1 mL d\'eau pèse 1 g). Ce n\'est pas vrai pour tous les liquides : 1 L d\'huile pèse moins.', n: 1 },
+  { q: '1 L d\'huile et 1 L d\'eau ont-ils la même masse ?', r: 'Non, l\'huile est plus légère', f: ['Oui, même volume donc même masse'], e: 'Même volume ne veut pas dire même masse : l\'huile est <strong>moins dense</strong> que l\'eau (c\'est pourquoi elle flotte).', n: 1 },
+  { q: 'Masse et volume, est-ce la même chose ?', r: 'Non : la masse se mesure en kg, le volume en L ou en m³', f: ['Oui, ce sont deux mots pour la même chose'], e: 'La <strong>masse</strong> (kg) dit combien de matière il y a ; le <strong>volume</strong> (L, m³) dit quelle place elle occupe. Un kilo de plumes prend beaucoup plus de place qu\'un kilo de plomb !' },
+];
+GEN.masse = genMixte(B_MASSE, 'Masse et volume', fabMasse, 0.6);
+
+const B_TRANSFO = [
+  { q: 'Quand du bois brûle, il se forme des fumées et des cendres. C\'est…', r: 'une transformation chimique', f: ['un changement d\'état', 'un simple mélange'], e: 'De <strong>nouvelles substances</strong> apparaissent (cendres, gaz) : c\'est une transformation chimique. On ne peut pas refaire du bois avec les cendres.' },
+  { q: 'Quand la glace fond, c\'est…', r: 'un changement d\'état, pas une transformation chimique', f: ['une transformation chimique'], e: 'La glace devient de l\'eau liquide : c\'est toujours de l\'<strong>eau</strong>. Aucune nouvelle substance : c\'est un changement d\'état.' },
+  { q: 'Un clou laissé dehors se couvre de rouille. C\'est…', r: 'une transformation chimique', f: ['un changement d\'état', 'une dissolution'], e: 'Le fer réagit avec le dioxygène de l\'air et l\'eau : il se forme une <strong>nouvelle substance</strong>, la rouille.' },
+  { q: 'Dissoudre du sucre dans l\'eau, c\'est…', r: 'un mélange, pas une transformation chimique', f: ['une transformation chimique'], e: 'Le sucre est toujours du sucre (l\'eau est sucrée, et en évaporant l\'eau on le récupère) : c\'est un <strong>mélange</strong>.' },
+  { q: 'Un œuf qui cuit dans la poêle subit…', r: 'une transformation chimique', f: ['un changement d\'état', 'un mélange'], e: 'Le blanc devient blanc et dur : de nouvelles substances se forment et on ne peut pas revenir en arrière. C\'est une <strong>transformation chimique</strong>.' },
+  { q: 'On verse du vinaigre sur du bicarbonate : ça mousse. Cela montre…', r: 'qu\'un gaz nouveau se forme : c\'est une transformation chimique', f: ['que le vinaigre bout', 'qu\'il ne se passe rien'], e: 'Les bulles sont un <strong>gaz nouveau</strong> (du dioxyde de carbone) : signe d\'une transformation chimique.' },
+  { q: 'Lequel n\'est PAS un signe de transformation chimique ?', r: 'un glaçon qui fond', f: ['un gaz qui se dégage', 'un changement de couleur inattendu'], e: 'Un changement d\'état ne crée pas de nouvelle substance. Gaz qui se dégage, changement de couleur, chaleur, odeur : ce sont des <strong>indices</strong> de transformation chimique.', n: 1 },
+  { q: 'Pour savoir si un mélange eau + sel est une transformation chimique, on peut…', r: 'évaporer l\'eau et vérifier qu\'on retrouve le sel', f: ['le goûter', 'le secouer'], e: 'Si on retrouve le sel intact, rien de nouveau ne s\'est formé : c\'était un <strong>mélange</strong>.', n: 1 },
+  { q: 'Une bougie qui brûle consomme…', r: 'de la cire et le dioxygène de l\'air', f: ['seulement de la cire', 'de l\'eau'], e: 'Une combustion a besoin d\'un <strong>combustible</strong> (la cire) et d\'un <strong>comburant</strong> (le dioxygène). Sous un verre retourné, la bougie s\'éteint.', n: 1 },
+  { q: 'Le lait qui tourne (il devient aigre et caillé) subit…', r: 'une transformation chimique', f: ['un changement d\'état'], e: 'Des bactéries transforment le sucre du lait en acide : une nouvelle substance apparaît, le lait <strong>caille</strong>.', n: 1 },
+];
+GEN.transfo = genBanque(B_TRANSFO, 'Les transformations chimiques');
+
+const B_VITESSE = [
+  { q: 'La formule de la vitesse moyenne est…', r: 'v = d ÷ t', f: ['v = d × t', 'v = t ÷ d'], e: '<strong>Vitesse = distance ÷ durée</strong>. Donc d = v × t et t = d ÷ v.' },
+  { q: 'Une vitesse en km/h indique…', r: 'le nombre de km parcourus en une heure', f: ['le nombre d\'heures pour un km', 'la distance totale'], e: '90 km/h : en roulant ainsi pendant <strong>une heure</strong>, on parcourt 90 km.' },
+  { q: 'Un objet qui va toujours à la même vitesse sur une ligne droite a un mouvement…', r: 'rectiligne uniforme', f: ['circulaire accéléré', 'rectiligne ralenti'], e: 'Ligne droite + vitesse constante : mouvement <strong>rectiligne uniforme</strong>.', n: 1 },
+  { q: 'Une voiture qui démarre au feu vert a un mouvement…', r: 'accéléré', f: ['uniforme', 'ralenti'], e: 'Sa vitesse <strong>augmente</strong> : mouvement accéléré.', n: 1 },
+  { q: 'La vitesse moyenne d\'un trajet tient compte…', r: 'de tout le trajet, arrêts compris', f: ['seulement de la vitesse la plus grande', 'seulement des moments sans arrêt'], e: 'On divise la distance totale par la durée <strong>totale</strong> : c\'est une moyenne, même si on a parfois roulé plus vite ou plus lentement.', n: 1 },
+];
+GEN.vitesse = genMixte(B_VITESSE, 'La vitesse moyenne', fabVitesse, 0.7);
+
+const B_CIRC65 = [
+  { q: 'Dans un circuit en série, si une lampe grille…', r: 'toutes les lampes s\'éteignent', f: ['les autres brillent encore', 'les autres brillent plus fort'], e: 'En <strong>série</strong>, il n\'y a qu\'une boucle : elle est coupée, plus rien ne fonctionne.' },
+  { q: 'Les lampes et les prises d\'une maison sont branchées…', r: 'en dérivation', f: ['en série'], e: 'En <strong>dérivation</strong>, chaque appareil fonctionne même si on en éteint un autre.' },
+  { q: 'Un appareil électrique qui fonctionne chauffe toujours un peu. Cette chaleur est…', r: 'de l\'énergie perdue (énergie thermique)', f: ['de l\'énergie créée', 'impossible'], e: 'L\'énergie ne disparaît pas et ne se crée pas : une partie devient de la <strong>chaleur</strong>, souvent inutile. On parle de pertes.', n: 1 },
+  { q: 'L\'énergie peut-elle disparaître ?', r: 'Non, elle se transforme', f: ['Oui, elle s\'use'], e: 'L\'énergie se <strong>conserve</strong> : elle passe d\'une forme à une autre (électrique → lumière + chaleur), mais elle ne disparaît pas.', n: 1 },
+  { q: 'Deux lampes en série, avec une seule pile, brillent…', r: 'moins fort qu\'une seule lampe', f: ['plus fort qu\'une seule lampe', 'exactement pareil'], e: 'En série, les lampes se <strong>partagent</strong> la tension de la pile : chacune brille moins.', n: 1 },
+];
+GEN.circuits65 = genMixte(B_CIRC65, 'Circuits en série et en dérivation', fabDeuxLampes, 0.7);
+
+const B_PARTICULES = [
+  { q: 'Selon le modèle particulaire, la matière est faite de…', r: 'minuscules particules (molécules)', f: ['un seul bloc continu', 'lumière'], e: 'Toute matière est formée de particules beaucoup trop petites pour être vues : les <strong>molécules</strong>.' },
+  { q: 'Dans un solide, les particules sont…', r: 'serrées et ordonnées, elles vibrent sur place', f: ['éloignées et en désordre', 'immobiles et très espacées'], e: 'Serrées et rangées : c\'est pourquoi le solide a une <strong>forme propre</strong>.' },
+  { q: 'Dans un liquide, les particules sont…', r: 'serrées mais en désordre, elles glissent les unes sur les autres', f: ['éloignées les unes des autres', 'rangées comme dans un solide'], e: 'Serrées mais mobiles : le liquide <strong>coule</strong> et prend la forme du récipient.' },
+  { q: 'Dans un gaz, les particules sont…', r: 'très éloignées et en mouvement rapide', f: ['serrées et ordonnées', 'collées les unes aux autres'], e: 'Très espacées et très agitées : un gaz occupe <strong>tout l\'espace</strong> disponible et on peut le comprimer.' },
+  { q: 'On peut comprimer un gaz parce que…', r: 'ses particules sont très éloignées', f: ['ses particules rapetissent', 'il disparaît'], e: 'Il y a beaucoup d\'<strong>espace vide</strong> entre les particules d\'un gaz : on peut les rapprocher.', n: 1 },
+  { q: 'Lors d\'un changement d\'état, la masse…', r: 'se conserve', f: ['augmente', 'diminue'], e: 'Les particules ne disparaissent pas, elles se réorganisent : la <strong>masse se conserve</strong>. 100 g de glace donnent 100 g d\'eau.', n: 1 },
+  { q: 'Quand l\'eau gèle, son volume augmente un peu, mais sa masse…', r: 'reste la même', f: ['augmente aussi', 'diminue'], e: 'Le volume change, la <strong>masse ne change pas</strong> : ce sont les mêmes particules, rangées autrement.', n: 1 },
+  { q: 'On fait fondre 250 g de glace. Masse de l\'eau obtenue (en g) ?', r: 250, u: 'g', e: 'La masse se conserve : <strong>250 g</strong>.', n: 1 },
+  { q: 'On dissout 20 g de sel dans 200 g d\'eau. Masse de l\'eau salée (en g) ?', r: 220, u: 'g', e: 'Lors d\'une dissolution, la masse se conserve : 200 + 20 = <strong>220 g</strong>.', n: 1 },
+  { q: 'Une molécule d\'eau est formée…', r: 'de deux atomes d\'hydrogène et un atome d\'oxygène', f: ['d\'un seul atome', 'de trois atomes d\'oxygène'], e: 'H₂O : 2 atomes d\'<strong>hydrogène</strong> (H) et 1 atome d\'<strong>oxygène</strong> (O).', n: 1, v: 'Une molécule d\'eau, H 2 O, est formée…' },
+];
+GEN.particules = genBanque(B_PARTICULES, 'Le modèle particulaire');
+
+const B_COURANT = [
+  { q: 'Par convention, à l\'extérieur de la pile, le courant circule…', r: 'de la borne + vers la borne −', f: ['de la borne − vers la borne +', 'dans les deux sens à la fois'], e: 'Le sens <strong>conventionnel</strong> du courant : de la borne <strong>+</strong> vers la borne <strong>−</strong>, à l\'extérieur du générateur.' },
+  { q: 'Une diode…', r: 'ne laisse passer le courant que dans un sens', f: ['laisse passer le courant dans les deux sens', 'produit de l\'électricité'], e: 'Une <strong>diode</strong> est comme un sens unique : branchée à l\'envers, elle bloque le courant.' },
+  { q: 'On branche une DEL (diode électroluminescente) à l\'envers. Elle…', r: 'ne s\'allume pas', f: ['s\'allume quand même', 'brille plus fort'], e: 'La DEL est une diode : dans le mauvais sens, le courant ne passe pas, elle reste <strong>éteinte</strong>.' },
+  { q: 'Lequel est un bon conducteur électrique ?', r: 'le cuivre', f: ['le plastique', 'le verre'], e: 'Les <strong>métaux</strong> (cuivre, fer, aluminium) sont conducteurs.' },
+  { q: 'Lequel est un isolant électrique ?', r: 'le caoutchouc', f: ['l\'aluminium', 'le fer'], e: 'Le caoutchouc, le plastique, le verre, le bois sec sont des <strong>isolants</strong>.' },
+  { q: 'Le corps humain est…', r: 'conducteur : c\'est pour cela que l\'électricité est dangereuse', f: ['parfaitement isolant'], e: 'Le corps contient de l\'eau salée : il <strong>conduit</strong> le courant. Le courant du secteur peut provoquer une électrocution.', n: 1 },
+  { q: 'Un générateur, comme une pile, sert à…', r: 'faire circuler le courant dans le circuit', f: ['bloquer le courant', 'mesurer le courant'], e: 'Le <strong>générateur</strong> fournit l\'énergie électrique et fait circuler le courant.', n: 1 },
+  { q: 'Le symbole normalisé d\'une lampe dans un schéma est…', r: 'un cercle avec une croix', f: ['un carré vide', 'deux traits parallèles'], e: 'Lampe : un <strong>cercle barré d\'une croix</strong>. Pile : deux traits parallèles, un long (+) et un court (−).', n: 1 },
+  { q: 'Un court-circuit, c\'est quand…', r: 'le courant passe par un fil sans traverser l\'appareil', f: ['le circuit est ouvert', 'on éteint l\'interrupteur'], e: 'Le courant prend le chemin le plus facile : l\'appareil ne fonctionne plus, et le fil et la pile peuvent <strong>chauffer dangereusement</strong>.', n: 1 },
+  { q: 'Le bois sec est…', r: 'isolant', f: ['conducteur'], e: 'Le bois sec ne laisse pas passer le courant : il est <strong>isolant</strong>. Mouillé, il devient un peu conducteur.' },
+  { q: 'À l\'intérieur de la pile, le courant va…', r: 'de la borne − vers la borne +', f: ['de la borne + vers la borne −'], e: 'Le courant fait une <strong>boucle</strong> : du + vers le − à l\'extérieur, et du − vers le + à l\'intérieur de la pile.', n: 1 },
+];
+GEN.courant = genBanque(B_COURANT, 'Le courant électrique');
+
+const B_LUMIERE = [
+  { q: 'Lequel est une <strong>source primaire</strong> de lumière (qui produit sa propre lumière) ?', r: 'le Soleil', f: ['la Lune', 'un miroir'], e: 'Le Soleil, une flamme, une lampe allumée <strong>produisent</strong> de la lumière. La Lune ne fait que renvoyer celle du Soleil.' },
+  { q: 'La Lune est…', r: 'un objet diffusant : elle renvoie la lumière du Soleil', f: ['une source primaire de lumière', 'une étoile'], e: 'La Lune est <strong>éclairée</strong> par le Soleil et renvoie (diffuse) sa lumière.' },
+  { q: 'Dans un milieu transparent et homogène (l\'air), la lumière se propage…', r: 'en ligne droite', f: ['en zigzag', 'en cercle'], e: 'La lumière va <strong>en ligne droite</strong> : c\'est pourquoi on ne voit pas derrière un mur.' },
+  { q: 'Une ombre se forme quand…', r: 'un objet opaque arrête la lumière', f: ['un objet transparent laisse passer la lumière', 'il fait nuit'], e: 'L\'objet <strong>opaque</strong> bloque la lumière : derrière lui, une zone n\'est pas éclairée, c\'est l\'ombre portée.' },
+  { q: 'Pour voir un objet, il faut que…', r: 'de la lumière venant de l\'objet entre dans notre œil', f: ['notre œil envoie de la lumière vers l\'objet', 'l\'objet soit chaud'], e: 'L\'œil <strong>reçoit</strong> la lumière : il n\'en envoie pas. Dans le noir complet, on ne voit rien.' },
+  { q: 'On approche une lampe d\'un objet. Son ombre sur le mur…', r: 'devient plus grande', f: ['devient plus petite', 'ne change pas'], e: 'Plus la source est proche de l\'objet, plus l\'objet cache de lumière : l\'ombre <strong>grandit</strong>.', n: 1 },
+  { q: 'Une éclipse de Soleil se produit quand…', r: 'la Lune passe entre le Soleil et la Terre', f: ['la Terre passe entre le Soleil et la Lune', 'le Soleil s\'éteint'], e: 'L\'<strong>ombre de la Lune</strong> tombe sur la Terre : en plein jour, le ciel s\'assombrit. Ne jamais regarder le Soleil sans lunettes spéciales !', n: 1 },
+  { q: 'Une éclipse de Lune se produit quand…', r: 'la Terre passe entre le Soleil et la Lune', f: ['la Lune passe entre le Soleil et la Terre', 'un nuage cache la Lune'], e: 'La Lune entre dans l\'<strong>ombre de la Terre</strong> : elle devient sombre et rougeâtre.', n: 1 },
+  { q: 'La lumière du Soleil met environ combien de minutes pour arriver jusqu\'à la Terre ?', r: 8, u: 'min', e: 'Environ <strong>8 minutes</strong> : la lumière va à 300 000 km par seconde, et le Soleil est à 150 millions de km.', n: 1 },
+  { q: 'Les phases de la Lune (croissant, pleine lune…) s\'expliquent parce que…', r: 'on voit une partie plus ou moins grande de sa face éclairée', f: ['l\'ombre de la Terre la cache chaque soir', 'la Lune change de forme'], e: 'La Lune est toujours à moitié éclairée par le Soleil ; selon sa position autour de la Terre, nous voyons une <strong>part plus ou moins grande</strong> de cette moitié éclairée.', n: 1 },
+];
+GEN.lumiere = genBanque(B_LUMIERE, 'La lumière');
+
+/* ============================================================
+   6e – 5e : LE VIVANT (sciences de la vie et de la Terre)
+   ============================================================ */
+const B_CELLULE = [
+  { q: 'Tous les êtres vivants sont formés de…', r: 'cellules', f: ['atomes seulement, sans cellules', 'cristaux'], e: 'La <strong>cellule</strong> est l\'unité du vivant : tout être vivant est fait d\'une ou de plusieurs cellules.' },
+  { q: 'Pour observer des cellules, on utilise…', r: 'un microscope', f: ['des jumelles', 'une loupe de cuisine'], e: 'Les cellules sont trop petites pour l\'œil nu : il faut un <strong>microscope</strong>.' },
+  { q: 'La partie de la cellule qui contient l\'information génétique est…', r: 'le noyau', f: ['la membrane', 'le cytoplasme'], e: 'Le <strong>noyau</strong> contient l\'ADN, le « plan de construction » de l\'être vivant.' },
+  { q: 'L\'enveloppe qui entoure toute cellule s\'appelle…', r: 'la membrane', f: ['le noyau', 'la paroi'], e: 'La <strong>membrane</strong> limite la cellule et contrôle ce qui entre et sort.' },
+  { q: 'L\'intérieur de la cellule, autour du noyau, s\'appelle…', r: 'le cytoplasme', f: ['la membrane', 'le chloroplaste'], e: 'Le <strong>cytoplasme</strong> : une sorte de gelée où se passent les activités de la cellule.' },
+  { q: 'Un être vivant formé d\'une seule cellule est…', r: 'unicellulaire', f: ['pluricellulaire'], e: '<strong>Unicellulaire</strong> : une seule cellule (bactérie, levure, paramécie).' },
+  { q: 'L\'être humain est…', r: 'pluricellulaire', f: ['unicellulaire'], e: 'Nous sommes faits de milliers de milliards de cellules : nous sommes <strong>pluricellulaires</strong>.' },
+  { q: 'Qu\'a une cellule végétale qu\'une cellule animale n\'a pas ?', r: 'une paroi et des chloroplastes', f: ['un noyau', 'une membrane'], e: 'La cellule végétale a une <strong>paroi</strong> rigide autour de la membrane et des <strong>chloroplastes</strong> verts (pour la photosynthèse).', n: 1 },
+  { q: 'Les chloroplastes donnent aux plantes…', r: 'leur couleur verte', f: ['leur odeur', 'leurs racines'], e: 'Ils contiennent la <strong>chlorophylle</strong>, verte, qui capte la lumière.', n: 1 },
+  { q: 'Les bactéries ont-elles un noyau ?', r: 'Non', f: ['Oui, comme toutes les cellules'], e: 'Les bactéries sont des cellules <strong>sans noyau</strong> : leur ADN flotte dans le cytoplasme.', n: 1 },
+];
+GEN.cellule = genMixte(B_CELLULE, 'La cellule', fabMicroscope, 0.25);
+
+const B_PARENTE = [
+  { q: 'Pour classer les êtres vivants en groupes emboîtés, on se base sur…', r: 'les attributs qu\'ils partagent', f: ['leur milieu de vie', 'leur taille'], e: 'Un groupe = tous les êtres vivants qui partagent un même <strong>attribut</strong> (un caractère).' },
+  { q: 'Le groupe des « vertébrés » réunit les animaux qui ont…', r: 'une colonne vertébrale', f: ['des plumes', 'des poils'], e: 'Vertébrés : <strong>squelette intérieur</strong> avec colonne vertébrale.' },
+  { q: 'Le groupe des mammifères est à l\'intérieur du groupe…', r: 'des vertébrés', f: ['des oiseaux', 'des insectes'], e: 'Tous les mammifères sont des vertébrés : le groupe des mammifères est <strong>emboîté</strong> dans celui des vertébrés.' },
+  { q: 'Le dauphin vit dans la mer comme le thon, mais il a…', r: 'des mamelles et des poumons : c\'est un mammifère', f: ['des branchies : c\'est un poisson', 'des plumes'], e: 'Le <strong>dauphin</strong> respire de l\'air et allaite : il est plus proche du chat que du thon !' },
+  { q: 'Plus deux espèces partagent d\'attributs…', r: 'plus elles sont proches parentes', f: ['moins elles sont parentes', 'plus elles sont grandes'], e: 'Partager beaucoup d\'attributs montre une <strong>parenté</strong> : un ancêtre commun récent.', n: 1 },
+  { q: 'Un arbre de parenté montre…', r: 'les liens de parenté entre espèces', f: ['les arbres d\'une forêt', 'la taille des animaux'], e: 'Il indique quelles espèces ont des <strong>ancêtres communs</strong> plus ou moins récents.', n: 1 },
+  { q: 'Qui est le plus proche parent de l\'humain ?', r: 'le chimpanzé', f: ['le chien', 'le dauphin'], e: 'Le <strong>chimpanzé</strong> partage le plus d\'attributs avec nous : nous avons un ancêtre commun récent (quelques millions d\'années).', n: 1 },
+  { q: 'Le crocodile est plus proche parent…', r: 'des oiseaux que des lézards', f: ['des poissons que des oiseaux', 'des mammifères'], e: 'Surprise de la classification : crocodiles et oiseaux (descendants des dinosaures) ont un <strong>ancêtre commun</strong> plus récent qu\'avec les lézards.', n: 1 },
+  { q: 'Dans un tableau d\'attributs, la chauve-souris partage avec le chat…', r: 'les poils et les mamelles', f: ['les ailes', 'les plumes'], e: 'Poils et mamelles : elle est dans le groupe des <strong>mammifères</strong>, comme le chat.' },
+  { q: 'L\'escargot et la limace, qui ont un corps mou, font partie…', r: 'des mollusques', f: ['des vertébrés', 'des insectes'], e: 'Corps mou, souvent protégé par une coquille : les <strong>mollusques</strong>.', n: 1 },
+];
+GEN.parente = genBanque(B_PARENTE, 'Groupes emboîtés et parenté');
+
+const B_MICROBES = [
+  { q: 'Pour faire un yaourt, on utilise du lait et…', r: 'des bactéries', f: ['de la levure de boulanger', 'du sel'], e: 'Des <strong>bactéries</strong> transforment le sucre du lait (le lactose) en acide : le lait s\'épaissit.' },
+  { q: 'La pâte à pain gonfle grâce à…', r: 'la levure, un champignon microscopique', f: ['des bactéries du yaourt', 'l\'eau chaude seulement'], e: 'La <strong>levure</strong> transforme les sucres de la farine et rejette du gaz carbonique : les bulles font gonfler la pâte.' },
+  { q: 'La transformation d\'un aliment par des micro-organismes s\'appelle…', r: 'la fermentation', f: ['la germination', 'la cuisson'], e: 'La <strong>fermentation</strong> donne le yaourt, le fromage, le pain, la choucroute…' },
+  { q: 'Les micro-organismes sont…', r: 'des êtres vivants invisibles à l\'œil nu', f: ['des poussières', 'des minéraux'], e: 'Bactéries, levures : ce sont des <strong>êtres vivants</strong> microscopiques.' },
+  { q: 'Tous les microbes sont-ils dangereux ?', r: 'Non, beaucoup sont utiles', f: ['Oui, tous rendent malade'], e: 'La plupart sont <strong>inoffensifs</strong> ou utiles : fermentations, digestion (nos intestins en contiennent des milliards), décomposition.' },
+  { q: 'Mettre les aliments au réfrigérateur…', r: 'ralentit la multiplication des microbes', f: ['tue tous les microbes', 'les fait se multiplier plus vite'], e: 'Le froid <strong>ralentit</strong> les microbes sans les tuer. La cuisson à haute température, elle, en tue beaucoup.', n: 1 },
+  { q: 'La pasteurisation (inventée par Pasteur) consiste à…', r: 'chauffer un aliment pour tuer la plupart des microbes', f: ['le congeler', 'ajouter des microbes'], e: 'On chauffe le lait par exemple vers 72 °C quelques secondes : les microbes dangereux sont détruits et il se conserve plus longtemps.', n: 1 },
+  { q: 'L\'agriculture raisonnée cherche à…', r: 'produire en limitant les engrais et les pesticides', f: ['utiliser le plus de pesticides possible', 'ne rien produire'], e: 'Elle utilise engrais et traitements <strong>seulement quand il le faut</strong>, pour protéger les sols, l\'eau et la santé.', n: 1 },
+  { q: 'Un engrais apporte aux plantes…', r: 'des sels minéraux pour mieux pousser', f: ['de la lumière', 'des insectes'], e: 'Les <strong>engrais</strong> apportent azote, phosphore, potassium… Trop d\'engrais pollue les rivières.', n: 1 },
+  { q: 'Le fromage est fabriqué grâce à…', r: 'des bactéries et parfois des moisissures', f: ['la levure de boulanger seulement', 'de la cuisson seulement'], e: 'Bactéries pour cailler le lait, <strong>moisissures</strong> (champignons) pour certains fromages : le bleu, le camembert.', n: 1 },
+];
+GEN.microbes = genBanque(B_MICROBES, 'Micro-organismes et production alimentaire');
+
+const B_CLIMAT65 = [
+  { q: 'La météo décrit le temps…', r: 'd\'un lieu sur quelques jours', f: ['moyen d\'une région sur 30 ans', 'qu\'il fera dans 100 ans'], e: '<strong>Météo</strong> : le temps qu\'il fait ou fera dans les jours qui viennent.' },
+  { q: 'Le climat d\'une région, c\'est…', r: 'le temps moyen observé sur au moins 30 ans', f: ['le temps d\'aujourd\'hui', 'la température d\'un jour'], e: '<strong>Climat</strong> : moyennes de températures et de précipitations sur une trentaine d\'années.' },
+  { q: 'Le vent est dû…', r: 'aux différences de pression et de température entre masses d\'air', f: ['aux arbres qui bougent', 'à la Lune'], e: 'L\'air se déplace des zones de <strong>haute pression</strong> vers les zones de <strong>basse pression</strong> : c\'est le vent.' },
+  { q: 'Les courants marins (comme le Gulf Stream)…', r: 'transportent de la chaleur d\'une région à l\'autre', f: ['n\'ont aucun effet sur le climat', 'sont des vagues'], e: 'Le <strong>Gulf Stream</strong> apporte de l\'eau tiède vers l\'Europe de l\'Ouest : il adoucit notre climat.' },
+  { q: 'Un « aléa », c\'est…', r: 'un phénomène naturel possible (tempête, crue, séisme)', f: ['les dégâts qu\'il cause', 'une prévision météo'], e: 'L\'<strong>aléa</strong> est le phénomène lui-même. Le risque apparaît quand il menace des personnes ou des biens.', n: 1 },
+  { q: 'Le risque, c\'est…', r: 'un aléa qui menace des personnes ou des biens', f: ['un aléa dans un désert vide', 'une belle journée'], e: '<strong>Risque = aléa × enjeux</strong> : une crue dans une vallée vide n\'est pas un risque, dans une ville, si.', n: 1 },
+  { q: 'L\'air chaud…', r: 'monte, car il est plus léger', f: ['descend', 'reste toujours au sol'], e: 'L\'air chaud est <strong>moins dense</strong> : il s\'élève. C\'est ainsi que se forment des nuages d\'orage et que volent les montgolfières.', n: 1 },
+  { q: 'Les zones proches de l\'équateur sont plus chaudes parce que…', r: 'elles reçoivent les rayons du Soleil plus directement', f: ['elles sont plus proches du Soleil', 'il y a plus de volcans'], e: 'À l\'équateur, le Soleil est presque à la verticale : la même énergie chauffe une <strong>plus petite surface</strong>. Aux pôles, les rayons arrivent rasants.', n: 1 },
+  { q: 'Une station météo mesure la pluie avec…', r: 'un pluviomètre', f: ['un thermomètre', 'un baromètre'], e: '<strong>Pluviomètre</strong> : pluie (en mm). Thermomètre : température. Baromètre : pression. Anémomètre : vent.' },
+  { q: 'La pression de l\'air se mesure avec…', r: 'un baromètre', f: ['un pluviomètre', 'un anémomètre'], e: 'Le <strong>baromètre</strong> : une pression qui baisse annonce souvent du mauvais temps.', n: 1 },
+];
+GEN.climat65 = genBanque(B_CLIMAT65, 'La Terre et le climat');
+
+const B_EFFORT = [
+  { q: 'Pendant un effort, les muscles ont besoin de plus de…', r: 'dioxygène et de nutriments', f: ['dioxyde de carbone', 'sommeil'], e: 'Les muscles <strong>consomment</strong> dioxygène et nutriments (le glucose) pour produire l\'énergie du mouvement.' },
+  { q: 'Pendant un effort, la fréquence respiratoire…', r: 'augmente', f: ['diminue', 'ne change pas'], e: 'On respire <strong>plus vite et plus fort</strong> pour faire entrer plus de dioxygène.' },
+  { q: 'Le dioxygène passe de l\'air au sang dans…', r: 'les alvéoles des poumons', f: ['l\'estomac', 'le cœur'], e: 'Dans les <strong>alvéoles pulmonaires</strong>, la paroi est très fine : le dioxygène passe dans le sang.' },
+  { q: 'Le sang apporte le dioxygène aux muscles grâce…', r: 'au cœur qui le pompe dans les vaisseaux', f: ['aux os', 'à la peau'], e: 'Le <strong>cœur</strong> propulse le sang dans les artères jusqu\'aux muscles.' },
+  { q: 'Les muscles rejettent un déchet gazeux :', r: 'le dioxyde de carbone', f: ['le dioxygène', 'l\'azote'], e: 'Le <strong>dioxyde de carbone</strong> est emporté par le sang et rejeté par les poumons.' },
+  { q: 'Le sang qui part du cœur vers les muscles circule dans…', r: 'les artères', f: ['les veines', 'les bronches'], e: '<strong>Artères</strong> : du cœur vers les organes ; veines : retour au cœur.', n: 1 },
+  { q: 'Après l\'effort, le cœur et la respiration…', r: 'reviennent peu à peu à leur rythme de repos', f: ['restent rapides pour toujours', 's\'arrêtent'], e: 'C\'est la <strong>récupération</strong>. Plus on est entraîné, plus elle est rapide.', n: 1 },
+  { q: 'Les nutriments utilisés par les muscles viennent…', r: 'de la digestion des aliments', f: ['de l\'air', 'des os'], e: 'Ils sont absorbés dans l\'<strong>intestin grêle</strong> puis transportés par le sang.', n: 1 },
+  { q: 'Pour être en forme et éviter les blessures, avant un effort il faut…', r: 's\'échauffer progressivement', f: ['courir très vite tout de suite', 'manger beaucoup juste avant'], e: 'L\'<strong>échauffement</strong> prépare le cœur, les muscles et les articulations.', n: 1 },
+  { q: 'Le dopage est…', r: 'dangereux pour la santé et interdit', f: ['sans risque', 'recommandé aux enfants'], e: 'Les produits dopants ont des <strong>effets graves</strong> sur le cœur et le corps, et ils sont interdits dans le sport.', n: 1 },
+];
+GEN.effort = genMixte(B_EFFORT, 'Le corps humain et l\'effort', fabPouls, 0.35);
+
+const B_PLANTES = [
+  { q: 'Une plante verte fabrique sa matière grâce à…', r: 'la photosynthèse', f: ['la digestion', 'la fermentation'], e: 'La <strong>photosynthèse</strong> : avec la lumière, la plante fabrique ses sucres à partir d\'eau et de dioxyde de carbone.' },
+  { q: 'Pour la photosynthèse, la plante a besoin de lumière, d\'eau et…', r: 'de dioxyde de carbone', f: ['de dioxygène', 'de sucre'], e: 'Lumière + eau + <strong>dioxyde de carbone</strong> (+ sels minéraux) → matière de la plante (sucres) + dioxygène.' },
+  { q: 'La photosynthèse rejette…', r: 'du dioxygène', f: ['du dioxyde de carbone', 'de la fumée'], e: 'Les plantes <strong>produisent le dioxygène</strong> que nous respirons.' },
+  { q: 'Les plantes prélèvent l\'eau et les sels minéraux par…', r: 'les racines', f: ['les fleurs', 'les feuilles seulement'], e: 'Les <strong>poils absorbants</strong> des racines prélèvent l\'eau et les sels minéraux du sol.' },
+  { q: 'Le dioxyde de carbone entre dans la feuille par…', r: 'de petits orifices, les stomates', f: ['les racines', 'les fleurs'], e: 'Sous la feuille, les <strong>stomates</strong> laissent entrer le dioxyde de carbone et sortir le dioxygène et la vapeur d\'eau.', n: 1 },
+  { q: 'La photosynthèse a lieu dans…', r: 'les chloroplastes des cellules vertes', f: ['le noyau des racines', 'les graines seulement'], e: 'Les <strong>chloroplastes</strong> contiennent la chlorophylle qui capte la lumière.', n: 1 },
+  { q: 'La sève brute, qui monte des racines aux feuilles, contient…', r: 'de l\'eau et des sels minéraux', f: ['des sucres', 'du dioxygène'], e: '<strong>Sève brute</strong> : eau + sels minéraux, des racines vers les feuilles.', n: 1 },
+  { q: 'La sève élaborée transporte…', r: 'les sucres fabriqués dans les feuilles', f: ['seulement de l\'eau', 'de la terre'], e: '<strong>Sève élaborée</strong> : elle distribue les sucres fabriqués par la photosynthèse à toute la plante (fruits, racines…).', n: 1 },
+  { q: 'Une plante placée dans le noir pendant longtemps…', r: 'ne peut plus faire la photosynthèse et dépérit', f: ['pousse mieux', 'fait plus de photosynthèse'], e: 'Sans <strong>lumière</strong>, pas de photosynthèse : la plante épuise ses réserves.', n: 1 },
+  { q: 'La matière d\'un grand arbre vient surtout…', r: 'du dioxyde de carbone de l\'air et de l\'eau', f: ['de la terre qu\'il mange', 'des insectes'], e: 'Étonnant mais vrai : le bois est fabriqué surtout avec le <strong>carbone de l\'air</strong> (grâce à la photosynthèse) et l\'eau. Le sol n\'apporte que les sels minéraux.', n: 1 },
+];
+GEN.plantes = genBanque(B_PLANTES, 'La nutrition des plantes');
+
+/* ============================================================
+   6e – 5e : TECHNOLOGIE ET LA TERRE DANS LE SYSTÈME SOLAIRE
+   ============================================================ */
+const B_CDC = [
+  { q: 'Le document qui décrit tout ce que doit faire un objet à fabriquer s\'appelle…', r: 'le cahier des charges', f: ['le mode d\'emploi', 'la facture'], e: 'Le <strong>cahier des charges</strong> liste le besoin, les fonctions et les contraintes (taille, prix, matériaux, sécurité…).' },
+  { q: 'Une contrainte, dans un cahier des charges, c\'est…', r: 'une exigence à respecter (prix, taille, sécurité…)', f: ['une couleur au hasard', 'une erreur de fabrication'], e: 'Par exemple : « l\'objet doit coûter moins de 10 € » ou « être utilisable par un enfant de 6 ans ». Ce sont des <strong>contraintes</strong>.' },
+  { q: 'Un prototype est…', r: 'un premier modèle pour tester l\'objet avant de le produire', f: ['l\'objet vendu en magasin', 'un dessin rapide'], e: 'Le <strong>prototype</strong> permet de vérifier que l\'objet fonctionne et respecte le cahier des charges.' },
+  { q: 'Pour concevoir un objet sur ordinateur, on utilise…', r: 'un logiciel de modélisation 3D', f: ['un tableur', 'un traitement de texte'], e: 'La <strong>modélisation 3D</strong> (CAO) permet de dessiner l\'objet en volume, de le tourner, de le modifier facilement.' },
+  { q: 'Une imprimante 3D fabrique un objet…', r: 'en déposant de la matière couche par couche', f: ['en le découpant dans un bloc', 'en le peignant'], e: 'Elle fait fondre un fil de plastique et dépose l\'objet <strong>couche par couche</strong>.', n: 1 },
+  { q: 'On fabrique un prototype qui ne respecte pas une contrainte. On…', r: 'modifie la conception et on teste à nouveau', f: ['le vend quand même', 'abandonne le projet tout de suite'], e: 'La conception avance par <strong>essais et améliorations</strong> successives.', n: 1 },
+  { q: 'Dans quel ordre se déroule un projet ?', r: 'besoin → cahier des charges → conception → prototype → tests', f: ['prototype → besoin → tests → cahier des charges', 'tests → prototype → besoin'], e: 'On part du <strong>besoin</strong>, on écrit le cahier des charges, on <strong>conçoit</strong>, on fabrique un <strong>prototype</strong>, on le <strong>teste</strong>.', n: 1 },
+  { q: 'Le design d\'un objet, c\'est…', r: 'sa conception, qui allie forme, usage et esthétique', f: ['seulement sa couleur', 'son prix'], e: 'Le <strong>design</strong> pense à la fois à l\'usage, à la forme, aux matériaux et à la beauté de l\'objet.', n: 1 },
+  { q: 'Le besoin auquel répond un objet s\'exprime souvent par la question…', r: '« À qui rend-il service, sur quoi agit-il, pour quoi faire ? »', f: ['« Combien coûte-t-il ? »', '« De quelle couleur est-il ? »'], e: 'C\'est la « bête à cornes » : <strong>à qui</strong> l\'objet rend-il service, <strong>sur quoi</strong> agit-il, <strong>dans quel but</strong> ?' },
+  { q: 'Tester un prototype sert à…', r: 'vérifier qu\'il respecte le cahier des charges', f: ['le décorer', 'le vendre plus cher'], e: 'On compare le prototype à chaque exigence du <strong>cahier des charges</strong>.' },
+  { q: 'Une contrainte de sécurité pour un jouet d\'enfant de 2 ans peut être…', r: 'pas de petites pièces qui pourraient être avalées', f: ['une jolie couleur', 'un prix élevé'], e: 'Les jouets pour les tout-petits ne doivent pas avoir de <strong>petites pièces</strong> : c\'est une contrainte de sécurité.' },
+  { q: 'Le logiciel qui permet de dessiner un objet en 3D sur ordinateur s\'appelle un logiciel de…', r: 'CAO (conception assistée par ordinateur)', f: ['traitement de texte', 'messagerie'], e: '<strong>CAO</strong> : conception assistée par ordinateur.', n: 1 },
+];
+GEN.cdc = genBanque(B_CDC, 'Cahier des charges et prototype');
+
+const B_COND = [
+  { q: 'Dans un programme, une <strong>condition</strong> s\'écrit…', r: 'si … alors … sinon …', f: ['répéter … fois', 'avancer de …'], e: 'La structure <strong>si … alors … sinon</strong> permet au programme de choisir quoi faire selon la situation.' },
+  { q: 'Une variable, dans un programme, sert à…', r: 'garder en mémoire une valeur qui peut changer', f: ['dessiner le lutin', 'arrêter le programme'], e: 'Une <strong>variable</strong> (score, vies, température…) est une case mémoire avec un nom.', n: 1 },
+  { q: 'Une boucle « répéter jusqu\'à … »…', r: 'recommence jusqu\'à ce qu\'une condition soit vraie', f: ['ne s\'exécute qu\'une fois', 'arrête tout de suite le programme'], e: 'Elle combine <strong>boucle</strong> et <strong>condition</strong> : « répéter jusqu\'à toucher le bord ».', n: 1 },
+];
+GEN.cond = genMixte(B_COND, 'Boucles et conditions', fabAlgo65, 0.8);
+
+const B_SYSTSOL = [
+  { q: 'La Terre est la … planète à partir du Soleil.', r: 'troisième', f: ['première', 'cinquième'], e: 'Mercure, Vénus, la <strong>Terre</strong> : troisième planète.' },
+  { q: 'La vie est possible sur Terre surtout parce qu\'on y trouve…', r: 'de l\'eau liquide', f: ['beaucoup de volcans', 'des anneaux'], e: 'Grâce à sa <strong>distance au Soleil</strong>, la Terre n\'est ni trop chaude ni trop froide : l\'eau y reste liquide.' },
+  { q: 'L\'atmosphère de la Terre…', r: 'nous protège et garde une température douce', f: ['n\'existe pas', 'est faite d\'eau liquide'], e: 'L\'<strong>atmosphère</strong> filtre certains rayons du Soleil et garde la chaleur (effet de serre naturel).' },
+  { q: 'Les planètes Jupiter et Saturne sont des planètes…', r: 'gazeuses, géantes', f: ['rocheuses, petites', 'en glace d\'eau'], e: 'Jupiter, Saturne, Uranus, Neptune : planètes <strong>géantes gazeuses</strong>. Mercure, Vénus, la Terre, Mars : planètes <strong>rocheuses</strong>.' },
+  { q: 'Pourquoi n\'y a-t-il pas d\'eau liquide à la surface de Vénus ?', r: 'il y fait beaucoup trop chaud', f: ['il y fait trop froid', 'elle est trop loin du Soleil'], e: 'Vénus a une atmosphère épaisse qui crée un effet de serre énorme : plus de 450 °C ! L\'eau ne peut pas y être liquide.', n: 1 },
+  { q: 'Sur Mars aujourd\'hui, l\'eau se trouve surtout…', r: 'sous forme de glace', f: ['dans de grands océans', 'nulle part, jamais'], e: 'Mars est froide et son atmosphère très mince : l\'eau y est surtout en <strong>glace</strong> (aux pôles, dans le sol). Elle a peut-être coulé autrefois.', n: 1 },
+  { q: 'La différence entre météo et climat :', r: 'la météo, c\'est le temps d\'un jour ; le climat, la moyenne sur 30 ans', f: ['ce sont deux mots pour la même chose', 'le climat, c\'est la météo de demain'], e: '<strong>Météo</strong> : quelques jours. <strong>Climat</strong> : moyenne sur une trentaine d\'années.', n: 1 },
+  { q: 'Les premières formes de vie sur Terre sont apparues…', r: 'dans les océans, il y a plus de 3,5 milliards d\'années', f: ['sur la terre ferme il y a 1 000 ans', 'avec les dinosaures'], e: 'Les plus anciennes traces de vie (des êtres <strong>unicellulaires</strong>) ont plus de 3,5 milliards d\'années, dans les océans.', n: 1 },
+  { q: 'La Lune n\'a pas d\'atmosphère. Conséquence :', r: 'il y fait très chaud le jour et très froid la nuit', f: ['il y pleut souvent', 'on peut y respirer'], e: 'Sans atmosphère pour garder la chaleur, la température passe de plus de 100 °C à moins de −150 °C.', n: 1 },
+  { q: 'La Terre est-elle la seule planète du système solaire où l\'on connaît la vie ?', r: 'Oui, à ce jour', f: ['Non, on en a trouvé sur Mars'], e: 'Les scientifiques cherchent, mais pour l\'instant la <strong>Terre</strong> est la seule planète où la vie est connue.' },
+  { q: 'Les planètes rocheuses sont Mercure, Vénus, la Terre et…', r: 'Mars', f: ['Jupiter', 'Neptune'], e: 'Les quatre planètes <strong>rocheuses</strong>, les plus proches du Soleil : Mercure, Vénus, la Terre, <strong>Mars</strong>.' },
+];
+GEN.systsol = genBanque(B_SYSTSOL, 'La Terre dans le système solaire');
+
+const B_CHAINES = [
+  { q: 'Dans un système automatisé, la chaîne d\'<strong>information</strong> sert à…', r: 'acquérir, traiter et communiquer l\'information', f: ['alimenter et convertir l\'énergie', 'fabriquer les pièces'], e: 'Chaîne d\'information : <strong>acquérir</strong> (capteurs), <strong>traiter</strong> (programme), <strong>communiquer</strong> (ordres, messages).' },
+  { q: 'Dans un système automatisé, la chaîne d\'<strong>énergie</strong> sert à…', r: 'alimenter, distribuer, convertir et transmettre l\'énergie pour agir', f: ['acquérir l\'information', 'écrire le programme'], e: 'Chaîne d\'énergie : <strong>alimenter</strong> (pile, secteur), <strong>distribuer</strong> (relais), <strong>convertir</strong> (moteur), <strong>transmettre</strong> (engrenages).' },
+  { q: 'Dans un portail automatique, le capteur qui détecte une voiture sert à…', r: 'acquérir l\'information', f: ['convertir l\'énergie', 'transmettre le mouvement'], e: 'Un capteur <strong>acquiert</strong> une information : il fait partie de la chaîne d\'information.' },
+  { q: 'Dans un portail automatique, le moteur sert à…', r: 'convertir l\'énergie électrique en mouvement', f: ['acquérir l\'information', 'traiter l\'information'], e: 'Le moteur est un <strong>convertisseur</strong> : il fait partie de la chaîne d\'énergie.' },
+  { q: 'La carte électronique avec son programme (le microcontrôleur) sert à…', r: 'traiter l\'information', f: ['alimenter en énergie', 'convertir l\'énergie'], e: 'Le microcontrôleur reçoit les informations des capteurs, applique le programme et <strong>décide</strong> : c\'est le traitement.' },
+  { q: 'Dans une lampe automatique, le détecteur de mouvement est…', r: 'un capteur', f: ['un actionneur', 'une source d\'énergie'], e: 'Il détecte quelqu\'un : c\'est un <strong>capteur</strong>. La lampe qui s\'allume est un actionneur.', n: 1 },
+  { q: 'Dans une voiture électrique, la batterie sert à…', r: 'alimenter en énergie', f: ['traiter l\'information', 'acquérir l\'information'], e: 'La batterie <strong>stocke et fournit</strong> l\'énergie : fonction alimenter.', n: 1 },
+  { q: 'Les engrenages entre le moteur et les roues d\'un robot servent à…', r: 'transmettre le mouvement', f: ['acquérir l\'information', 'alimenter en énergie'], e: 'Ils <strong>transmettent</strong> (et adaptent) le mouvement du moteur jusqu\'aux roues.', n: 1 },
+  { q: 'Le voyant qui s\'allume pour dire « porte ouverte » sert à…', r: 'communiquer une information', f: ['convertir l\'énergie', 'alimenter'], e: 'Le voyant <strong>communique</strong> une information à l\'utilisateur.', n: 1 },
+  { q: 'Un système automatisé, c\'est…', r: 'un système qui fonctionne sans intervention humaine permanente', f: ['un objet qu\'on doit toujours actionner à la main', 'un ordinateur éteint'], e: 'Portail, ascenseur, lave-linge : un <strong>programme</strong> et des capteurs les font fonctionner tout seuls.' },
+];
+GEN.chaines = genBanque(B_CHAINES, 'Chaîne d\'énergie et chaîne d\'information');
+
+const B_STRUCT = [
+  { q: 'Une corde qui retient une charge est soumise à…', r: 'la traction', f: ['la compression', 'la torsion'], e: 'Elle est <strong>étirée</strong> : c\'est la traction.' },
+  { q: 'Un pilier qui soutient un toit est soumis à…', r: 'la compression', f: ['la traction', 'la torsion'], e: 'Il est <strong>écrasé</strong> par la charge : c\'est la compression.' },
+  { q: 'Une planche posée sur deux appuis, avec quelqu\'un debout au milieu, subit…', r: 'la flexion', f: ['la torsion', 'la traction seulement'], e: 'Elle se <strong>courbe</strong> : c\'est la flexion.' },
+  { q: 'Tordre une serviette pour l\'essorer, c\'est…', r: 'la torsion', f: ['la compression', 'la flexion'], e: 'On la fait tourner sur elle-même : <strong>torsion</strong>.' },
+  { q: 'Pour rendre une structure rigide (pylône, grue), on utilise…', r: 'des triangles', f: ['des carrés', 'des cercles'], e: 'Le <strong>triangle</strong> ne se déforme pas : c\'est la triangulation, comme sur la tour Eiffel.' },
+  { q: 'Un câble de pont suspendu est fait en acier parce que l\'acier…', r: 'résiste très bien à la traction', f: ['est transparent', 'est léger comme le papier'], e: 'On choisit le matériau selon la <strong>contrainte</strong> qu\'il subit : l\'acier résiste à la traction.', n: 1 },
+  { q: 'Le béton résiste bien…', r: 'à la compression, mais mal à la traction', f: ['à la traction, mais mal à la compression', 'à rien du tout'], e: 'C\'est pourquoi on y met des barres d\'acier : le <strong>béton armé</strong> résiste aux deux.', n: 1 },
+  { q: 'Pour le cadre d\'un vélo de course, on choisit un matériau…', r: 'à la fois léger et résistant (aluminium, carbone)', f: ['lourd et fragile', 'mou comme le caoutchouc'], e: 'Le choix d\'un matériau tient compte de ses <strong>propriétés</strong> (masse, résistance, prix).', n: 1 },
+  { q: 'Un tabouret à trois pieds…', r: 'est toujours stable, même sur un sol irrégulier', f: ['est moins stable qu\'à quatre pieds sur sol plat', 'tombe toujours'], e: 'Trois points forment toujours un plan : les trois pieds touchent le sol, il <strong>ne boite jamais</strong>.', n: 1 },
+  { q: 'Une étagère chargée de livres qui se courbe au milieu subit…', r: 'la flexion', f: ['la traction', 'la torsion'], e: 'Elle se <strong>courbe</strong> sous la charge : flexion.' },
+  { q: 'Pourquoi les poutres métalliques ont-elles souvent une forme en « I » ?', r: 'pour résister à la flexion avec peu de matière', f: ['pour être plus jolies', 'pour être plus lourdes'], e: 'La forme en <strong>I</strong> met la matière là où elle travaille le plus : la poutre est rigide et légère.', n: 1 },
+];
+GEN.struct = genBanque(B_STRUCT, 'Matériaux et structures');
+
+const B_ORDI = [
+  { q: 'Le « cerveau » de l\'ordinateur, qui fait les calculs, est…', r: 'le processeur', f: ['l\'écran', 'le clavier'], e: 'Le <strong>processeur</strong> (CPU) exécute les instructions des programmes.' },
+  { q: 'La mémoire vive (RAM)…', r: 'garde les données pendant que l\'ordinateur est allumé', f: ['garde les fichiers quand l\'ordinateur est éteint', 'affiche les images'], e: 'La <strong>mémoire vive</strong> est rapide mais s\'efface à l\'extinction.' },
+  { q: 'Pour garder ses fichiers quand l\'ordinateur est éteint, on les enregistre…', r: 'sur le disque dur ou le SSD', f: ['dans la mémoire vive', 'sur l\'écran'], e: 'Le <strong>disque dur</strong> ou le SSD stockent les données durablement.' },
+  { q: 'Le clavier et la souris sont des périphériques…', r: 'd\'entrée', f: ['de sortie'], e: 'Ils <strong>envoient</strong> des informations à l\'ordinateur : périphériques d\'entrée.' },
+  { q: 'L\'écran et l\'imprimante sont des périphériques…', r: 'de sortie', f: ['d\'entrée'], e: 'Ils <strong>reçoivent</strong> des informations de l\'ordinateur : périphériques de sortie.' },
+  { q: 'Un capteur sert à…', r: 'mesurer ou détecter quelque chose (lumière, température, distance)', f: ['faire bouger un moteur', 'stocker des fichiers'], e: 'Le <strong>capteur</strong> transforme une grandeur physique en information : capteur de lumière, de température, de distance…' },
+  { q: 'Un actionneur sert à…', r: 'agir : faire bouger, éclairer, sonner', f: ['mesurer la température', 'détecter un obstacle'], e: 'Moteur, lampe, haut-parleur : les <strong>actionneurs</strong> agissent sur le monde.' },
+  { q: 'Dans un robot, lequel est un actionneur ?', r: 'le moteur des roues', f: ['le capteur de distance', 'le capteur de lumière'], e: 'Le moteur <strong>agit</strong> : c\'est un actionneur.', n: 1 },
+  { q: 'Dans une serre automatique, lequel est un capteur ?', r: 'le thermomètre électronique', f: ['le ventilateur', 'l\'arrosage'], e: 'Le thermomètre <strong>mesure</strong> : capteur. Le ventilateur et l\'arrosage agissent : actionneurs.', n: 1 },
+  { q: 'Toutes les informations dans un ordinateur sont codées avec…', r: 'des 0 et des 1 (le binaire)', f: ['des lettres seulement', 'des couleurs'], e: 'Textes, images, sons : tout est codé en <strong>binaire</strong>, avec des bits qui valent 0 ou 1.', n: 1 },
+  { q: '1 octet, c\'est…', r: '8 bits', f: ['10 bits', '2 bits'], e: 'Un <strong>octet</strong> = 8 bits. Un kilo-octet ≈ 1 000 octets, un mégaoctet ≈ 1 million.', n: 1 },
+];
+GEN.ordi = genBanque(B_ORDI, 'L\'ordinateur, les capteurs et les actionneurs');
+
+/* ============================================================
+   4e – 3e : CALCULS FABRIQUÉS À CHAQUE PARTIE
+   loi d'Ohm et lois des circuits, son et lumière, atomes et ions, pH,
+   poids et masse, énergie et puissance, adresses IP
+   ============================================================ */
+function fabOhm(p) {
+  const notion = 'Tension, intensité et loi d\'Ohm';
+  const type = pick(p < 0.5 ? [0, 1, 3] : [0, 1, 2, 3, 4]);
+  if (type <= 2) {
+    const R = pick([10, 20, 47, 50, 100, 220]), I = pick([0.01, 0.02, 0.05, 0.1, 0.2]), U = Math.round(R * I * 1000) / 1000;
+    if (type === 0) return { enonce: `Une résistance de <strong>${R} Ω</strong> est traversée par un courant de <strong>${fmtN(I)} A</strong>. Quelle est la tension à ses bornes (en V) ?`, saisie: { type: 'nombre', bonne: U, unite: 'V' }, rep: `${fmtN(U)} volts`, notion,
+      voix: `Une résistance de ${R} ohms est traversée par un courant de ${fmtN(I)} ampère. Quelle est la tension à ses bornes, en volts ?`,
+      explication: `Loi d'Ohm : <strong>U = R × I</strong> = ${R} × ${fmtN(I)} = <strong>${fmtN(U)} V</strong>.` };
+    if (type === 1) return { enonce: `La tension aux bornes d'une résistance de <strong>${R} Ω</strong> est <strong>${fmtN(U)} V</strong>. Quelle est l'intensité du courant (en A) ?`, saisie: { type: 'nombre', bonne: I, unite: 'A' }, rep: `${fmtN(I)} ampère`, notion,
+      voix: `La tension aux bornes d'une résistance de ${R} ohms est ${fmtN(U)} volts. Quelle est l'intensité du courant, en ampères ?`,
+      explication: `I = <strong>U ÷ R</strong> = ${fmtN(U)} ÷ ${R} = <strong>${fmtN(I)} A</strong>.` };
+    return { enonce: `Aux bornes d'une résistance, on mesure <strong>${fmtN(U)} V</strong> et <strong>${fmtN(I)} A</strong>. Quelle est sa valeur (en Ω) ?`, saisie: { type: 'nombre', bonne: R, unite: 'Ω' }, rep: `${R} ohms`, notion,
+      voix: `Aux bornes d'une résistance, on mesure ${fmtN(U)} volts et ${fmtN(I)} ampère. Quelle est sa valeur en ohms ?`,
+      explication: `R = <strong>U ÷ I</strong> = ${fmtN(U)} ÷ ${fmtN(I)} = <strong>${R} Ω</strong>.` };
+  }
+  if (type === 3) {
+    const U = pick([4.5, 6, 9, 12]), U1 = Math.round(U * pick([0.3, 0.4, 0.5, 0.6]) * 10) / 10, U2 = Math.round((U - U1) * 10) / 10;
+    return { enonce: `Deux lampes sont branchées <strong>en série</strong> sur un générateur de <strong>${fmtN(U)} V</strong>. La tension aux bornes de la première est <strong>${fmtN(U1)} V</strong>. Quelle est la tension aux bornes de la seconde (en V) ?`, saisie: { type: 'nombre', bonne: U2, unite: 'V' }, rep: `${fmtN(U2)} volts`, notion,
+      explication: `En série, les tensions s'<strong>additionnent</strong> : U = U₁ + U₂, donc U₂ = ${fmtN(U)} − ${fmtN(U1)} = <strong>${fmtN(U2)} V</strong>.` };
+  }
+  const I1 = pick([0.1, 0.2, 0.15, 0.25, 0.3]), I2 = pick([0.1, 0.2, 0.35, 0.4]), I = Math.round((I1 + I2) * 100) / 100;
+  return { enonce: `Deux lampes sont branchées <strong>en dérivation</strong>. La première est traversée par <strong>${fmtN(I1)} A</strong>, la seconde par <strong>${fmtN(I2)} A</strong>. Quelle est l'intensité dans la branche principale (en A) ?`, saisie: { type: 'nombre', bonne: I, unite: 'A' }, rep: `${fmtN(I)} ampère`, notion,
+    explication: `En dérivation, les intensités des branches s'<strong>additionnent</strong> (loi des nœuds) : ${fmtN(I1)} + ${fmtN(I2)} = <strong>${fmtN(I)} A</strong>.` };
+}
+
+function fabSon(p) {
+  const notion = 'Le son et la lumière';
+  const type = pick(p < 0.5 ? [0, 0, 1] : [0, 1, 2]);
+  if (type === 0) {
+    const t = rnd(2, 9), d = 340 * t;
+    return { enonce: `Pendant un orage, on voit l'éclair, puis on entend le tonnerre <strong>${t} secondes</strong> plus tard. Le son va à 340 m/s. À quelle distance est l'orage (en m) ?`, saisie: { type: 'nombre', bonne: d, unite: 'm' }, rep: `${fmtN(d)} mètres`, notion,
+      explication: `La lumière de l'éclair arrive presque instantanément. Le son met ${t} s : d = v × t = 340 × ${t} = <strong>${fmtN(d)} m</strong>, environ ${fmtN(Math.round(d / 100) / 10)} km. Astuce : à peu près 1 km toutes les 3 secondes.` };
+  }
+  if (type === 1) {
+    const d = pick([680, 1020, 1360, 1700, 3400]), t = d / 340;
+    return { enonce: `Le son va à 340 m/s dans l'air. Combien de temps met-il pour parcourir <strong>${fmtN(d)} m</strong> (en s) ?`, saisie: { type: 'nombre', bonne: t, unite: 's' }, rep: `${fmtN(t)} secondes`, notion,
+      explication: `t = d ÷ v = ${fmtN(d)} ÷ 340 = <strong>${fmtN(t)} s</strong>.` };
+  }
+  const t = pick([1, 2, 5]), d = 300000 * t;
+  return { enonce: `La lumière va à <strong>300 000 km/s</strong>. Quelle distance parcourt-elle en <strong>${t} s</strong> (en km) ?`, saisie: { type: 'nombre', bonne: d, unite: 'km' }, rep: `${fmtN(d)} kilomètres`, notion,
+    explication: `d = v × t = 300 000 × ${t} = <strong>${fmtN(d)} km</strong>. La lumière va presque <strong>un million de fois</strong> plus vite que le son.` };
+}
+
+const deDe = (n) => (/^[aeiouhéèâ]/i.test(n) ? `d'${n}` : `de ${n}`);
+const ATOMES = [['hydrogène', 'H', 1], ['carbone', 'C', 6], ['azote', 'N', 7], ['oxygène', 'O', 8], ['sodium', 'Na', 11], ['magnésium', 'Mg', 12], ['aluminium', 'Al', 13], ['chlore', 'Cl', 17], ['calcium', 'Ca', 20], ['fer', 'Fe', 26], ['cuivre', 'Cu', 29]];
+const IONS = [['sodium', 'Na⁺', 11, 1], ['chlorure', 'Cl⁻', 17, -1], ['calcium', 'Ca²⁺', 20, 2], ['magnésium', 'Mg²⁺', 12, 2], ['cuivre', 'Cu²⁺', 29, 2], ['aluminium', 'Al³⁺', 13, 3], ['fer', 'Fe³⁺', 26, 3]];
+function fabAtome(p) {
+  const notion = 'L\'atome, les ions et le pH';
+  const type = pick(p < 0.5 ? [0, 0, 1, 3] : [0, 1, 2, 3, 3]);
+  if (type === 0) {
+    const [nom, sym, Z] = pick(ATOMES);
+    return { enonce: `L'atome ${deDe(nom)} (symbole <strong>${sym}</strong>) a <strong>${Z} proton${Z > 1 ? 's' : ''}</strong> dans son noyau. Combien a-t-il d'électrons ?`, saisie: { type: 'nombre', bonne: Z }, rep: String(Z), notion,
+      explication: `Un atome est <strong>électriquement neutre</strong> : il a autant d'électrons (négatifs) que de protons (positifs). Donc <strong>${Z} électrons</strong>.` };
+  }
+  if (type === 1) {
+    const [nom, sym, Z, q] = pick(IONS), e = Z - q;
+    return { enonce: `L'ion ${nom} <strong>${sym}</strong> vient d'un atome qui a <strong>${Z} protons</strong>. Combien l'ion a-t-il d'électrons ?`, saisie: { type: 'nombre', bonne: e }, rep: String(e), notion,
+      voix: `L'ion ${nom}, de charge ${q > 0 ? 'plus' : 'moins'} ${Math.abs(q)}, vient d'un atome qui a ${Z} protons. Combien l'ion a-t-il d'électrons ?`,
+      explication: `${q > 0 ? `Un ion positif a <strong>perdu</strong> ${q} électron${q > 1 ? 's' : ''}` : `Un ion négatif a <strong>gagné</strong> ${-q} électron`} : ${Z} ${q > 0 ? '−' : '+'} ${Math.abs(q)} = <strong>${e} électrons</strong>. Le nombre de protons, lui, ne change pas.` };
+  }
+  if (type === 2) {
+    const [nom, sym, Z] = pick(ATOMES.slice(1)), A = pick({ 6: [12], 7: [14], 8: [16], 11: [23], 12: [24], 13: [27], 17: [35], 20: [40], 26: [56], 29: [63] }[Z]);
+    return { enonce: `Le noyau d'un atome ${deDe(nom)} (${sym}) contient <strong>${A} nucléons</strong>, dont <strong>${Z} protons</strong>. Combien de neutrons ?`, saisie: { type: 'nombre', bonne: A - Z }, rep: String(A - Z), notion,
+      explication: `Les nucléons sont les protons et les neutrons du noyau : ${A} − ${Z} = <strong>${A - Z} neutrons</strong>.` };
+  }
+  const L = [['du jus de citron', 2.5], ['du vinaigre', 3], ['d\'un soda au cola', 2.5], ['du café', 5], ['de l\'eau pure', 7], ['de l\'eau de mer', 8], ['de l\'eau savonneuse', 10], ['de l\'eau de Javel', 12], ['de l\'eau avec du bicarbonate', 8.5]];
+  const [nom, ph] = pick(L), b = ph < 6.9 ? 'acide' : ph > 7.1 ? 'basique' : 'neutre';
+  return { enonce: `Le pH <strong>${nom}</strong> est environ <strong>${fmtN(ph)}</strong>. Cette solution est…`, choix: ['acide', 'neutre', 'basique'].map((v) => ({ v, html: capitalize(v) })), bonne: b, rep: b, notion,
+    explication: `pH inférieur à 7 : <strong>acide</strong> ; égal à 7 : <strong>neutre</strong> ; supérieur à 7 : <strong>basique</strong>. Ici ${fmtN(ph)} : la solution est <strong>${b}</strong>.${b === 'neutre' ? '' : ` Plus on s'éloigne de 7, plus elle est ${b === 'acide' ? 'acide' : 'basique'}.`}` };
+}
+
+function fabPoids(p) {
+  const notion = 'Forces, poids et masse';
+  const type = pick(p < 0.5 ? [0, 0, 1] : [0, 1, 2]);
+  if (type === 0) {
+    const m = pick([2, 5, 10, 20, 40, 50, 60]), P = Math.round(m * 9.8 * 10) / 10;
+    return { enonce: `Quel est le <strong>poids</strong> sur Terre d'un objet de masse <strong>${m} kg</strong> ? (g = 9,8 N/kg)`, saisie: { type: 'nombre', bonne: P, unite: 'N', tol: 0.051 }, rep: `${fmtN(P)} newtons`, notion,
+      voix: `Quel est le poids sur Terre d'un objet de masse ${m} kilogrammes ? g vaut 9,8 newtons par kilogramme.`,
+      explication: `<strong>P = m × g</strong> = ${m} × 9,8 = <strong>${fmtN(P)} N</strong>. Le poids est une force, en newtons ; la masse est en kilogrammes.` };
+  }
+  if (type === 1) {
+    const m = pick([60, 75, 90, 100, 120, 150]), P = Math.round(m * 1.6 * 10) / 10;
+    return { enonce: `Sur la Lune, g = 1,6 N/kg. Quel est le poids d'un astronaute de <strong>${m} kg</strong> (avec équipement) sur la Lune ?`, saisie: { type: 'nombre', bonne: P, unite: 'N', tol: 0.051 }, rep: `${fmtN(P)} newtons`, notion,
+      voix: `Sur la Lune, g vaut 1,6 newton par kilogramme. Quel est le poids d'un astronaute de ${m} kilogrammes sur la Lune ?`,
+      explication: `P = m × g = ${m} × 1,6 = <strong>${fmtN(P)} N</strong>. Sa <strong>masse</strong> est la même que sur Terre (${m} kg), mais son poids est environ 6 fois plus faible.` };
+  }
+  const P = pick([49, 98, 196, 490, 588]), m = Math.round(P / 9.8 * 10) / 10;
+  return { enonce: `Un objet a un poids de <strong>${P} N</strong> sur Terre (g = 9,8 N/kg). Quelle est sa masse (en kg) ?`, saisie: { type: 'nombre', bonne: m, unite: 'kg', tol: 0.051 }, rep: `${fmtN(m)} kilogrammes`, notion,
+    voix: `Un objet a un poids de ${P} newtons sur Terre, avec g égal à 9,8 newtons par kilogramme. Quelle est sa masse en kilogrammes ?`,
+    explication: `m = <strong>P ÷ g</strong> = ${P} ÷ 9,8 = <strong>${fmtN(m)} kg</strong>.` };
+}
+
+function fabEnergie43(p) {
+  const notion = 'Énergie et puissance';
+  const type = pick(p < 0.5 ? [0, 1] : [0, 1, 2, 3]);
+  if (type === 0) {
+    const P = pick([1, 2, 1.5, 2.5, 0.5]), t = pick([2, 3, 4, 0.5]), E = P * t;
+    return { enonce: `Un radiateur de <strong>${fmtN(P)} kW</strong> fonctionne pendant <strong>${fmtN(t)} h</strong>. Quelle énergie consomme-t-il (en kWh) ?`, saisie: { type: 'nombre', bonne: E, unite: 'kWh' }, rep: `${fmtN(E)} kilowattheures`, notion,
+      voix: `Un radiateur de ${fmtN(P)} kilowatts fonctionne pendant ${fmtN(t)} heures. Quelle énergie consomme-t-il, en kilowattheures ?`,
+      explication: `<strong>E = P × t</strong> = ${fmtN(P)} kW × ${fmtN(t)} h = <strong>${fmtN(E)} kWh</strong>. C'est le kilowattheure que l'on paie sur la facture d'électricité.` };
+  }
+  if (type === 1) {
+    const P = pick([5, 10, 20, 60, 100]), t = pick([10, 30, 60, 120]), E = P * t;
+    return { enonce: `Une lampe de <strong>${P} W</strong> reste allumée <strong>${t} s</strong>. Quelle énergie reçoit-elle (en J) ?`, saisie: { type: 'nombre', bonne: E, unite: 'J' }, rep: `${fmtN(E)} joules`, notion,
+      voix: `Une lampe de ${P} watts reste allumée ${t} secondes. Quelle énergie reçoit-elle, en joules ?`,
+      explication: `E = P × t = ${P} W × ${t} s = <strong>${fmtN(E)} J</strong>. Avec la puissance en watts et la durée en secondes, l'énergie est en <strong>joules</strong>.` };
+  }
+  if (type === 2) {
+    const m = pick([1, 2, 4, 10, 50]), v = pick([2, 4, 10, 20]), Ec = 0.5 * m * v * v;
+    return { enonce: `Quelle est l'<strong>énergie cinétique</strong> d'un objet de <strong>${m} kg</strong> qui se déplace à <strong>${v} m/s</strong> (en J) ?`, saisie: { type: 'nombre', bonne: Ec, unite: 'J' }, rep: `${fmtN(Ec)} joules`, notion,
+      voix: `Quelle est l'énergie cinétique d'un objet de ${m} kilogrammes qui se déplace à ${v} mètres par seconde, en joules ?`,
+      explication: `<strong>Ec = ½ × m × v²</strong> = 0,5 × ${m} × ${v}² = 0,5 × ${m} × ${v * v} = <strong>${fmtN(Ec)} J</strong>. Si la vitesse double, l'énergie cinétique est multipliée par 4 : c'est pourquoi la vitesse est si dangereuse sur la route.` };
+  }
+  const E = pick([3, 6, 12, 24]), t = pick([2, 3, 4, 6].filter((x) => E % x === 0)), P = E / t;
+  return { enonce: `Un appareil a consommé <strong>${E} kWh</strong> en <strong>${t} h</strong>. Quelle est sa puissance (en kW) ?`, saisie: { type: 'nombre', bonne: P, unite: 'kW' }, rep: `${fmtN(P)} kilowatts`, notion,
+    voix: `Un appareil a consommé ${E} kilowattheures en ${t} heures. Quelle est sa puissance en kilowatts ?`,
+    explication: `P = <strong>E ÷ t</strong> = ${E} ÷ ${t} = <strong>${fmtN(P)} kW</strong>.` };
+}
+
+function fabIP() {
+  const oct = () => rnd(0, 255), bon = `192.168.${rnd(0, 9)}.${rnd(2, 254)}`;
+  const faux = shuffle([`192.168.1.${rnd(256, 399)}`, `${oct()}.${oct()}.${oct()}`, `10.${oct()}.${rnd(300, 999)}.${oct()}`, `172.16.${oct()}.${oct()}.${oct()}`]).slice(0, 3);
+  return { enonce: 'Laquelle est une <strong>adresse IP</strong> (version 4) valide ?', choix: shuffle([bon, ...faux]).map((v) => ({ v, html: v })), bonne: bon, rep: bon, notion: 'Réseaux et cybersécurité', voix: 'Laquelle de ces adresses I P, version 4, est valide ?',
+    explication: `Une adresse IPv4 est faite de <strong>4 nombres</strong> séparés par des points, chacun entre <strong>0 et 255</strong>. <strong>${bon}</strong> respecte ces règles ; les autres ont un nombre trop grand ou pas le bon nombre de parties.` };
+}
+
+/* ============================================================
+   4e – 3e : PHYSIQUE-CHIMIE
+   n: 0 = plutôt 4e, n: 1 = plutôt 3e
+   ============================================================ */
+const B_COMBUSTION = [
+  { q: 'Une molécule est formée…', r: 'd\'atomes liés entre eux', f: ['de cellules', 'd\'une seule particule indivisible'], e: 'Une <strong>molécule</strong> est un assemblage d\'<strong>atomes</strong> : H₂O = 2 atomes d\'hydrogène + 1 atome d\'oxygène.' },
+  { q: 'La formule chimique du dioxyde de carbone est…', r: 'CO₂', f: ['O₂', 'H₂O'], e: '<strong>CO₂</strong> : 1 atome de carbone et 2 atomes d\'oxygène.', v: 'La formule chimique du dioxyde de carbone est…' },
+  { q: 'La formule chimique du dioxygène est…', r: 'O₂', f: ['CO₂', 'H₂'], e: '<strong>O₂</strong> : 2 atomes d\'oxygène.' },
+  { q: 'Pour qu\'une combustion ait lieu, il faut un combustible, de la chaleur et…', r: 'un comburant (le dioxygène)', f: ['de l\'eau', 'du dioxyde de carbone'], e: 'C\'est le <strong>triangle du feu</strong> : combustible, comburant (dioxygène), énergie d\'activation (chaleur). Enlever un des trois éteint le feu.' },
+  { q: 'La combustion du carbone (charbon) dans le dioxygène produit…', r: 'du dioxyde de carbone', f: ['de l\'eau', 'du dioxygène'], e: 'Carbone + dioxygène → <strong>dioxyde de carbone</strong>. On le met en évidence avec l\'eau de chaux, qui se trouble.' },
+  { q: 'L\'eau de chaux se trouble en présence de…', r: 'dioxyde de carbone', f: ['dioxygène', 'vapeur d\'eau'], e: 'L\'<strong>eau de chaux</strong> est le test du dioxyde de carbone.' },
+  { q: 'Lors d\'une transformation chimique, les atomes…', r: 'se conservent : ils se réarrangent', f: ['disparaissent', 'se créent'], e: 'Les atomes ne disparaissent pas et ne se créent pas : ils se <strong>réorganisent</strong> en de nouvelles molécules. C\'est pourquoi la masse se conserve.', n: 1 },
+  { q: 'Lors d\'une combustion en récipient fermé, la masse totale…', r: 'reste la même', f: ['diminue', 'augmente'], e: 'Les atomes se conservent : la <strong>masse totale se conserve</strong> (Lavoisier : « Rien ne se perd, rien ne se crée, tout se transforme »).', n: 1 },
+  { q: 'Dans l\'équation « C + O₂ → CO₂ », les réactifs sont…', r: 'C et O₂', f: ['CO₂', 'C seulement'], e: 'Les <strong>réactifs</strong> sont à gauche de la flèche (ils sont consommés), les <strong>produits</strong> à droite (ils se forment).', n: 1, v: 'Dans l\'équation, carbone plus dioxygène donne dioxyde de carbone, les réactifs sont…' },
+  { q: 'Une combustion incomplète (manque de dioxygène) peut produire…', r: 'du monoxyde de carbone, un gaz mortel', f: ['de l\'eau pure', 'du dioxygène'], e: 'Le <strong>monoxyde de carbone</strong> (CO) est inodore et toxique : chaudières et chauffages doivent être entretenus et la pièce aérée.', n: 1 },
+  { q: 'La combustion du méthane (gaz de ville) produit…', r: 'du dioxyde de carbone et de l\'eau', f: ['seulement de l\'eau', 'du dioxygène'], e: 'CH₄ + 2 O₂ → CO₂ + 2 H₂O : du <strong>dioxyde de carbone</strong> et de l\'<strong>eau</strong>.', n: 1, v: 'La combustion du méthane, le gaz de ville, produit…' },
+];
+GEN.combustion = genBanque(B_COMBUSTION, 'Atomes, molécules et combustions');
+
+const B_OHM = [
+  { q: 'La tension électrique se mesure avec…', r: 'un voltmètre, branché en dérivation', f: ['un ampèremètre, branché en série', 'une balance'], e: 'Le <strong>voltmètre</strong> se branche en dérivation, aux bornes du dipôle. Unité : le <strong>volt</strong> (V).' },
+  { q: 'L\'intensité du courant se mesure avec…', r: 'un ampèremètre, branché en série', f: ['un voltmètre, branché en dérivation', 'un thermomètre'], e: 'L\'<strong>ampèremètre</strong> se branche en série, dans le circuit. Unité : l\'<strong>ampère</strong> (A).' },
+  { q: 'La loi d\'Ohm s\'écrit…', r: 'U = R × I', f: ['U = R + I', 'I = R × U'], e: 'Loi d\'Ohm : <strong>U = R × I</strong> (U en volts, R en ohms, I en ampères).' },
+  { q: 'L\'unité de la résistance est…', r: 'l\'ohm (Ω)', f: ['le volt (V)', 'l\'ampère (A)'], e: 'La résistance se mesure en <strong>ohms</strong> (Ω).' },
+  { q: 'Dans un circuit en série, l\'intensité…', r: 'est la même partout', f: ['s\'additionne', 'est nulle'], e: 'Une seule boucle : le courant est <strong>le même</strong> en tout point.' },
+  { q: 'Dans un circuit en dérivation, la tension aux bornes de chaque branche…', r: 'est la même', f: ['s\'additionne', 'est nulle'], e: 'Les branches en dérivation ont <strong>la même tension</strong> que le générateur.', n: 1 },
+];
+GEN.ohm = genMixte(B_OHM, 'Tension, intensité et loi d\'Ohm', fabOhm, 0.65);
+
+const B_SON = [
+  { q: 'Le son a besoin pour se propager…', r: 'd\'un milieu matériel (air, eau, solide)', f: ['du vide', 'de la lumière'], e: 'Le son est une <strong>vibration</strong> de la matière : il ne se propage pas dans le vide.' },
+  { q: 'Le son va plus vite…', r: 'dans l\'eau et les solides que dans l\'air', f: ['dans l\'air que dans l\'eau', 'dans le vide'], e: 'Environ 340 m/s dans l\'air, 1 500 m/s dans l\'eau, plus de 5 000 m/s dans l\'acier.' },
+  { q: 'La lumière se propage…', r: 'beaucoup plus vite que le son, même dans le vide', f: ['moins vite que le son', 'seulement dans l\'air'], e: '<strong>300 000 km/s</strong> dans le vide : c\'est la vitesse limite de l\'Univers.' },
+  { q: 'Un son aigu a une fréquence…', r: 'élevée', f: ['faible', 'nulle'], e: 'Plus la vibration est rapide (fréquence en hertz, Hz), plus le son est <strong>aigu</strong>.', n: 1 },
+  { q: 'L\'oreille humaine entend les sons entre environ…', r: '20 Hz et 20 000 Hz', f: ['0 et 10 Hz', '1 et 2 Hz'], e: 'En dessous de 20 Hz : infrasons. Au-dessus de 20 000 Hz : <strong>ultrasons</strong> (les chauves-souris les utilisent).', n: 1 },
+  { q: 'La lumière blanche du Soleil est…', r: 'un mélange de toutes les couleurs', f: ['d\'une seule couleur', 'invisible'], e: 'Un prisme ou un arc-en-ciel la décompose en un <strong>spectre</strong> : rouge, orange, jaune, vert, bleu, indigo, violet.', n: 1 },
+  { q: 'Un niveau sonore supérieur à 85 décibels…', r: 'peut abîmer l\'audition', f: ['est sans danger', 'est inaudible'], e: 'Au-delà de 85 dB (concert, casque trop fort), l\'oreille interne peut être lésée <strong>définitivement</strong>.', n: 1 },
+];
+GEN.son = genMixte(B_SON, 'Le son et la lumière', fabSon, 0.5);
+
+const B_ATOME = [
+  { q: 'Un atome est formé…', r: 'd\'un noyau et d\'électrons qui tournent autour', f: ['seulement d\'électrons', 'de cellules'], e: 'Au centre, le <strong>noyau</strong> (protons et neutrons) ; autour, les <strong>électrons</strong>.' },
+  { q: 'Les protons ont une charge…', r: 'positive', f: ['négative', 'nulle'], e: 'Protons : <strong>+</strong> ; électrons : <strong>−</strong> ; neutrons : pas de charge.' },
+  { q: 'Les électrons ont une charge…', r: 'négative', f: ['positive', 'nulle'], e: 'Les <strong>électrons</strong> sont négatifs.' },
+  { q: 'Un ion positif est un atome qui a…', r: 'perdu un ou des électrons', f: ['gagné des électrons', 'gagné des protons'], e: 'Perdre des électrons (négatifs) rend l\'atome <strong>positif</strong> : Na → Na⁺.', v: 'Un ion positif est un atome qui a…' },
+  { q: 'Une solution de pH 3 est…', r: 'acide', f: ['basique', 'neutre'], e: 'pH < 7 : <strong>acide</strong>.' },
+  { q: 'Une solution de pH 11 est…', r: 'basique', f: ['acide', 'neutre'], e: 'pH > 7 : <strong>basique</strong>.' },
+  { q: 'Le pH se mesure avec…', r: 'du papier pH ou un pH-mètre', f: ['un thermomètre', 'un voltmètre'], e: 'Le <strong>papier pH</strong> change de couleur ; le <strong>pH-mètre</strong> donne une valeur précise.', n: 1 },
+  { q: 'Si on dilue un acide avec de l\'eau, son pH…', r: 'se rapproche de 7', f: ['s\'éloigne de 7', 'devient 0'], e: 'Diluer rend la solution <strong>moins acide</strong> : le pH augmente vers 7.', n: 1 },
+  { q: 'Le test de l\'ion chlorure (Cl⁻) se fait avec du nitrate d\'argent : il se forme…', r: 'un précipité blanc qui noircit à la lumière', f: ['une flamme bleue', 'aucun changement'], e: 'Le précipité <strong>blanc</strong> de chlorure d\'argent noircit à la lumière : c\'est le test des ions chlorure.', n: 1, v: 'Le test de l\'ion chlorure se fait avec du nitrate d\'argent : il se forme…' },
+];
+GEN.atome = genMixte(B_ATOME, 'L\'atome, les ions et le pH', fabAtome, 0.55);
+
+const B_FORCES = [
+  { q: 'Une force se mesure en…', r: 'newtons (N)', f: ['kilogrammes (kg)', 'joules (J)'], e: 'L\'unité de force est le <strong>newton</strong> (N). On la mesure avec un dynamomètre.' },
+  { q: 'Le poids d\'un objet, c\'est…', r: 'la force d\'attraction exercée par la Terre sur lui', f: ['sa masse', 'son volume'], e: 'Le <strong>poids</strong> est une force (en N) ; la masse est une quantité de matière (en kg).' },
+  { q: 'La relation entre le poids et la masse est…', r: 'P = m × g', f: ['P = m + g', 'm = P × g'], e: '<strong>P = m × g</strong>, avec g ≈ 9,8 N/kg sur Terre.' },
+  { q: 'Sur la Lune, la masse d\'un astronaute…', r: 'est la même que sur Terre', f: ['est plus faible', 'est nulle'], e: 'La <strong>masse ne change pas</strong> ; c\'est le poids qui est environ 6 fois plus faible.' },
+  { q: 'Une action à distance, sans contact, c\'est par exemple…', r: 'l\'attraction d\'un aimant sur un clou', f: ['un pied qui pousse un ballon', 'une main qui tire une corde'], e: 'L\'aimant agit <strong>sans contact</strong>, comme la gravitation.' },
+  { q: 'La gravitation universelle, c\'est…', r: 'l\'attraction entre tous les objets qui ont une masse', f: ['une force qui n\'existe que sur Terre', 'la force du vent'], e: 'Tous les corps s\'<strong>attirent</strong> : c\'est elle qui fait tourner la Lune autour de la Terre et la Terre autour du Soleil (Newton).', n: 1 },
+  { q: 'La gravitation entre deux objets est plus forte quand…', r: 'ils sont plus massifs et plus proches', f: ['ils sont plus légers', 'ils sont plus éloignés'], e: 'Elle augmente avec les <strong>masses</strong> et diminue quand la <strong>distance</strong> augmente.', n: 1 },
+  { q: 'Une force se représente par…', r: 'une flèche (point d\'application, direction, sens, valeur)', f: ['un cercle', 'un carré'], e: 'Une flèche montre où la force s\'applique, dans quelle direction et quel sens, et sa longueur indique sa <strong>valeur</strong>.', n: 1 },
+];
+GEN.forces = genMixte(B_FORCES, 'Forces, poids et masse', fabPoids, 0.45);
+
+const B_ENERGIE43 = [
+  { q: 'L\'énergie d\'un objet en mouvement s\'appelle…', r: 'l\'énergie cinétique', f: ['l\'énergie potentielle', 'l\'énergie chimique'], e: '<strong>Cinétique</strong> : liée à la vitesse (Ec = ½ m v²).' },
+  { q: 'L\'énergie d\'un objet en hauteur s\'appelle…', r: 'l\'énergie potentielle de position', f: ['l\'énergie cinétique', 'l\'énergie thermique'], e: 'Plus il est <strong>haut</strong>, plus il a d\'énergie potentielle ; en tombant, elle se transforme en énergie cinétique.' },
+  { q: 'L\'énergie se mesure en…', r: 'joules (J)', f: ['watts (W)', 'newtons (N)'], e: 'Unité d\'énergie : le <strong>joule</strong>. Le kilowattheure (kWh) sert pour l\'électricité.' },
+  { q: 'La puissance se mesure en…', r: 'watts (W)', f: ['joules (J)', 'volts (V)'], e: 'Unité de puissance : le <strong>watt</strong>.' },
+  { q: 'La relation entre énergie et puissance est…', r: 'E = P × t', f: ['E = P + t', 'P = E × t'], e: '<strong>E = P × t</strong> : plus un appareil est puissant et longtemps allumé, plus il consomme.', n: 1 },
+  { q: 'Si la vitesse d\'une voiture double, son énergie cinétique…', r: 'est multipliée par 4', f: ['double', 'ne change pas'], e: 'Ec dépend du <strong>carré</strong> de la vitesse : 2² = 4. La distance de freinage augmente beaucoup.', n: 1 },
+  { q: 'Une balle lâchée du haut d\'un immeuble : pendant la chute…', r: 'son énergie potentielle se transforme en énergie cinétique', f: ['son énergie cinétique diminue', 'elle perd toute son énergie'], e: 'Elle descend (moins d\'énergie potentielle) et accélère (plus d\'énergie cinétique) : l\'énergie se <strong>transforme</strong>.', n: 1 },
+];
+GEN.energie43 = genMixte(B_ENERGIE43, 'Énergie et puissance', fabEnergie43, 0.55);
+
+/* ============================================================
+   4e – 3e : SCIENCES DE LA VIE ET DE LA TERRE
+   ============================================================ */
+const B_TECTO = [
+  { q: 'La surface de la Terre (la lithosphère) est découpée en…', r: 'plaques qui se déplacent lentement', f: ['plaques immobiles', 'cubes de roche'], e: 'Les <strong>plaques lithosphériques</strong> bougent de quelques centimètres par an, à peu près la vitesse de pousse des ongles.' },
+  { q: 'La plupart des séismes et des volcans se trouvent…', r: 'aux limites des plaques', f: ['au milieu des plaques', 'au hasard partout'], e: 'C\'est là que les plaques s\'écartent, se rapprochent ou coulissent : <strong>séismes</strong> et <strong>volcans</strong> y sont concentrés.' },
+  { q: 'Un volcan à coulées de lave fluide (comme le piton de la Fournaise) a des éruptions…', r: 'effusives', f: ['explosives'], e: 'Lave fluide qui coule : éruption <strong>effusive</strong>.' },
+  { q: 'Un volcan dont la lave est épaisse et visqueuse a souvent des éruptions…', r: 'explosives', f: ['effusives'], e: 'La lave visqueuse bloque les gaz qui finissent par exploser : éruption <strong>explosive</strong> (nuées ardentes), très dangereuse.' },
+  { q: 'L\'endroit en profondeur où un séisme commence s\'appelle…', r: 'le foyer', f: ['l\'épicentre', 'le cratère'], e: 'Le <strong>foyer</strong> est en profondeur ; l\'<strong>épicentre</strong> est le point de la surface juste au-dessus.' },
+  { q: 'L\'appareil qui enregistre les secousses d\'un séisme est…', r: 'un sismographe', f: ['un baromètre', 'un thermomètre'], e: 'Le <strong>sismographe</strong> trace les ondes sismiques (le sismogramme).' },
+  { q: 'Au milieu de l\'océan Atlantique, les plaques…', r: 's\'écartent, et une nouvelle croûte océanique se forme', f: ['se rapprochent', 'ne bougent pas'], e: 'Au niveau de la <strong>dorsale</strong>, le magma monte et fabrique de la nouvelle lithosphère : l\'Atlantique s\'élargit de quelques cm par an.', n: 1 },
+  { q: 'Quand une plaque océanique plonge sous une autre, c\'est…', r: 'la subduction', f: ['la dorsale', 'l\'érosion'], e: 'La <strong>subduction</strong> provoque des séismes profonds et des volcans explosifs (ex. : Japon, Andes).', n: 1 },
+  { q: 'On ne peut pas prévoir précisément un séisme, mais on peut…', r: 'construire des bâtiments parasismiques', f: ['l\'empêcher', 'le faire arriver ailleurs'], e: 'La <strong>prévention</strong> : constructions parasismiques, plans d\'évacuation, exercices.', n: 1 },
+  { q: 'Les Alpes et l\'Himalaya se sont formées…', r: 'par la collision de deux plaques', f: ['par une seule éruption', 'par l\'érosion'], e: 'Deux plaques continentales se rapprochent et se <strong>plissent</strong> : les montagnes s\'élèvent.', n: 1 },
+];
+GEN.tecto = genBanque(B_TECTO, 'Tectonique, volcans et séismes');
+
+const B_REPRO43 = [
+  { q: 'La reproduction sexuée fait intervenir…', r: 'deux cellules reproductrices, de deux parents', f: ['un seul parent qui se coupe en deux', 'aucune cellule'], e: '<strong>Reproduction sexuée</strong> : un gamète mâle et un gamète femelle s\'unissent lors de la fécondation.' },
+  { q: 'Le fraisier qui produit des stolons, ou la bouture d\'une plante, c\'est…', r: 'une reproduction asexuée', f: ['une reproduction sexuée', 'une fécondation'], e: 'Un seul parent, sans gamètes : <strong>reproduction asexuée</strong>. Les descendants sont identiques au parent.' },
+  { q: 'Les gamètes de l\'homme sont produits par…', r: 'les testicules', f: ['les ovaires', 'l\'utérus'], e: 'Les <strong>testicules</strong> produisent les spermatozoïdes, à partir de la puberté et toute la vie.' },
+  { q: 'Les gamètes de la femme sont produits par…', r: 'les ovaires', f: ['les testicules', 'l\'utérus'], e: 'Les <strong>ovaires</strong> libèrent en général un ovule par cycle, de la puberté à la ménopause.' },
+  { q: 'Les hormones sont…', r: 'des messagers chimiques transportés par le sang', f: ['des cellules nerveuses', 'des microbes'], e: 'Une <strong>hormone</strong> est fabriquée par une glande et agit à distance sur des organes cibles.' },
+  { q: 'Le cycle menstruel dure en moyenne…', r: 'environ 28 jours', f: ['7 jours', 'un an'], e: 'Environ <strong>28 jours</strong>, mais il varie d\'une personne à l\'autre. Il est contrôlé par des hormones.', n: 1 },
+  { q: 'Les règles correspondent…', r: 'à l\'élimination de la muqueuse de l\'utérus quand il n\'y a pas eu fécondation', f: ['à la fécondation', 'à l\'ovulation'], e: 'Sans fécondation, la muqueuse utérine préparée chaque mois est <strong>éliminée</strong> : ce sont les règles.', n: 1 },
+  { q: 'Le préservatif…', r: 'protège à la fois d\'une grossesse et des infections sexuellement transmissibles', f: ['protège seulement d\'une grossesse', 'ne protège de rien'], e: 'C\'est le seul moyen de contraception qui protège aussi des <strong>IST</strong>.', n: 1 },
+  { q: 'Les hormones qui déclenchent la puberté sont commandées par…', r: 'le cerveau', f: ['l\'estomac', 'les poumons'], e: 'Une région du <strong>cerveau</strong> (l\'hypothalamus et l\'hypophyse) envoie des hormones qui activent testicules et ovaires.', n: 1 },
+  { q: 'La fécondation chez l\'être humain a lieu…', r: 'dans une trompe, près de l\'ovaire', f: ['dans l\'estomac', 'dans le cerveau'], e: 'Le spermatozoïde rencontre l\'ovule dans une <strong>trompe</strong> ; la cellule-œuf descend ensuite s\'implanter dans l\'utérus.', n: 1 },
+  { q: 'La testostérone est…', r: 'une hormone produite par les testicules', f: ['un gamète', 'un organe'], e: 'La <strong>testostérone</strong> déclenche les transformations de la puberté chez les garçons.', n: 1 },
+];
+GEN.repro43 = genBanque(B_REPRO43, 'Reproduction et hormones');
+
+const B_NERFS = [
+  { q: 'Le système nerveux comprend…', r: 'le cerveau, la moelle épinière et les nerfs', f: ['le cœur et les vaisseaux', 'l\'estomac et l\'intestin'], e: 'Le <strong>cerveau</strong> et la <strong>moelle épinière</strong> (centres nerveux), reliés au corps par les <strong>nerfs</strong>.' },
+  { q: 'Les cellules nerveuses s\'appellent…', r: 'les neurones', f: ['les globules rouges', 'les gamètes'], e: 'Les <strong>neurones</strong> transmettent des messages nerveux électriques.' },
+  { q: 'L\'œil, l\'oreille, la peau sont des…', r: 'organes des sens', f: ['centres nerveux', 'muscles'], e: 'Les <strong>organes des sens</strong> captent des informations (récepteurs) et envoient des messages au cerveau.' },
+  { q: 'Le trajet d\'un message nerveux lors d\'un mouvement volontaire :', r: 'organe des sens → nerf → cerveau → nerf → muscle', f: ['muscle → cerveau → organe des sens', 'cerveau → œil → muscle'], e: 'Le cerveau reçoit l\'information, l\'<strong>interprète</strong> et commande la réponse.' },
+  { q: 'Manquer de sommeil…', r: 'diminue la concentration et la mémoire', f: ['améliore les réflexes', 'n\'a aucun effet'], e: 'Le sommeil permet au cerveau de <strong>récupérer</strong> et de mémoriser ce qu\'on a appris.' },
+  { q: 'L\'alcool, le tabac et les drogues…', r: 'perturbent le fonctionnement des neurones et peuvent créer une dépendance', f: ['améliorent le fonctionnement du cerveau', 'n\'agissent que sur l\'estomac'], e: 'Ces substances agissent sur les <strong>synapses</strong> (les zones de communication entre neurones) et peuvent rendre <strong>dépendant</strong>.', n: 1 },
+  { q: 'La zone où deux neurones se transmettent un message s\'appelle…', r: 'la synapse', f: ['l\'alvéole', 'le noyau'], e: 'À la <strong>synapse</strong>, le message passe grâce à des substances chimiques, les neurotransmetteurs.', n: 1 },
+  { q: 'Conduire après avoir bu de l\'alcool est dangereux parce que…', r: 'le temps de réaction augmente', f: ['la vue devient meilleure', 'les réflexes sont plus rapides'], e: 'L\'alcool <strong>ralentit</strong> la transmission des messages nerveux : on réagit trop tard.', n: 1 },
+  { q: 'Écouter de la musique trop fort au casque peut abîmer…', r: 'les cellules de l\'oreille interne, qui ne repoussent pas', f: ['le cerveau directement', 'les dents'], e: 'Les cellules sensorielles de l\'<strong>oreille interne</strong> détruites ne se régénèrent pas : la perte d\'audition est définitive.', n: 1 },
+  { q: 'Le réflexe qui fait retirer la main d\'une plaque brûlante passe par…', r: 'la moelle épinière, avant même que le cerveau en soit informé', f: ['l\'estomac', 'les poumons'], e: 'Un <strong>réflexe</strong> est automatique et très rapide : la moelle épinière commande directement le muscle.', n: 1 },
+  { q: 'Les messages nerveux sont de nature…', r: 'électrique, puis chimique au niveau des synapses', f: ['sonore', 'lumineuse'], e: 'Le long du neurone, un message <strong>électrique</strong> ; entre deux neurones, des messagers <strong>chimiques</strong>.', n: 1 },
+];
+GEN.nerfs = genBanque(B_NERFS, 'Le système nerveux');
+
+const B_GENETIQUE = [
+  { q: 'Les chromosomes se trouvent…', r: 'dans le noyau des cellules', f: ['dans le sang seulement', 'dans les os seulement'], e: 'Les <strong>chromosomes</strong>, faits d\'ADN, sont dans le noyau de chaque cellule.' },
+  { q: 'Une cellule humaine (sauf les gamètes) contient…', r: '46 chromosomes (23 paires)', f: ['23 chromosomes', '100 chromosomes'], e: '<strong>46 chromosomes</strong>, en 23 paires : une moitié vient de la mère, l\'autre du père.' },
+  { q: 'Un gamète humain (ovule ou spermatozoïde) contient…', r: '23 chromosomes', f: ['46 chromosomes', '92 chromosomes'], e: 'Un seul chromosome de chaque paire : <strong>23</strong>. À la fécondation, 23 + 23 = 46.' },
+  { q: 'Un gène est…', r: 'une portion d\'ADN qui détermine un caractère', f: ['un chromosome entier', 'une cellule'], e: 'Un <strong>gène</strong> est un morceau d\'ADN, à un endroit précis d\'un chromosome.' },
+  { q: 'Les différentes versions d\'un même gène s\'appellent…', r: 'des allèles', f: ['des chromosomes', 'des neurones'], e: 'Par exemple, le gène du groupe sanguin a plusieurs <strong>allèles</strong> : A, B, O.' },
+  { q: 'Chez l\'être humain, le sexe est déterminé par la paire de chromosomes…', r: 'XX ou XY', f: ['n° 1', 'il n\'y a pas de chromosomes sexuels'], e: '<strong>XX</strong> : femme ; <strong>XY</strong> : homme. C\'est le spermatozoïde (X ou Y) qui détermine le sexe.' },
+  { q: 'La mitose est une division cellulaire qui produit…', r: 'deux cellules identiques à la cellule de départ', f: ['des gamètes à 23 chromosomes', 'quatre cellules différentes'], e: 'La <strong>mitose</strong> sert à la croissance et à la réparation : chaque cellule fille a les mêmes 46 chromosomes.', n: 1 },
+  { q: 'La méiose produit…', r: 'les gamètes, avec la moitié des chromosomes', f: ['des cellules de peau', 'des cellules identiques à 46 chromosomes'], e: 'La <strong>méiose</strong> donne des gamètes à 23 chromosomes, tous différents : c\'est une source de diversité.', n: 1 },
+  { q: 'Deux enfants des mêmes parents (sauf vrais jumeaux) sont différents parce que…', r: 'chacun reçoit une combinaison différente d\'allèles', f: ['ils n\'ont pas les mêmes parents', 'leurs gènes changent tous les jours'], e: 'La méiose et la fécondation <strong>brassent</strong> les allèles : chaque enfant est unique.', n: 1 },
+  { q: 'Les vrais jumeaux ont…', r: 'les mêmes allèles, car ils viennent du même œuf', f: ['des allèles différents', 'des chromosomes différents'], e: 'Ils viennent d\'une <strong>seule cellule-œuf</strong> qui s\'est séparée en deux.', n: 1 },
+];
+GEN.genetique = genBanque(B_GENETIQUE, 'Chromosomes, ADN et gènes');
+
+const B_EVOLUTION = [
+  { q: 'Selon la théorie de l\'évolution, les espèces…', r: 'se transforment au cours des générations', f: ['ne changent jamais', 'apparaissent toutes en même temps'], e: 'Les espèces <strong>évoluent</strong> : des fossiles et des comparaisons le montrent.' },
+  { q: 'Le scientifique qui a proposé la sélection naturelle est…', r: 'Charles Darwin', f: ['Louis Pasteur', 'Isaac Newton'], e: '<strong>Charles Darwin</strong> l\'a exposée en 1859 dans <em>L\'Origine des espèces</em>.' },
+  { q: 'La sélection naturelle, c\'est le fait que…', r: 'les individus les mieux adaptés à leur milieu se reproduisent davantage', f: ['les animaux choisissent de changer', 'les plus gros gagnent toujours'], e: 'Les individus porteurs de caractères <strong>avantageux</strong> dans leur milieu survivent et se reproduisent plus : ces caractères deviennent plus fréquents.' },
+  { q: 'La source de nouveauté, à l\'origine de la diversité des individus, est…', r: 'les mutations de l\'ADN', f: ['la volonté de l\'animal', 'l\'entraînement'], e: 'Les <strong>mutations</strong> créent de nouveaux allèles, par hasard ; la sélection naturelle trie ensuite.', n: 1 },
+  { q: 'Des bactéries deviennent résistantes à un antibiotique parce que…', r: 'celles qui ont une mutation de résistance survivent et se multiplient', f: ['elles apprennent à résister', 'l\'antibiotique les rend plus fortes'], e: 'C\'est la <strong>sélection naturelle</strong> en direct : d\'où l\'importance de ne pas prendre d\'antibiotiques inutilement.', n: 1 },
+  { q: 'L\'être humain et le chimpanzé…', r: 'ont un ancêtre commun', f: ['le chimpanzé est notre ancêtre direct', 'n\'ont aucun lien de parenté'], e: 'Nous ne descendons pas du chimpanzé : nous partageons un <strong>ancêtre commun</strong> qui vivait il y a quelques millions d\'années.', n: 1 },
+  { q: 'Une phalène (papillon) claire sur des troncs noircis par la pollution…', r: 'est plus facilement mangée par les oiseaux', f: ['est mieux cachée', 'devient noire'], e: 'Les formes sombres, mieux <strong>camouflées</strong>, ont été favorisées : exemple célèbre de sélection naturelle en Angleterre.', n: 1 },
+  { q: 'Un caractère acquis pendant la vie (des muscles développés par le sport)…', r: 'ne se transmet pas aux enfants', f: ['se transmet aux enfants', 'modifie l\'ADN des gamètes'], e: 'Seuls les caractères inscrits dans l\'<strong>ADN des gamètes</strong> se transmettent.', n: 1 },
+  { q: 'Les fossiles permettent de montrer…', r: 'que des espèces ont existé puis disparu, et que les espèces ont changé', f: ['que les espèces n\'ont jamais changé', 'la couleur exacte des dinosaures toujours'], e: 'Les <strong>fossiles</strong> sont les archives de l\'évolution.' },
+  { q: 'Une mutation est…', r: 'une modification de l\'ADN', f: ['un changement de saison', 'une maladie toujours grave'], e: 'Une <strong>mutation</strong> peut être sans effet, défavorable ou avantageuse.' },
+  { q: 'L\'évolution d\'une espèce se fait…', r: 'sur de nombreuses générations', f: ['pendant la vie d\'un seul individu', 'en une seule nuit'], e: 'C\'est une <strong>population</strong> qui évolue, de génération en génération.', n: 1 },
+];
+GEN.evolution = genBanque(B_EVOLUTION, 'L\'évolution et la sélection naturelle');
+
+const B_IMMUNO = [
+  { q: 'La peau et les muqueuses sont…', r: 'des barrières naturelles contre les microbes', f: ['des cellules du sang', 'des antibiotiques'], e: 'La première défense : la <strong>peau</strong>, les muqueuses, les larmes, le mucus.' },
+  { q: 'La phagocytose, c\'est…', r: 'des globules blancs qui avalent et digèrent les microbes', f: ['la multiplication des microbes', 'un médicament'], e: 'Les <strong>phagocytes</strong> englobent les microbes : c\'est une réaction rapide et non spécifique.' },
+  { q: 'Les anticorps sont produits par…', r: 'des lymphocytes', f: ['les globules rouges', 'les neurones'], e: 'Les <strong>lymphocytes B</strong> produisent des anticorps, spécifiques d\'un microbe.' },
+  { q: 'Un vaccin contient…', r: 'un microbe rendu inoffensif, ou un morceau de microbe', f: ['un antibiotique', 'un microbe dangereux non modifié'], e: 'Le vaccin « entraîne » le système immunitaire, qui garde une <strong>mémoire</strong> : en cas de vraie infection, il réagit vite.' },
+  { q: 'Les antibiotiques agissent…', r: 'sur les bactéries, mais pas sur les virus', f: ['sur les virus', 'sur tous les microbes'], e: 'Un antibiotique est <strong>inutile contre un virus</strong> (grippe, rhume) : « les antibiotiques, c\'est pas automatique ».' },
+  { q: 'La grippe est due à…', r: 'un virus', f: ['une bactérie', 'un champignon'], e: 'La grippe est <strong>virale</strong> : les antibiotiques ne la soignent pas.' },
+  { q: 'Les lymphocytes T…', r: 'détruisent les cellules infectées par un virus', f: ['fabriquent les globules rouges', 'transportent le dioxygène'], e: 'Les <strong>lymphocytes T</strong> tueurs reconnaissent et détruisent les cellules infectées.', n: 1 },
+  { q: 'Après un vaccin, le corps garde…', r: 'des lymphocytes mémoire', f: ['le microbe pour toujours', 'aucun souvenir'], e: 'Les <strong>cellules mémoire</strong> permettent une réponse rapide et forte lors d\'un contact ultérieur.', n: 1 },
+  { q: 'La vaccination d\'une grande partie de la population protège aussi…', r: 'les personnes qui ne peuvent pas être vaccinées', f: ['personne d\'autre', 'seulement les animaux'], e: 'Si le microbe ne circule plus, les plus fragiles sont protégés : c\'est l\'<strong>immunité collective</strong>.', n: 1 },
+  { q: 'Le scientifique qui a mis au point le premier vaccin contre la rage est…', r: 'Louis Pasteur', f: ['Charles Darwin', 'Marie Curie'], e: '<strong>Louis Pasteur</strong>, en 1885, avec le jeune Joseph Meister.', n: 1 },
+];
+GEN.immuno = genBanque(B_IMMUNO, 'Microbes, défenses du corps et vaccination');
+
+const B_ENJEUX = [
+  { q: 'La transition énergétique consiste à…', r: 'remplacer les énergies fossiles par des énergies bas-carbone', f: ['brûler plus de charbon', 'consommer plus d\'énergie'], e: 'Moins de pétrole, de charbon et de gaz, plus d\'<strong>énergies renouvelables</strong>, et moins de gaspillage.' },
+  { q: 'La principale cause du réchauffement climatique actuel est…', r: 'l\'augmentation des gaz à effet de serre due aux activités humaines', f: ['le rapprochement de la Terre et du Soleil', 'les volcans'], e: 'Le <strong>CO₂</strong> et le méthane émis par les humains renforcent l\'effet de serre (constat du GIEC).' },
+  { q: 'Une ressource non renouvelable est…', r: 'une ressource dont le stock s\'épuise (pétrole, minerais)', f: ['une ressource qui se renouvelle vite', 'le vent'], e: 'Pétrole, gaz, charbon, minerais : leurs stocks sont <strong>limités</strong>.' },
+  { q: 'La biodiversité diminue surtout à cause…', r: 'de la destruction des milieux, de la pollution et du changement climatique', f: ['des parcs nationaux', 'du recyclage'], e: 'Les principales menaces : <strong>destruction des habitats</strong>, surexploitation, pollution, espèces invasives, climat.' },
+  { q: 'Le développement durable cherche à…', r: 'répondre aux besoins d\'aujourd\'hui sans compromettre ceux des générations futures', f: ['produire le plus possible tout de suite', 'arrêter toute activité humaine'], e: 'Trois piliers : <strong>environnement</strong>, <strong>économie</strong>, <strong>social</strong>.', n: 1 },
+  { q: 'L\'empreinte carbone, c\'est…', r: 'la quantité de gaz à effet de serre émise par une activité ou une personne', f: ['la trace laissée par une chaussure', 'la quantité de charbon dans le sol'], e: 'On la mesure en tonnes d\'<strong>équivalent CO₂</strong> : transports, alimentation, logement, achats.', n: 1 },
+  { q: 'L\'acidification des océans est due…', r: 'au CO₂ de l\'air qui se dissout dans l\'eau de mer', f: ['au sel', 'aux poissons'], e: 'Plus de CO₂ dans l\'air → plus dans l\'eau → pH plus bas : les coraux et les coquillages en souffrent.', n: 1 },
+  { q: 'Lequel réduit le plus son empreinte carbone ?', r: 'prendre le train plutôt que l\'avion', f: ['prendre l\'avion pour un court trajet', 'laisser le chauffage à fond fenêtres ouvertes'], e: 'Le <strong>train</strong> émet bien moins de CO₂ par voyageur que l\'avion ou la voiture.', n: 1 },
+  { q: 'Les énergies renouvelables sont par exemple…', r: 'le solaire, l\'éolien, l\'hydraulique', f: ['le pétrole, le charbon', 'le gaz naturel'], e: 'Elles se renouvellent à notre échelle de temps et émettent <strong>peu de CO₂</strong>.' },
+  { q: 'Le GIEC est…', r: 'un groupe de scientifiques qui étudie le changement climatique', f: ['une entreprise pétrolière', 'un parc national'], e: 'Le <strong>GIEC</strong> rassemble et évalue les travaux scientifiques sur le climat.', n: 1 },
+  { q: 'Manger moins de viande permet de…', r: 'réduire les émissions de gaz à effet de serre', f: ['les augmenter', 'n\'avoir aucun effet'], e: 'L\'élevage émet beaucoup de <strong>méthane</strong> et demande de grandes surfaces.', n: 1 },
+];
+GEN.enjeux = genBanque(B_ENJEUX, 'Les enjeux planétaires');
+
+/* ============================================================
+   4e – 3e : TECHNOLOGIE
+   ============================================================ */
+const B_CONNECTE = [
+  { q: 'Un objet connecté, c\'est…', r: 'un objet qui échange des informations par un réseau', f: ['un objet branché sur une prise', 'un objet en métal'], e: 'Montre, thermostat, enceinte, ampoule… un <strong>objet connecté</strong> communique avec d\'autres appareils, souvent par Internet.' },
+  { q: 'Le Bluetooth sert surtout à communiquer…', r: 'sans fil, sur une courte distance', f: ['par câble, à l\'autre bout du monde', 'par la lumière visible'], e: 'Le <strong>Bluetooth</strong> relie des appareils proches (écouteurs, montre) par ondes radio.' },
+  { q: 'Un protocole de communication, c\'est…', r: 'un ensemble de règles pour que les appareils se comprennent', f: ['un câble', 'un mot de passe'], e: 'Comme une langue commune : Wi-Fi, Bluetooth, HTTP sont des <strong>protocoles</strong>.' },
+  { q: 'Un thermostat connecté mesure la température grâce à…', r: 'un capteur', f: ['un actionneur', 'un écran'], e: 'Le <strong>capteur</strong> de température acquiert l\'information, envoyée ensuite au téléphone ou à la chaudière.' },
+  { q: 'Les informations numériques circulent sous forme de…', r: 'signaux codés en binaire', f: ['lettres manuscrites', 'sons audibles'], e: 'Elles sont codées en <strong>0 et 1</strong>, puis transmises par des signaux électriques, lumineux (fibre optique) ou radio.', n: 1 },
+  { q: 'La fibre optique transporte l\'information grâce à…', r: 'la lumière', f: ['le son', 'l\'eau'], e: 'Des impulsions de <strong>lumière</strong> voyagent dans un fil de verre très fin : c\'est très rapide.', n: 1 },
+  { q: 'Un risque des objets connectés est…', r: 'la collecte et le piratage des données personnelles', f: ['qu\'ils soient trop lourds', 'qu\'ils consomment de l\'eau'], e: 'Ils peuvent collecter beaucoup de <strong>données personnelles</strong> : il faut changer les mots de passe par défaut et les mettre à jour.', n: 1 },
+  { q: 'Le débit d\'une connexion s\'exprime en…', r: 'bits par seconde (Mbit/s)', f: ['kilogrammes', 'degrés'], e: 'Le <strong>débit</strong> est la quantité d\'informations transmises chaque seconde.', n: 1 },
+  { q: 'L\'émetteur et le récepteur d\'une enceinte Bluetooth sont…', r: 'le téléphone qui envoie la musique et l\'enceinte qui la reçoit', f: ['deux enceintes', 'le chargeur et la prise'], e: 'Le téléphone <strong>émet</strong>, l\'enceinte <strong>reçoit</strong>.' },
+  { q: 'Pour qu\'un objet connecté accède à Internet depuis la maison, il passe souvent par…', r: 'la box (le routeur)', f: ['le lave-linge', 'l\'imprimante seulement'], e: 'La <strong>box</strong> relie le réseau de la maison à Internet.' },
+];
+GEN.connecte = genBanque(B_CONNECTE, 'Les objets connectés');
+
+const B_SIMU = [
+  { q: 'Une simulation numérique sert à…', r: 'prévoir le comportement d\'un objet avant de le fabriquer', f: ['décorer l\'objet', 'remplacer tous les essais réels pour toujours'], e: 'On teste sur ordinateur (résistance, mouvement, température) pour <strong>gagner du temps et de l\'argent</strong>.' },
+  { q: 'Un modèle numérique est…', r: 'une représentation simplifiée de la réalité', f: ['la réalité exacte', 'un objet en plastique'], e: 'Un <strong>modèle</strong> simplifie : ses résultats doivent être comparés à des mesures réelles.' },
+  { q: 'Avant de construire un pont, les ingénieurs simulent…', r: 'les charges et le vent qu\'il devra supporter', f: ['sa couleur', 'son nom'], e: 'La simulation montre où la structure est la plus <strong>sollicitée</strong> et si elle résiste.' },
+  { q: 'Les prévisions météo reposent sur…', r: 'des simulations numériques de l\'atmosphère', f: ['le hasard', 'un seul thermomètre'], e: 'Des supercalculateurs simulent l\'évolution de l\'<strong>atmosphère</strong> à partir de millions de mesures.' },
+  { q: 'Un avantage de la simulation sur les essais réels :', r: 'tester de nombreuses versions sans détruire de prototype', f: ['elle est toujours parfaitement exacte', 'elle n\'utilise pas d\'ordinateur'], e: 'On peut changer un paramètre (matériau, épaisseur) et <strong>comparer</strong> rapidement.', n: 1 },
+  { q: 'Les résultats d\'une simulation doivent être…', r: 'vérifiés par des essais réels', f: ['acceptés sans vérification', 'effacés'], e: 'Un modèle peut se tromper : on <strong>valide</strong> avec des mesures sur un prototype.', n: 1 },
+  { q: 'Dans une simulation, un paramètre que l\'on fait varier s\'appelle…', r: 'une variable d\'entrée', f: ['un résultat', 'un périphérique'], e: 'On change une <strong>entrée</strong> (vitesse, masse, matériau) et on observe l\'effet sur la <strong>sortie</strong>.', n: 1 },
+  { q: 'Les « crash-tests » de voitures sont souvent d\'abord…', r: 'simulés sur ordinateur', f: ['faits avec des passagers', 'interdits'], e: 'On simule des milliers de chocs avant quelques crash-tests réels, plus coûteux.', n: 1 },
+  { q: 'La modélisation 3D d\'une pièce permet de…', r: 'la visualiser et la tester avant de la fabriquer', f: ['la manger', 'la rendre invisible'], e: 'Avec le modèle 3D, on vérifie les dimensions, l\'assemblage, et on peut la <strong>simuler</strong>.' },
+  { q: 'Simuler le mouvement d\'un robot permet de vérifier…', r: 'que le programme fait ce qui est prévu', f: ['la couleur de ses roues', 'son prix de vente'], e: 'On teste le <strong>programme</strong> dans un simulateur avant de le téléverser sur le vrai robot.', n: 1 },
+];
+GEN.simu = genBanque(B_SIMU, 'La simulation numérique');
+
+const B_CARTE = [
+  { q: 'Une carte programmable (Micro:bit, Arduino) contient…', r: 'un microcontrôleur qui exécute le programme', f: ['un moteur à essence', 'une batterie de voiture'], e: 'Le <strong>microcontrôleur</strong> est un petit ordinateur sur une puce : il lit les capteurs et commande les actionneurs.' },
+  { q: 'Un événement, en programmation, c\'est…', r: 'une action qui déclenche une partie du programme (bouton appuyé)', f: ['une erreur', 'une variable'], e: '« Quand le bouton A est pressé » est un <strong>événement</strong>.' },
+  { q: 'Sur la carte Micro:bit, l\'accéléromètre est…', r: 'un capteur qui détecte les mouvements', f: ['un actionneur', 'une mémoire'], e: 'L\'<strong>accéléromètre</strong> détecte quand on secoue ou incline la carte.' },
+  { q: 'Pour compter le nombre d\'appuis sur un bouton, on utilise…', r: 'une variable', f: ['une boucle infinie seulement', 'un capteur de lumière'], e: 'Une <strong>variable</strong> « compteur » augmente de 1 à chaque appui.' },
+  { q: 'Le programme principal d\'une carte tourne souvent dans…', r: 'une boucle « répéter indéfiniment »', f: ['une seule instruction', 'une condition sans boucle'], e: 'La carte <strong>surveille en permanence</strong> ses capteurs.', n: 1 },
+  { q: 'Téléverser un programme, c\'est…', r: 'l\'envoyer de l\'ordinateur vers la carte', f: ['l\'effacer', 'l\'imprimer'], e: 'On écrit le programme sur l\'ordinateur puis on le <strong>téléverse</strong> sur la carte.', n: 1 },
+  { q: 'Un buzzer ou une LED sur une carte sont…', r: 'des actionneurs', f: ['des capteurs', 'des variables'], e: 'Ils <strong>agissent</strong> : son, lumière.', n: 1 },
+];
+GEN.carte = genMixte(B_CARTE, 'Variables, événements et capteurs', fabAlgo65, 0.35);
+
+const B_PROJET = [
+  { q: 'Le développement durable repose sur trois piliers :', r: 'environnemental, économique et social', f: ['sportif, musical et artistique', 'rapide, cher et lourd'], e: 'Un projet durable respecte l\'<strong>environnement</strong>, est <strong>économiquement</strong> viable et <strong>socialement</strong> juste.' },
+  { q: 'Le cycle de vie d\'un objet va…', r: 'de l\'extraction des matières premières jusqu\'à son recyclage', f: ['seulement de l\'achat à la poubelle', 'seulement de la fabrication'], e: 'Extraction, fabrication, transport, utilisation, <strong>fin de vie</strong> : chaque étape a un impact.' },
+  { q: 'L\'écoconception consiste à…', r: 'concevoir un objet en limitant son impact sur l\'environnement', f: ['le peindre en vert', 'le rendre jetable'], e: 'Moins de matière, matériaux recyclables, réparable, économe en énergie : c\'est l\'<strong>écoconception</strong>.' },
+  { q: 'Dans un projet, les tâches et les délais se planifient avec…', r: 'un planning (diagramme de Gantt)', f: ['un thermomètre', 'une boussole'], e: 'Le <strong>diagramme de Gantt</strong> montre qui fait quoi, et quand.', n: 1 },
+  { q: 'Valider un prototype, c\'est…', r: 'vérifier qu\'il respecte toutes les exigences du cahier des charges', f: ['le jeter', 'le peindre'], e: 'On mesure, on teste, on compare aux <strong>critères</strong> du cahier des charges.', n: 1 },
+  { q: 'Un objet réparable et dont on trouve les pièces détachées…', r: 'dure plus longtemps et produit moins de déchets', f: ['pollue davantage', 'coûte toujours plus cher à l\'usage'], e: 'Allonger la <strong>durée de vie</strong> est l\'un des meilleurs moyens de réduire l\'impact d\'un objet.', n: 1 },
+  { q: 'L\'obsolescence programmée, c\'est…', r: 'réduire volontairement la durée de vie d\'un produit', f: ['un programme informatique', 'une méthode de recyclage'], e: 'Pratique interdite en France depuis 2015 : un produit conçu pour tomber en panne trop tôt.', n: 1 },
+  { q: 'Pour comparer deux solutions techniques, on peut utiliser…', r: 'un tableau de critères (coût, masse, impact…)', f: ['le hasard', 'seulement la couleur'], e: 'On note chaque solution selon les <strong>critères</strong> du cahier des charges et on choisit la meilleure.', n: 1 },
+  { q: 'Un projet pluridisciplinaire fait travailler ensemble…', r: 'plusieurs disciplines (technologie, sciences, mathématiques…)', f: ['une seule personne', 'seulement des ordinateurs'], e: 'Comme dans les métiers réels, il faut <strong>croiser</strong> les compétences.' },
+  { q: 'Une énergie bas-carbone pour alimenter un prototype autonome :', r: 'un petit panneau solaire', f: ['un groupe électrogène au fioul', 'des piles jetables changées chaque jour'], e: 'Le <strong>panneau solaire</strong> fournit une énergie renouvelable sur place.' },
+];
+GEN.projet = genBanque(B_PROJET, 'Projet et développement durable');
+
+const B_CYBER = [
+  { q: 'Une adresse IP sert à…', r: 'identifier un appareil sur un réseau', f: ['protéger un mot de passe', 'mesurer le débit'], e: 'Comme une adresse postale : elle permet aux données d\'<strong>arriver au bon appareil</strong>.' },
+  { q: 'Le routage, c\'est…', r: 'choisir le chemin des paquets de données entre les réseaux', f: ['effacer les données', 'chiffrer un message'], e: 'Les <strong>routeurs</strong> font passer chaque paquet de réseau en réseau jusqu\'à sa destination.' },
+  { q: 'Un bon mot de passe est…', r: 'long, avec des lettres, des chiffres et des symboles, différent pour chaque site', f: ['son prénom', '123456', 'le même partout'], e: 'Long et unique : il est beaucoup plus difficile à deviner. Un gestionnaire de mots de passe aide à les retenir.' },
+  { q: 'Le « hameçonnage » (phishing), c\'est…', r: 'un faux message qui cherche à voler des identifiants', f: ['un jeu vidéo de pêche', 'une mise à jour officielle'], e: 'On ne clique pas sur un lien suspect et on ne donne <strong>jamais</strong> son mot de passe par message.' },
+  { q: 'Le chiffrement des données sert à…', r: 'les rendre illisibles pour ceux qui n\'ont pas la clé', f: ['les compter', 'les rendre plus lourdes'], e: 'Le <strong>https</strong> chiffre les échanges entre le navigateur et le site.' },
+  { q: 'La double authentification, c\'est…', r: 'demander un code en plus du mot de passe', f: ['avoir deux comptes', 'écrire deux fois son mot de passe'], e: 'Même si le mot de passe est volé, il faut le <strong>second code</strong> (SMS, application).', n: 1 },
+  { q: 'Le serveur DNS sert à…', r: 'traduire un nom de site en adresse IP', f: ['stocker les photos', 'bloquer les virus'], e: 'Le <strong>DNS</strong> est l\'annuaire d\'Internet : il trouve l\'adresse IP qui correspond à « exemple.fr ».', n: 1 },
+  { q: 'Le RGPD est…', r: 'une loi européenne qui protège les données personnelles', f: ['un virus', 'un réseau Wi-Fi'], e: 'Le <strong>RGPD</strong> donne des droits sur ses données (accès, effacement) et oblige les entreprises à les protéger.', n: 1 },
+  { q: 'Faire des mises à jour régulières permet…', r: 'de corriger des failles de sécurité', f: ['de rendre l\'appareil plus lent volontairement', 'rien du tout'], e: 'Les <strong>mises à jour</strong> bouchent les failles que les pirates pourraient utiliser.', n: 1 },
+];
+GEN.cyber = genMixte(B_CYBER, 'Réseaux et cybersécurité', fabIP, 0.25);
+
+const B_FONC = [
+  { q: 'Un algorithme peut se représenter par…', r: 'un organigramme (logigramme)', f: ['un cahier des charges', 'une facture'], e: 'L\'<strong>organigramme</strong> utilise des formes : ovale pour début/fin, rectangle pour une action, losange pour une condition.' },
+  { q: 'Dans un organigramme, la forme en losange représente…', r: 'une condition (un test)', f: ['une action', 'le début du programme'], e: 'Le <strong>losange</strong> : une question avec deux sorties, « oui » et « non ».' },
+  { q: 'Dans un organigramme, un rectangle représente…', r: 'une action (une instruction)', f: ['une condition', 'la fin'], e: 'Le <strong>rectangle</strong> : une instruction à exécuter.' },
+  { q: 'Le diagramme qui montre la chaîne d\'énergie et la chaîne d\'information d\'un système est…', r: 'une représentation fonctionnelle', f: ['un diagramme de Gantt', 'un organigramme'], e: 'Elle montre les <strong>fonctions</strong> (acquérir, traiter, communiquer ; alimenter, distribuer, convertir, transmettre) et les composants qui les réalisent.' },
+  { q: 'Dans un ascenseur, le capteur qui détecte l\'étage atteint fait partie de…', r: 'la chaîne d\'information (acquérir)', f: ['la chaîne d\'énergie (convertir)'], e: 'Il <strong>acquiert</strong> une information : chaîne d\'information.', n: 1 },
+  { q: 'Dans un ascenseur, le moteur qui fait monter la cabine…', r: 'convertit l\'énergie électrique en énergie mécanique', f: ['acquiert l\'information', 'traite l\'information'], e: 'Le moteur est le <strong>convertisseur</strong> de la chaîne d\'énergie.', n: 1 },
+  { q: 'Dans un portail automatique, le relais qui autorise le passage du courant vers le moteur sert à…', r: 'distribuer l\'énergie', f: ['convertir l\'énergie', 'acquérir l\'information'], e: 'Le relais (ou le variateur) <strong>distribue</strong> l\'énergie selon les ordres du programme.', n: 1 },
+  { q: 'Dans un organigramme, une flèche qui revient en arrière représente…', r: 'une boucle', f: ['une condition', 'la fin du programme'], e: 'Revenir en arrière, c\'est <strong>répéter</strong> une partie de l\'algorithme.', n: 1 },
+  { q: 'Dans un organigramme, l\'ovale représente…', r: 'le début ou la fin', f: ['une action', 'une condition'], e: 'L\'<strong>ovale</strong> marque le début et la fin de l\'algorithme.' },
+  { q: 'Le diagramme fonctionnel d\'un système automatisé sépare…', r: 'la chaîne d\'information et la chaîne d\'énergie', f: ['le début et la fin', 'les entrées et la couleur'], e: 'En haut, la chaîne d\'<strong>information</strong> (qui décide) ; en bas, la chaîne d\'<strong>énergie</strong> (qui agit).' },
+];
+GEN.fonc43 = genMixte(B_FONC, 'Représentation fonctionnelle et algorithmes', fabAlgo65, 0.3);
+
+/* ============================================================
    LES QUIZ DE COURS : à la fin de chaque domaine, 12 questions tirées d'une banque fixe
    (définitions, vocabulaire, règles à connaître par cœur). Toujours les mêmes questions qui reviennent.
    Chaque question : { q, r (bonne réponse : texte ou nombre), f (mauvaises réponses), e (explication), u (unité), v (phrase lue) }
@@ -1218,7 +2462,7 @@ const QUIZ = {
     { q: 'Combien de planètes dans le système solaire ?', r: 8, e: '<strong>8 planètes</strong>, de Mercure à Neptune.' },
   ],
 };
-const NOTION_QUIZ = { 'ce-matiere': 'Cours : matière, mouvement, énergie', 'ce-vivant': 'Cours : le vivant', 'ce-technique': 'Cours : objets techniques et Terre' };
+const NOTION_QUIZ = { 'ce-matiere': 'Cours CE : matière, mouvement, énergie', 'ce-vivant': 'Cours CE : le vivant', 'ce-technique': 'Cours CE : objets techniques et Terre' };
 function questionsQuiz(cle, n) {
   return shuffle(QUIZ[cle]).slice(0, n).map((x) => {
     const base = { enonce: `<span class="mm-cours">Question de cours</span>${x.q.replace(/…/, '<span class="mm-trou">…</span>')}`, voix: x.v || (typeof x.r === 'number' ? x.q : x.q.replace(/…/g, '')), explication: x.e, notion: NOTION_QUIZ[cle], court: x.q.replace(/<[^>]+>/g, '') };
@@ -1226,6 +2470,215 @@ function questionsQuiz(cle, n) {
     return { ...base, choix: shuffle([x.r, ...x.f]).map((v) => ({ v, html: v })), bonne: x.r, rep: x.r };
   });
 }
+
+/* --- Les quiz de cours du CM1 – CM2 --- */
+Object.assign(QUIZ, {
+  'cm-matiere': [
+    { q: 'Le bois, le coton, la laine sont des matériaux…', r: 'd\'origine vivante', f: ['minéraux', 'métalliques'], e: 'Ils viennent d\'êtres vivants : c\'est de la <strong>matière organique</strong>.' },
+    { q: 'Le verre est fabriqué à partir de…', r: 'sable', f: ['pétrole', 'bois'], e: 'Le verre est du <strong>sable</strong> fondu.' },
+    { q: 'Le plastique est surtout fabriqué à partir de…', r: 'pétrole', f: ['sable', 'coton'], e: 'Le plastique vient du <strong>pétrole</strong>.' },
+    { q: 'Un aimant attire…', r: 'le fer et l\'acier', f: ['tous les métaux', 'le plastique'], e: 'Il attire le <strong>fer</strong> et l\'acier, pas l\'aluminium ni le cuivre.' },
+    { q: 'Un matériau qui laisse passer le courant est…', r: 'conducteur', f: ['isolant'], e: 'Les métaux sont <strong>conducteurs</strong>.' },
+    { q: 'Un mélange où l\'on ne distingue qu\'une seule chose est…', r: 'homogène', f: ['hétérogène'], e: 'Eau sucrée : mélange <strong>homogène</strong>.' },
+    { q: 'Un mélange où l\'on distingue plusieurs constituants est…', r: 'hétérogène', f: ['homogène'], e: 'Eau et sable : mélange <strong>hétérogène</strong>.' },
+    { q: 'Le sel « disparaît » dans l\'eau : il…', r: 'se dissout', f: ['fond', 's\'évapore'], e: 'Il se <strong>dissout</strong>, il est toujours là.' },
+    { q: 'Séparer avec un filtre, c\'est…', r: 'la filtration', f: ['la décantation', 'la dissolution'], e: 'La <strong>filtration</strong> retient les particules solides.' },
+    { q: 'Laisser les particules tomber au fond, c\'est…', r: 'la décantation', f: ['la filtration', 'l\'évaporation'], e: 'La <strong>décantation</strong>.' },
+    { q: 'Le soleil, le vent, l\'eau sont des énergies…', r: 'renouvelables', f: ['non renouvelables'], e: 'Elles ne s\'épuisent pas : <strong>renouvelables</strong>.' },
+    { q: 'Le pétrole, le charbon, le gaz sont des énergies…', r: 'non renouvelables (fossiles)', f: ['renouvelables'], e: 'Leurs réserves <strong>s\'épuisent</strong>.' },
+    { q: 'La ligne suivie par un objet en mouvement s\'appelle…', r: 'la trajectoire', f: ['la vitesse', 'la chronophotographie'], e: 'La <strong>trajectoire</strong> : rectiligne, circulaire ou curviligne.' },
+    { q: 'Une trajectoire en ligne droite est…', r: 'rectiligne', f: ['circulaire', 'curviligne'], e: 'Ligne droite : <strong>rectiligne</strong>.' },
+    { q: 'Un mouvement à vitesse constante est…', r: 'uniforme', f: ['accéléré', 'ralenti'], e: 'Vitesse constante : mouvement <strong>uniforme</strong>.' },
+    { q: 'Dans une chaîne d\'énergie, l\'ampoule d\'une lampe de poche est…', r: 'le convertisseur', f: ['la source', 'l\'énergie utile'], e: 'Pile (source) → ampoule (<strong>convertisseur</strong>) → lumière.' },
+    { q: 'Un moteur électrique transforme l\'électricité en…', r: 'mouvement', f: ['lumière', 'son'], e: 'Énergie électrique → <strong>mouvement</strong>.' },
+    { q: 'Le téléphone portable utilise des signaux…', r: 'radio', f: ['sonores', 'lumineux'], e: 'Des <strong>ondes radio</strong>, invisibles.' },
+    { q: 'Un signal sert à…', r: 'transmettre une information', f: ['produire de l\'énergie'], e: 'Un signal transporte une <strong>information</strong>.' },
+    { q: 'Le son peut-il se propager dans le vide ?', r: 'Non', f: ['Oui'], e: 'Le son a besoin de matière : <strong>pas de son dans le vide</strong>.' },
+  ],
+  'cm-vivant': [
+    { q: 'Pour classer les êtres vivants, on regarde…', r: 'les attributs qu\'ils partagent', f: ['où ils vivent', 'ce qu\'ils mangent'], e: 'On classe selon ce qu\'ils <strong>ont</strong> en commun.' },
+    { q: 'Poils et mamelles : ce sont…', r: 'les mammifères', f: ['les oiseaux', 'les reptiles'], e: 'Les <strong>mammifères</strong>.' },
+    { q: 'Les animaux à plumes sont…', r: 'les oiseaux', f: ['les mammifères', 'les insectes'], e: 'Seuls les <strong>oiseaux</strong> ont des plumes.' },
+    { q: 'Combien de pattes a un insecte ?', r: 6, e: 'Un insecte a <strong>6 pattes</strong>.' },
+    { q: 'Un animal avec une colonne vertébrale est…', r: 'un vertébré', f: ['un invertébré'], e: 'Squelette intérieur : <strong>vertébré</strong>.' },
+    { q: 'Le tuyau entre la bouche et l\'estomac s\'appelle…', r: 'l\'œsophage', f: ['la trachée', 'l\'intestin'], e: 'L\'<strong>œsophage</strong>.' },
+    { q: 'Les nutriments passent dans le sang au niveau de…', r: 'l\'intestin grêle', f: ['l\'estomac', 'la bouche'], e: 'Dans l\'<strong>intestin grêle</strong>.' },
+    { q: 'Les êtres vivants qui recyclent la matière morte sont…', r: 'les décomposeurs', f: ['les prédateurs', 'les pollinisateurs'], e: 'Les <strong>décomposeurs</strong> : vers de terre, champignons, bactéries.' },
+    { q: 'Les épluchures se transforment en…', r: 'compost', f: ['plastique', 'verre'], e: 'Le <strong>compost</strong> nourrit les plantes.' },
+    { q: 'Les poumons font passer dans le sang…', r: 'le dioxygène', f: ['le dioxyde de carbone', 'les nutriments'], e: 'Le <strong>dioxygène</strong> de l\'air.' },
+    { q: 'On rejette en expirant…', r: 'du dioxyde de carbone', f: ['du dioxygène pur', 'des nutriments'], e: 'Le <strong>dioxyde de carbone</strong>, déchet des organes.' },
+    { q: 'Le cœur est…', r: 'un muscle qui pompe le sang', f: ['un os', 'un poumon'], e: 'Le <strong>cœur</strong> est un muscle.' },
+    { q: 'Les vaisseaux qui partent du cœur sont…', r: 'les artères', f: ['les veines'], e: '<strong>Artères</strong> : du cœur vers les organes.' },
+    { q: 'La période où le corps devient capable de se reproduire s\'appelle…', r: 'la puberté', f: ['la fécondation', 'la naissance'], e: 'La <strong>puberté</strong>.' },
+    { q: 'La rencontre de l\'ovule et du spermatozoïde s\'appelle…', r: 'la fécondation', f: ['la grossesse', 'la puberté'], e: 'La <strong>fécondation</strong>.' },
+    { q: 'La grossesse humaine dure environ…', r: 9, u: 'mois', e: 'Environ <strong>9 mois</strong>.', v: 'La grossesse humaine dure environ combien de mois ?' },
+    { q: 'Le bébé reçoit nourriture et dioxygène par…', r: 'le placenta et le cordon ombilical', f: ['la bouche', 'les poumons'], e: 'Par le <strong>placenta</strong> et le <strong>cordon ombilical</strong>.' },
+    { q: 'La diversité de tous les êtres vivants s\'appelle…', r: 'la biodiversité', f: ['l\'évolution', 'la classification'], e: 'La <strong>biodiversité</strong>.' },
+    { q: 'La transformation des espèces au cours du temps s\'appelle…', r: 'l\'évolution', f: ['la métamorphose', 'la digestion'], e: 'L\'<strong>évolution</strong>, révélée par les fossiles.' },
+  ],
+  'cm-technique': [
+    { q: 'Ce à quoi sert un objet, c\'est sa fonction…', r: 'd\'usage', f: ['d\'estime', 'technique'], e: 'Fonction d\'<strong>usage</strong>.' },
+    { q: 'Ce qui fait qu\'on aime un objet (couleur, forme, marque), c\'est sa fonction…', r: 'd\'estime', f: ['d\'usage', 'technique'], e: 'Fonction d\'<strong>estime</strong>.' },
+    { q: 'Le rôle d\'une pièce dans un objet, c\'est sa fonction…', r: 'technique', f: ['d\'usage', 'd\'estime'], e: 'Fonction <strong>technique</strong>.' },
+    { q: 'Une suite d\'instructions pour réaliser une tâche est…', r: 'un algorithme', f: ['un réseau', 'un serveur'], e: 'Un <strong>algorithme</strong>.' },
+    { q: 'Pour répéter des instructions, on utilise…', r: 'une boucle', f: ['un bug', 'un routeur'], e: 'Une <strong>boucle</strong> « répéter ».' },
+    { q: 'Une erreur dans un programme s\'appelle…', r: 'un bug', f: ['une boucle', 'un lutin'], e: 'Un <strong>bug</strong>.' },
+    { q: 'La Terre tourne sur elle-même en…', r: 24, u: 'h', e: 'En <strong>24 heures</strong> : c\'est la rotation.', v: 'La Terre tourne sur elle-même en combien d\'heures ?' },
+    { q: 'Le mouvement de la Terre autour du Soleil s\'appelle…', r: 'la révolution', f: ['la rotation'], e: 'La <strong>révolution</strong> : un an.' },
+    { q: 'Les saisons existent parce que…', r: 'l\'axe de la Terre est incliné', f: ['la Terre s\'éloigne du Soleil en hiver'], e: 'L\'axe de la Terre est <strong>incliné</strong>.' },
+    { q: 'Un tremblement de terre s\'appelle…', r: 'un séisme', f: ['une éruption', 'un tsunami'], e: 'Un <strong>séisme</strong>.' },
+    { q: 'La roche fondue qui sort d\'un volcan est…', r: 'la lave', f: ['le magma refroidi', 'le sable'], e: 'La <strong>lave</strong>.' },
+    { q: 'Transformer un déchet en matière première, c\'est…', r: 'recycler', f: ['jeter', 'brûler'], e: '<strong>Recycler</strong>.' },
+    { q: 'Le verre se recycle…', r: 'à l\'infini', f: ['une seule fois', 'jamais'], e: 'Le verre se recycle <strong>à l\'infini</strong>.' },
+    { q: 'Des ordinateurs reliés entre eux forment…', r: 'un réseau', f: ['un algorithme'], e: 'Un <strong>réseau</strong>.' },
+    { q: 'L\'appareil qui oriente les informations entre réseaux est…', r: 'un routeur', f: ['un serveur', 'une imprimante'], e: 'Un <strong>routeur</strong>.' },
+    { q: 'L\'ordinateur qui fournit des sites ou des fichiers aux autres est…', r: 'un serveur', f: ['un routeur', 'un clavier'], e: 'Un <strong>serveur</strong>.' },
+    { q: 'Le temps qu\'il fait un jour donné, c\'est…', r: 'la météo', f: ['le climat'], e: 'La <strong>météo</strong> ; le climat est une moyenne sur une trentaine d\'années.' },
+    { q: 'Le principal gaz rejeté par les voitures qui réchauffe le climat est…', r: 'le dioxyde de carbone', f: ['le dioxygène', 'la vapeur d\'eau'], e: 'Le <strong>dioxyde de carbone</strong> (CO₂).' },
+    { q: 'Inondations, séismes, tempêtes sont des…', r: 'risques naturels', f: ['ressources naturelles'], e: 'Des <strong>risques naturels</strong>.' },
+  ],
+});
+Object.assign(NOTION_QUIZ, { 'cm-matiere': 'Cours CM : matière, mouvement, énergie', 'cm-vivant': 'Cours CM : le vivant', 'cm-technique': 'Cours CM : objets techniques et Terre' });
+
+/* --- Les quiz de cours du 6e – 5e --- */
+Object.assign(QUIZ, {
+  '65-matiere': [
+    { q: 'On mesure une masse avec…', r: 'une balance', f: ['une éprouvette', 'un thermomètre'], e: 'Une <strong>balance</strong>.' },
+    { q: 'On mesure le volume d\'un liquide avec…', r: 'une éprouvette graduée', f: ['une balance', 'un chronomètre'], e: 'Une <strong>éprouvette graduée</strong>.' },
+    { q: '1 L = … mL', r: 1000, u: 'mL', e: '1 L = <strong>1 000 mL</strong>.', v: 'Un litre égale combien de millilitres ?' },
+    { q: '1 cm³ = … mL', r: 1, u: 'mL', e: '1 cm³ = <strong>1 mL</strong>.', v: 'Un centimètre cube égale combien de millilitres ?' },
+    { q: '1 kg = … g', r: 1000, u: 'g', e: '1 kg = <strong>1 000 g</strong>.', v: 'Un kilogramme égale combien de grammes ?' },
+    { q: 'Une transformation chimique, c\'est quand…', r: 'de nouvelles substances apparaissent', f: ['l\'état change seulement', 'on mélange sans rien créer'], e: 'De <strong>nouvelles substances</strong> se forment.' },
+    { q: 'La glace qui fond est…', r: 'un changement d\'état', f: ['une transformation chimique'], e: 'C\'est toujours de l\'eau : <strong>changement d\'état</strong>.' },
+    { q: 'Vitesse moyenne = …', r: 'distance ÷ durée', f: ['distance × durée', 'durée ÷ distance'], e: '<strong>v = d ÷ t</strong>.' },
+    { q: 'Une voiture qui parcourt 120 km en 2 h roule à…', r: 60, u: 'km/h', e: '120 ÷ 2 = <strong>60 km/h</strong>.', v: 'Une voiture qui parcourt 120 kilomètres en 2 heures roule à combien de kilomètres heure ?' },
+    { q: 'Deux lampes l\'une après l\'autre sur une seule boucle sont branchées…', r: 'en série', f: ['en dérivation'], e: '<strong>En série</strong>.' },
+    { q: 'Les prises d\'une maison sont branchées…', r: 'en dérivation', f: ['en série'], e: '<strong>En dérivation</strong> : chaque appareil a sa boucle.' },
+    { q: 'L\'énergie peut-elle disparaître ?', r: 'Non, elle se transforme', f: ['Oui'], e: 'L\'énergie se <strong>conserve</strong> ; une partie devient souvent de la chaleur.' },
+    { q: 'Dans un gaz, les particules sont…', r: 'très éloignées et agitées', f: ['serrées et ordonnées', 'serrées et en désordre'], e: 'Gaz : particules <strong>très éloignées</strong>.' },
+    { q: 'Dans un solide, les particules sont…', r: 'serrées et ordonnées', f: ['très éloignées', 'serrées et en désordre'], e: 'Solide : <strong>serrées et ordonnées</strong>.' },
+    { q: 'Lors d\'un changement d\'état, la masse…', r: 'se conserve', f: ['augmente', 'diminue'], e: 'La masse se <strong>conserve</strong>.' },
+    { q: 'À l\'extérieur de la pile, le courant va…', r: 'de la borne + vers la borne −', f: ['de la borne − vers la borne +'], e: 'Sens conventionnel : du <strong>+ vers le −</strong>.' },
+    { q: 'Un composant qui ne laisse passer le courant que dans un sens est…', r: 'une diode', f: ['une lampe', 'un interrupteur'], e: 'Une <strong>diode</strong>.' },
+    { q: 'Le Soleil est une source de lumière…', r: 'primaire', f: ['diffusante'], e: 'Il produit sa propre lumière : source <strong>primaire</strong>.' },
+    { q: 'Dans l\'air, la lumière se propage…', r: 'en ligne droite', f: ['en courbe', 'en zigzag'], e: 'En <strong>ligne droite</strong>.' },
+    { q: 'Une éclipse de Soleil : c\'est … qui passe devant le Soleil.', r: 'la Lune', f: ['la Terre', 'Mars'], e: 'La <strong>Lune</strong> passe entre le Soleil et la Terre.' },
+  ],
+  '65-vivant': [
+    { q: 'L\'unité de base de tout être vivant est…', r: 'la cellule', f: ['l\'organe', 'l\'atome'], e: 'La <strong>cellule</strong>.' },
+    { q: 'La partie de la cellule qui contient l\'ADN est…', r: 'le noyau', f: ['la membrane', 'le cytoplasme'], e: 'Le <strong>noyau</strong>.' },
+    { q: 'L\'enveloppe de la cellule est…', r: 'la membrane', f: ['le noyau', 'le cytoplasme'], e: 'La <strong>membrane</strong>.' },
+    { q: 'Un être vivant d\'une seule cellule est…', r: 'unicellulaire', f: ['pluricellulaire'], e: '<strong>Unicellulaire</strong>.' },
+    { q: 'La cellule végétale a en plus…', r: 'une paroi et des chloroplastes', f: ['un noyau', 'une membrane'], e: '<strong>Paroi</strong> et <strong>chloroplastes</strong>.' },
+    { q: 'Grossissement d\'un microscope avec oculaire ×10 et objectif ×40 :', r: 400, e: '10 × 40 = <strong>400</strong>.' },
+    { q: 'Pour classer en groupes emboîtés, on utilise…', r: 'les attributs partagés', f: ['le milieu de vie', 'le régime alimentaire'], e: 'Les <strong>attributs</strong> partagés.' },
+    { q: 'Le groupe des mammifères est inclus dans celui…', r: 'des vertébrés', f: ['des oiseaux', 'des insectes'], e: 'Des <strong>vertébrés</strong>.' },
+    { q: 'La transformation d\'un aliment par des micro-organismes s\'appelle…', r: 'la fermentation', f: ['la photosynthèse', 'la digestion'], e: 'La <strong>fermentation</strong>.' },
+    { q: 'Le pain gonfle grâce à…', r: 'la levure', f: ['des bactéries du yaourt', 'du sel'], e: 'La <strong>levure</strong>, un champignon microscopique.' },
+    { q: 'Le climat se calcule sur une durée d\'au moins…', r: 30, u: 'ans', e: 'Au moins <strong>30 ans</strong>.', v: 'Le climat se calcule sur une durée d\'au moins combien d\'années ?' },
+    { q: 'Un phénomène naturel possible (crue, tempête) s\'appelle…', r: 'un aléa', f: ['un risque', 'un climat'], e: 'Un <strong>aléa</strong> ; il devient un risque quand il menace des personnes.' },
+    { q: 'Pendant un effort, la fréquence cardiaque…', r: 'augmente', f: ['diminue', 'ne change pas'], e: 'Elle <strong>augmente</strong>.' },
+    { q: 'Les muscles consomment…', r: 'du dioxygène et des nutriments', f: ['du dioxyde de carbone', 'de l\'azote'], e: '<strong>Dioxygène</strong> et <strong>nutriments</strong>.' },
+    { q: 'Le dioxygène passe dans le sang au niveau des…', r: 'alvéoles pulmonaires', f: ['bronches', 'artères'], e: 'Les <strong>alvéoles</strong>.' },
+    { q: 'Les plantes vertes fabriquent leur matière par…', r: 'la photosynthèse', f: ['la fermentation', 'la respiration'], e: 'La <strong>photosynthèse</strong>.' },
+    { q: 'La photosynthèse utilise lumière, eau et…', r: 'dioxyde de carbone', f: ['dioxygène', 'sucre'], e: '<strong>Dioxyde de carbone</strong>.' },
+    { q: 'La photosynthèse rejette…', r: 'du dioxygène', f: ['du dioxyde de carbone'], e: 'Du <strong>dioxygène</strong>.' },
+    { q: 'Les petits orifices des feuilles s\'appellent…', r: 'les stomates', f: ['les alvéoles', 'les poils absorbants'], e: 'Les <strong>stomates</strong>.' },
+    { q: 'La sève qui monte des racines (eau et sels minéraux) est…', r: 'la sève brute', f: ['la sève élaborée'], e: 'La <strong>sève brute</strong>.' },
+  ],
+  '65-technique': [
+    { q: 'Le document qui décrit ce que doit faire un objet est…', r: 'le cahier des charges', f: ['le prototype', 'le mode d\'emploi'], e: 'Le <strong>cahier des charges</strong>.' },
+    { q: 'Le premier modèle pour tester un objet est…', r: 'un prototype', f: ['un cahier des charges', 'une contrainte'], e: 'Un <strong>prototype</strong>.' },
+    { q: 'Dans un programme, « si … alors … sinon » est…', r: 'une condition', f: ['une boucle', 'une variable'], e: 'Une <strong>condition</strong>.' },
+    { q: '« Répéter 10 fois » est…', r: 'une boucle', f: ['une condition', 'une variable'], e: 'Une <strong>boucle</strong>.' },
+    { q: 'Une case mémoire qui a un nom (score, vies) est…', r: 'une variable', f: ['une boucle', 'un capteur'], e: 'Une <strong>variable</strong>.' },
+    { q: 'La vie est possible sur Terre surtout grâce à…', r: 'l\'eau liquide', f: ['ses volcans', 'sa Lune'], e: 'L\'<strong>eau liquide</strong>.' },
+    { q: 'Les planètes géantes gazeuses sont Jupiter, Saturne, Uranus et…', r: 'Neptune', f: ['Mars', 'Vénus'], e: '<strong>Neptune</strong>.' },
+    { q: 'Acquérir, traiter, communiquer : c\'est la chaîne…', r: 'd\'information', f: ['d\'énergie'], e: 'Chaîne d\'<strong>information</strong>.' },
+    { q: 'Alimenter, distribuer, convertir, transmettre : c\'est la chaîne…', r: 'd\'énergie', f: ['d\'information'], e: 'Chaîne d\'<strong>énergie</strong>.' },
+    { q: 'Un détecteur de mouvement est…', r: 'un capteur', f: ['un actionneur'], e: 'Un <strong>capteur</strong>.' },
+    { q: 'Un moteur est…', r: 'un actionneur', f: ['un capteur'], e: 'Un <strong>actionneur</strong>.' },
+    { q: 'Une corde tirée subit…', r: 'la traction', f: ['la compression', 'la flexion'], e: 'La <strong>traction</strong>.' },
+    { q: 'Un pilier écrasé par une charge subit…', r: 'la compression', f: ['la traction', 'la torsion'], e: 'La <strong>compression</strong>.' },
+    { q: 'La forme qui rend une structure rigide est…', r: 'le triangle', f: ['le carré', 'le cercle'], e: 'Le <strong>triangle</strong>.' },
+    { q: 'Le composant qui exécute les calculs de l\'ordinateur est…', r: 'le processeur', f: ['la mémoire vive', 'l\'écran'], e: 'Le <strong>processeur</strong>.' },
+    { q: 'La mémoire qui s\'efface quand on éteint l\'ordinateur est…', r: 'la mémoire vive (RAM)', f: ['le disque dur'], e: 'La <strong>mémoire vive</strong>.' },
+    { q: 'Le clavier est un périphérique…', r: 'd\'entrée', f: ['de sortie'], e: 'D\'<strong>entrée</strong>.' },
+    { q: 'L\'écran est un périphérique…', r: 'de sortie', f: ['d\'entrée'], e: 'De <strong>sortie</strong>.' },
+    { q: 'Un octet contient combien de bits ?', r: 8, e: '<strong>8 bits</strong>.' },
+  ],
+});
+Object.assign(NOTION_QUIZ, { '65-matiere': 'Cours 6e – 5e : matière, mouvement, énergie', '65-vivant': 'Cours 6e – 5e : le vivant', '65-technique': 'Cours 6e – 5e : technologie et Terre' });
+
+/* --- Les quiz de cours du 4e – 3e --- */
+Object.assign(QUIZ, {
+  '43-matiere': [
+    { q: 'Une molécule est formée…', r: 'd\'atomes', f: ['de cellules', 'd\'ions seulement'], e: 'Une molécule = des <strong>atomes</strong> liés.' },
+    { q: 'Le triangle du feu : combustible, chaleur et…', r: 'comburant (dioxygène)', f: ['eau', 'dioxyde de carbone'], e: 'Le <strong>comburant</strong> : le dioxygène.' },
+    { q: 'Le test du dioxyde de carbone se fait avec…', r: 'l\'eau de chaux', f: ['le papier pH', 'le nitrate d\'argent'], e: 'L\'<strong>eau de chaux</strong> se trouble.' },
+    { q: 'Lors d\'une transformation chimique, les atomes…', r: 'se conservent', f: ['disparaissent', 'se créent'], e: 'Ils se <strong>conservent</strong> et se réarrangent.' },
+    { q: 'La tension se mesure en…', r: 'volts (V)', f: ['ampères (A)', 'ohms (Ω)'], e: 'En <strong>volts</strong>, avec un voltmètre en dérivation.' },
+    { q: 'L\'intensité se mesure en…', r: 'ampères (A)', f: ['volts (V)', 'watts (W)'], e: 'En <strong>ampères</strong>, avec un ampèremètre en série.' },
+    { q: 'La loi d\'Ohm :', r: 'U = R × I', f: ['U = R + I', 'R = U × I'], e: '<strong>U = R × I</strong>.' },
+    { q: 'En série, les tensions…', r: 's\'additionnent', f: ['sont égales', 'sont nulles'], e: 'U = U₁ + U₂.' },
+    { q: 'La vitesse du son dans l\'air est d\'environ…', r: 340, u: 'm/s', e: 'Environ <strong>340 m/s</strong>.', v: 'La vitesse du son dans l\'air est d\'environ combien de mètres par seconde ?' },
+    { q: 'La vitesse de la lumière est d\'environ…', r: '300 000 km/s', f: ['340 m/s', '300 km/h'], e: '<strong>300 000 km/s</strong>.' },
+    { q: 'Le son peut-il se propager dans le vide ?', r: 'Non', f: ['Oui'], e: 'Non : il lui faut de la <strong>matière</strong>.' },
+    { q: 'Le noyau d\'un atome contient…', r: 'des protons et des neutrons', f: ['des électrons', 'des molécules'], e: '<strong>Protons</strong> et <strong>neutrons</strong>.' },
+    { q: 'Un atome est électriquement…', r: 'neutre', f: ['positif', 'négatif'], e: 'Autant d\'électrons que de protons : <strong>neutre</strong>.' },
+    { q: 'Une solution de pH inférieur à 7 est…', r: 'acide', f: ['basique', 'neutre'], e: 'pH &lt; 7 : <strong>acide</strong>.' },
+    { q: 'Une force se mesure en…', r: 'newtons (N)', f: ['kilogrammes', 'joules'], e: 'En <strong>newtons</strong>.' },
+    { q: 'Poids et masse : P = …', r: 'm × g', f: ['m + g', 'm ÷ g'], e: '<strong>P = m × g</strong>.' },
+    { q: 'Sur Terre, g vaut environ…', r: 9.8, u: 'N/kg', e: 'Environ <strong>9,8 N/kg</strong>.', v: 'Sur Terre, g vaut environ combien de newtons par kilogramme ?' },
+    { q: 'L\'énergie cinétique : Ec = …', r: '½ × m × v²', f: ['m × v', 'm × g'], e: '<strong>Ec = ½ m v²</strong>.' },
+    { q: 'Énergie et puissance : E = …', r: 'P × t', f: ['P + t', 'P ÷ t'], e: '<strong>E = P × t</strong>.' },
+    { q: 'La puissance se mesure en…', r: 'watts (W)', f: ['joules (J)', 'newtons (N)'], e: 'En <strong>watts</strong>.' },
+  ],
+  '43-vivant': [
+    { q: 'La surface de la Terre est découpée en…', r: 'plaques', f: ['cubes', 'couches immobiles'], e: 'En <strong>plaques lithosphériques</strong>.' },
+    { q: 'Le point de la surface au-dessus du foyer d\'un séisme est…', r: 'l\'épicentre', f: ['le cratère', 'la faille'], e: 'L\'<strong>épicentre</strong>.' },
+    { q: 'Une plaque qui plonge sous une autre : c\'est…', r: 'la subduction', f: ['la dorsale', 'la collision'], e: 'La <strong>subduction</strong>.' },
+    { q: 'Une reproduction avec un seul parent, sans gamètes, est…', r: 'asexuée', f: ['sexuée'], e: '<strong>Asexuée</strong>.' },
+    { q: 'Les messagers chimiques transportés par le sang sont…', r: 'les hormones', f: ['les neurones', 'les anticorps'], e: 'Les <strong>hormones</strong>.' },
+    { q: 'Les cellules nerveuses sont…', r: 'les neurones', f: ['les lymphocytes', 'les gamètes'], e: 'Les <strong>neurones</strong>.' },
+    { q: 'La zone de communication entre deux neurones est…', r: 'la synapse', f: ['l\'alvéole', 'le chromosome'], e: 'La <strong>synapse</strong>.' },
+    { q: 'Une cellule humaine contient combien de chromosomes ?', r: 46, e: '<strong>46</strong> (23 paires).' },
+    { q: 'Un gamète humain contient combien de chromosomes ?', r: 23, e: '<strong>23</strong>.' },
+    { q: 'Une portion d\'ADN qui détermine un caractère est…', r: 'un gène', f: ['un chromosome', 'une cellule'], e: 'Un <strong>gène</strong>.' },
+    { q: 'Les versions d\'un même gène sont…', r: 'des allèles', f: ['des mutations', 'des neurones'], e: 'Des <strong>allèles</strong>.' },
+    { q: 'La division qui donne deux cellules identiques est…', r: 'la mitose', f: ['la méiose', 'la fécondation'], e: 'La <strong>mitose</strong>.' },
+    { q: 'La division qui produit les gamètes est…', r: 'la méiose', f: ['la mitose'], e: 'La <strong>méiose</strong>.' },
+    { q: 'Le scientifique de la sélection naturelle est…', r: 'Darwin', f: ['Pasteur', 'Newton'], e: '<strong>Charles Darwin</strong>.' },
+    { q: 'La source de nouveaux allèles est…', r: 'la mutation', f: ['l\'entraînement', 'la volonté'], e: 'La <strong>mutation</strong>.' },
+    { q: 'Les globules blancs qui avalent les microbes réalisent…', r: 'la phagocytose', f: ['la photosynthèse', 'la méiose'], e: 'La <strong>phagocytose</strong>.' },
+    { q: 'Les anticorps sont produits par…', r: 'les lymphocytes B', f: ['les globules rouges', 'les neurones'], e: 'Les <strong>lymphocytes B</strong>.' },
+    { q: 'Les antibiotiques agissent sur…', r: 'les bactéries', f: ['les virus', 'tous les microbes'], e: 'Sur les <strong>bactéries</strong>, pas sur les virus.' },
+    { q: 'Un vaccin donne au corps…', r: 'une mémoire immunitaire', f: ['un antibiotique', 'une maladie grave'], e: 'Une <strong>mémoire immunitaire</strong>.' },
+    { q: 'Répondre aux besoins d\'aujourd\'hui sans compromettre ceux des générations futures, c\'est…', r: 'le développement durable', f: ['la transition énergétique', 'la biodiversité'], e: 'Le <strong>développement durable</strong>.' },
+  ],
+  '43-technique': [
+    { q: 'Un objet qui échange des informations par un réseau est…', r: 'un objet connecté', f: ['un objet technique simple', 'un actionneur'], e: 'Un <strong>objet connecté</strong>.' },
+    { q: 'Un ensemble de règles de communication entre appareils est…', r: 'un protocole', f: ['un algorithme', 'un capteur'], e: 'Un <strong>protocole</strong> (Wi-Fi, Bluetooth, HTTP).' },
+    { q: 'La fibre optique transporte l\'information grâce à…', r: 'la lumière', f: ['le son', 'l\'électricité'], e: 'La <strong>lumière</strong>.' },
+    { q: 'Prévoir le comportement d\'un objet sur ordinateur avant de le fabriquer, c\'est…', r: 'la simulation numérique', f: ['le prototypage', 'le recyclage'], e: 'La <strong>simulation</strong>.' },
+    { q: 'Le petit ordinateur d\'une carte programmable est…', r: 'le microcontrôleur', f: ['le capteur', 'l\'actionneur'], e: 'Le <strong>microcontrôleur</strong>.' },
+    { q: '« Quand le bouton A est pressé » est…', r: 'un événement', f: ['une variable', 'une boucle'], e: 'Un <strong>événement</strong>.' },
+    { q: 'Envoyer le programme de l\'ordinateur vers la carte, c\'est…', r: 'téléverser', f: ['télécharger un film', 'imprimer'], e: '<strong>Téléverser</strong>.' },
+    { q: 'Les trois piliers du développement durable :', r: 'environnemental, économique, social', f: ['rapide, cher, lourd', 'solide, liquide, gaz'], e: '<strong>Environnemental, économique, social</strong>.' },
+    { q: 'Concevoir un objet en limitant son impact sur l\'environnement, c\'est…', r: 'l\'écoconception', f: ['l\'obsolescence programmée', 'la simulation'], e: 'L\'<strong>écoconception</strong>.' },
+    { q: 'Le diagramme qui planifie les tâches d\'un projet est…', r: 'le diagramme de Gantt', f: ['l\'organigramme', 'le schéma électrique'], e: 'Le <strong>diagramme de Gantt</strong>.' },
+    { q: 'Ce qui identifie un appareil sur un réseau est…', r: 'son adresse IP', f: ['son mot de passe', 'sa couleur'], e: 'Son <strong>adresse IP</strong>.' },
+    { q: 'Une adresse IPv4 est formée de combien de nombres ?', r: 4, e: '<strong>4 nombres</strong> de 0 à 255.' },
+    { q: 'Le plus grand nombre possible dans une adresse IPv4 est…', r: 255, e: '<strong>255</strong>.' },
+    { q: 'L\'annuaire qui traduit un nom de site en adresse IP est…', r: 'le DNS', f: ['le RGPD', 'le Wi-Fi'], e: 'Le <strong>DNS</strong>.' },
+    { q: 'Un faux message qui cherche à voler des identifiants est…', r: 'de l\'hameçonnage', f: ['une mise à jour', 'un protocole'], e: 'Du <strong>hameçonnage</strong> (phishing).' },
+    { q: 'La loi européenne sur les données personnelles est…', r: 'le RGPD', f: ['le DNS', 'le GIEC'], e: 'Le <strong>RGPD</strong>.' },
+    { q: 'Dans un organigramme, une condition est représentée par…', r: 'un losange', f: ['un rectangle', 'un ovale'], e: 'Un <strong>losange</strong>.' },
+    { q: 'Dans un organigramme, le début et la fin sont représentés par…', r: 'un ovale', f: ['un losange', 'un rectangle'], e: 'Un <strong>ovale</strong>.' },
+    { q: 'Acquérir, traiter, communiquer : c\'est la chaîne…', r: 'd\'information', f: ['d\'énergie'], e: 'La chaîne d\'<strong>information</strong>.' },
+  ],
+});
+Object.assign(NOTION_QUIZ, { '43-matiere': 'Cours 4e – 3e : physique-chimie', '43-vivant': 'Cours 4e – 3e : SVT', '43-technique': 'Cours 4e – 3e : technologie' });
 
 /* ------------------------------------------------------------
    L'ACCUEIL : les quatre onglets de niveau, les trois parties, la liste des exercices
@@ -1320,7 +2773,7 @@ function fabriqueQuestions(e) {
   for (let k = 0; k < n; k += 1) {
     const p = n > 1 ? k / (n - 1) : 0, g = ordre[k % ordre.length];
     let q, cle, essai = 0;
-    do { q = GEN[g](p); cle = `${q.enonce}|${q.rep}`; essai += 1; } while (vus.has(cle) && essai < 30);
+    do { q = GEN[g](p); cle = `${q.enonce}|${q.rep}|${q.figure || ''}`; essai += 1; } while (vus.has(cle) && essai < 30);
     vus.add(cle); L.push(q);
   }
   return L;

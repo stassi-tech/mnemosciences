@@ -956,5 +956,7 @@ body[data-ambiance] .home-mode-button .desc { color:inherit; opacity:.85; }
 .mm-tab td { border:2px solid rgba(244,241,230,.7); padding:6px 16px; min-width:2.4em; text-align:center; }
 .mm-prog { display:table; text-align:left; margin:10px auto; padding-left:1.6em; font-size:.85em; color:#9be59b; }
 .mm-prog li { margin:2px 0; }
+/* MNEMOSCIENCES v2 : les instructions répétées par une boucle, en retrait sous « répéter » */
+.mm-prog .mm-boucle { list-style:none; margin:2px 0 2px .4em; padding-left:.9em; border-left:3px solid #ffe066; }
 .tab-num .virg { border-left:4px solid var(--wrong); }
 .home-mode-button.quiz .label strong { color:#ffe066; }
