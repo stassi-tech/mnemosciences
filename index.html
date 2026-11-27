@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Jeux gratuits pour mémoriser les notions fondamentales de sciences et de technologie, du CE1 à la 3e." />
+    <title>MNEMOSCIENCES — Les sciences à travers la mémoire</title>
+    <meta name="theme-color" content="#9c7a4a" />
+    <!-- MNEMOSCIENCES v1 : même ossature que MNEMOMATHS et MNEMOGRAM (bandeau, ambiances, comptes, scores, bilan) -->
+    <!-- v8 : installation comme une application (même méthode que Mnemart) : icône sur l'écran d'accueil,
+         ouverture en plein écran sans la barre du navigateur. -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="MNEMOSCIENCES" />
+    <link rel="stylesheet" href="style.css?v=1" />
+    <!-- Comptes : même service Firebase que Mnemart (connexion par e-mail), chargé en « defer » comme dans Mnemart -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  </head>
+  <body>
+    <!-- Même principe que la mosaïque de Mnemart : des cases floutées et pâlies, nettes au survol. -->
+    <div class="bg-mosaic" aria-hidden="true" id="bg-mosaic"></div>
+
+    <div class="topbar-banner" id="global-topbar">
+      <div class="topbar-zone topbar-zone-left"></div>
+      <div class="topbar-zone topbar-zone-center">
+        <!-- v19 : flèche de retour à la page précédente -->
+        <button type="button" id="global-back-button" class="global-topbar-button" aria-label="Revenir à la page précédente" title="Revenir à la page précédente">←</button>
+        <button type="button" id="global-home-button" class="global-topbar-button" aria-label="Retour à l'accueil" title="Retour à l'accueil">🏠</button>
+        <!-- Barres de volume de la voix de synthèse (5 niveaux, comme dans Mnemart) : la voix lit
+             la phrase quand on le demande, et les paroles des sorciers. -->
+        <div id="global-volume-bars" role="group" aria-label="Volume de la voix" title="Volume de la voix">
+          <button type="button" class="volume-bar" data-level="1" style="height:8px"></button>
+          <button type="button" class="volume-bar" data-level="2" style="height:12px"></button>
+          <button type="button" class="volume-bar" data-level="3" style="height:16px"></button>
+          <button type="button" class="volume-bar" data-level="4" style="height:19px"></button>
+          <button type="button" class="volume-bar" data-level="5" style="height:22px"></button>
+        </div>
+        <button type="button" id="global-fullscreen-button" class="global-topbar-button" aria-label="Plein écran" title="Plein écran">⛶</button>
+        <button type="button" id="global-fiche-button" class="global-topbar-button" aria-label="Les fiches aide-mémoire" title="Les fiches aide-mémoire">📖</button>
+        <!-- v15 : comme dans Mnemart, l'apparence, puis l'aide et le contact, puis le compte et la sortie de la session -->
+        <button type="button" id="global-ambiance-button" class="global-topbar-button" aria-label="Changer l'ambiance" title="Changer l'ambiance">🎨</button>
+        <button type="button" id="global-info-button" class="global-topbar-button" aria-label="Comment fonctionne l'application" title="Comment fonctionne l'application">ℹ️</button>
+        <button type="button" id="global-contact-button" class="global-topbar-button" aria-label="Contact" title="Contact">✉️</button>
+        <button type="button" id="global-account-button" class="global-topbar-button" aria-label="Mon compte" title="Mon compte">👤</button>
+        <button type="button" id="global-quit-button" class="global-topbar-button" aria-label="Quitter la session" title="Quitter la session (fin de la partie et déconnexion)">🚪</button>
+        <span id="global-version-badge" class="global-version-badge" aria-hidden="true"></span>
+      </div>
+      <div class="topbar-zone topbar-zone-right"></div>
+    </div>
+
+    <!-- v15 : choix de l'ambiance (les mêmes que dans Mnemart) -->
+    <div id="ambiance-picker" class="ambiance-picker hidden" role="dialog" aria-label="Ambiance">
+      <p class="ambiance-title">Ambiance</p>
+      <label><input type="radio" name="ambiance" value="gothique" /><span>Gothique international</span></label>
+      <label><input type="radio" name="ambiance" value="renaissance" /><span>Galerie Renaissance</span></label>
+      <label><input type="radio" name="ambiance" value="versailles" /><span>Château de Versailles</span></label>
+      <label><input type="radio" name="ambiance" value="ermitage" /><span>Ermitage Rococo</span></label>
+      <label><input type="radio" name="ambiance" value="wedgwood" /><span>Pure Wedgwood</span></label>
+      <label><input type="radio" name="ambiance" value="pitti" /><span>Romantique Pitti</span></label>
+      <label><input type="radio" name="ambiance" value="" /><span>Salon Renoir</span></label>
+      <label><input type="radio" name="ambiance" value="bauhaus" /><span>Bauhaus</span></label>
+      <label><input type="radio" name="ambiance" value="space" /><span>Space Age</span></label>
+    </div>
+
+    <div class="app-shell">
+      <main class="main-content">
+
+        <!-- ===================== ACCUEIL ===================== -->
+        <section id="welcome-panel" class="welcome-panel">
+          <p class="app-brand-name">MNEMOSCIENCES</p>
+          <p class="eyebrow home-eyebrow">Les sciences à travers la mémoire</p>
+          <h1 class="home-tagline">Apprendre les sciences en jouant,<br>c'est possible.</h1>
+
+          <figure class="home-illustration">
+            <img src="assets/accueil.jpg" alt="La marquise du Châtelet, savante, tient un compas devant un livre ouvert ; derrière elle, une sphère armillaire" onerror="this.closest('figure').style.display='none'" />
+            <figcaption>Marianne LOIR, <em>Portrait de la marquise du Châtelet</em>, 1740 environ, musée des Beaux-Arts de Bordeaux. Émilie du Châtelet a traduit en français les <em>Principes mathématiques</em> de Newton.</figcaption>
+          </figure>
+
+          <p class="intro-banner">Maître Fiole et Dame Loupe t'attendent pour t'apprendre à observer, à expérimenter et à comprendre le monde : la matière, le vivant, les objets techniques et la Terre. Attention : Maître Court-Circuit et Dame Fausse-Piste, eux, guettent la moindre erreur… Mais ils ne sont pas si méchants : ils veulent seulement que tu réussisses !</p>
+
+          <div class="home-mode-buttons">
+            <!-- les quatre niveaux, au-dessus des trois domaines du programme -->
+            <div class="home-classes" id="home-classes" role="tablist" aria-label="Niveau"></div>
+            <p class="home-classes-note" id="home-classes-note"></p>
+            <div class="home-games-row home-parties" id="home-parties">
+              <button type="button" class="home-mode-button home-partie" data-partie="matiere"><span class="label"><strong>Matière, mouvement, énergie</strong></span></button>
+              <button type="button" class="home-mode-button home-partie" data-partie="vivant"><span class="label"><strong>Le vivant</strong></span></button>
+              <button type="button" class="home-mode-button home-partie" data-partie="technique"><span class="label"><strong>Objets techniques et planète Terre</strong></span></button>
+            </div>
+            <div class="home-section hidden" id="home-matiere">
+              <h2 class="home-section-title">Matière, mouvement, énergie</h2>
+              <div class="home-games-row" data-liste="matiere"></div>
+              <button type="button" class="link-label home-retour" data-partie="">← Revenir aux trois domaines</button>
+            </div>
+            <div class="home-section hidden" id="home-vivant">
+              <h2 class="home-section-title">Le vivant</h2>
+              <div class="home-games-row" data-liste="vivant"></div>
+              <button type="button" class="link-label home-retour" data-partie="">← Revenir aux trois domaines</button>
+            </div>
+            <div class="home-section hidden" id="home-technique">
+              <h2 class="home-section-title">Objets techniques et planète Terre</h2>
+              <div class="home-games-row" data-liste="technique"></div>
+              <button type="button" class="link-label home-retour" data-partie="">← Revenir aux trois domaines</button>
+            </div>
+            <!-- Bloc compte, repris de Mnemart : libellé + e-mail + interrupteur connecté/déconnecté -->
+            <div class="home-mode-button account-hub-slot" id="home-account-slot" role="button" tabindex="0">
+              <span class="home-account-photo hidden" id="home-account-photo"></span>
+              <span class="label" id="home-account-label">Se connecter / Créer un compte</span>
+              <span class="account-slot-email hidden" id="home-account-email"></span>
+              <span class="account-connect-switch" id="home-account-switch" role="switch" tabindex="0" aria-checked="false" title="Se connecter">
+                <span class="account-connect-knob"></span>
+              </span>
+            </div>
+          </div>
+
+          <p class="copyright-notice">© 2026 MNEMART, Tours, France — <button type="button" class="link-label" id="open-mentions-legales">mentions légales</button> — <button type="button" class="link-label" id="open-contact">contact</button></p>
+        </section>
+
+        <!-- ===================== JEU 1 : RECONNAISSANCE DES NATURES ===================== -->
+        <section id="natures-panel" class="quiz-panel hidden">
+          <div class="progress-row">
+            <span><span class="quiz-reference" id="nat-game-title">MNEMOSCIENCES</span> — <span id="nat-progress-label">Question 1 / 10</span></span>
+            <span id="nat-score-label" class="score-summary-highlight">0 bonne réponse</span>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="nat-progress-bar"></div></div>
+
+          <div id="nat-ready-screen" class="ready-screen">
+            <div class="ready-card">
+              <p class="ready-explanation" id="nat-ready-explanation"></p>
+              <p class="ready-title">Ce jeu t'attend.</p>
+              <button type="button" class="primary-button" id="nat-start-button">Démarrer le jeu →</button>
+            </div>
+          </div>
+
+          <div class="quiz-grid hidden" id="nat-quiz-grid">
+            <div class="artwork-column">
+              <figure class="artwork-card sentence-card" id="nat-sentence-card">
+                <p class="sentence mm-ardoise" id="nat-sentence"></p>
+                <button type="button" class="listen-button" id="nat-listen-button" title="Écouter la question">🔊 Écouter la question</button>
+                <div class="character-stage" id="nat-character-stage" aria-live="polite"></div>
+              </figure>
+            </div>
+            <section class="answer-card" aria-label="Ta réponse">
+              <h2 id="nat-instruction">Écris ta réponse :</h2>
+              <!-- la zone de réponse : une case à remplir avec son clavier, ou des boutons à choisir -->
+              <div id="mm-zone"></div>
+              <div id="nat-correction" class="hidden">
+                <div class="correction-details" id="nat-correction-details"></div>
+                <div class="verdict-row">
+                  <span id="nat-verdict-square" class="verdict-square"></span>
+                  <button type="button" class="primary-button" id="nat-next-button">Suivant →</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- ===================== RÉSULTATS ===================== -->
+        <section id="results-panel" class="welcome-panel hidden">
+          <p class="app-brand-name">Partie terminée</p>
+          <div class="results-character" id="results-character"></div>
+          <h2 id="results-title"></h2>
+          <p id="results-text"></p>
+          <div class="results-send" id="results-send"></div>
+          <div class="results-buttons">
+            <button type="button" class="primary-button" id="results-replay">Rejouer</button>
+            <button type="button" class="secondary-button" id="results-home">Retour à l'accueil</button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Fiche des natures (bouton 📖 du bandeau), reprise de la fiche « Classe et fonctions des mots » -->
+    <div id="fiche-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <button type="button" class="modal-close-x" id="fiche-close" aria-label="Fermer" title="Fermer">✕</button>
+        <div class="fiche-tabs" id="fiche-tabs">
+          <button type="button" class="fiche-tab on" data-fiche="fiche-matiere.html">Fiche matière, mouvement, énergie</button>
+          <button type="button" class="fiche-tab" data-fiche="fiche-vivant.html">Fiche le vivant</button>
+          <button type="button" class="fiche-tab" data-fiche="fiche-technique.html">Fiche objets techniques et Terre</button>
+        </div>
+        <iframe id="fiche-frame" class="fiche-frame" title="Les fiches aide-mémoire"></iframe>
+      </div>
+    </div>
+
+
+    <!-- ===================== COMPTE : CONNEXION / INSCRIPTION ===================== -->
+    <div id="account-modal" class="modal-backdrop hidden">
+      <div class="modal-card account-card">
+        <button type="button" class="modal-close-x" data-close="account-modal" aria-label="Fermer" title="Fermer">✕</button>
+        <h2 id="account-modal-title">Se connecter</h2>
+        <form id="account-form" class="account-form">
+          <label>Adresse e-mail d'un parent
+            <input id="account-email" type="email" autocomplete="email" required />
+          </label>
+          <label>Mot de passe
+            <input id="account-password" type="password" autocomplete="current-password" required minlength="6" />
+          </label>
+          <div id="account-register-fields" class="hidden"></div>
+          <p id="account-error" class="account-error hidden"></p>
+          <p id="account-notice" class="account-notice hidden"></p>
+          <button type="submit" class="primary-button" id="account-submit-button">Se connecter</button>
+        </form>
+        <p class="modal-hint" id="account-forgot-row"><button type="button" id="account-forgot-button" class="link-label">Mot de passe oublié ?</button></p>
+        <p class="modal-hint"><button type="button" id="account-toggle-mode" class="link-label">Pas encore de compte ? Créez-en un</button></p>
+      </div>
+    </div>
+
+    <!-- ===================== COMPTE : FICHE DE L'ENFANT (« Mon compte ») ===================== -->
+    <div id="profile-modal" class="modal-backdrop hidden">
+      <div class="modal-card account-card">
+        <button type="button" class="modal-close-x" data-close="profile-modal" aria-label="Fermer" title="Fermer">✕</button>
+        <h2 id="profile-modal-title">Mon compte</h2>
+        <p class="account-intro" id="profile-intro"></p>
+        <form id="profile-form" class="account-form">
+          <div id="profile-fields"></div>
+          <p id="profile-error" class="account-error hidden"></p>
+          <p id="profile-notice" class="account-notice hidden"></p>
+          <button type="submit" class="primary-button">Enregistrer</button>
+        </form>
+        <div class="profile-scores" id="profile-scores"></div>
+        <div class="profile-send" id="profile-send"></div>
+        <p class="modal-hint" id="profile-email-row"></p>
+        <p class="modal-hint"><button type="button" id="profile-logout-button" class="link-label">Se déconnecter</button></p>
+        <!-- v13 : chacun gère lui-même ses données -->
+        <details class="mes-donnees">
+          <summary>Mes données : effacer mes scores ou supprimer mon compte</summary>
+          <div class="mes-donnees-body">
+            <button type="button" class="secondary-button" id="data-del-scores">Effacer tous mes scores</button>
+            <button type="button" class="secondary-button" id="data-del-mnemosciences">Effacer mes données MNEMOSCIENCES (fiche, photos, proches, scores)</button>
+            <button type="button" class="danger-button" id="data-del-account">Supprimer mon compte (MNEMOSCIENCES, MNEMOMATHS, MNEMOGRAM et MNEMART)</button>
+            <div class="hidden data-del-account-box" id="data-del-account-box">
+              <p>Le compte est commun à MNEMOSCIENCES, MNEMOMATHS, MNEMOGRAM et MNEMART : le supprimer efface toutes les données des quatre sites et l'accès à vos quatre espaces. Pour confirmer, écrivez votre mot de passe :</p>
+              <input type="password" id="data-password" autocomplete="current-password" />
+              <button type="button" class="danger-button" id="data-del-account-confirm">Supprimer définitivement mon compte</button>
+            </div>
+            <p id="data-msg" class="hidden"></p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- v12 : mentions légales et contact, comme sur Mnemart (même intitulé, même adresse) -->
+    <div id="mentions-modal" class="modal-backdrop hidden">
+      <div class="modal-card legal-card">
+        <button type="button" class="modal-close-x" data-close="mentions-modal" aria-label="Fermer" title="Fermer">✕</button>
+        <h2>Mentions légales</h2>
+        <p>© 2026 MNEMART, Tours, France. Contenu original : les exercices, les explications, les figures, les jeux et les personnages ne peuvent être ni reproduits ni réutilisés sans autorisation.</p>
+        <p>Site à but non commercial, sans publicité, proposé à titre personnel et éducatif.</p>
+        <p>Les images de la page d'accueil sont issues de Wikimedia Commons et sont utilisées sous leurs licences respectives (domaine public ou Creative Commons selon les fichiers). Les sorciers sont des dessins originaux.</p>
+        <p>Les informations d'un compte (prénoms, photos, adresses e-mail, scores) ne sont visibles que par ce compte et servent seulement au jeu. Chacun peut les effacer lui-même, et supprimer son compte, dans 👤 Mon compte, rubrique « Mes données ».</p>
+        <p>Contact : <a href="mailto:contact@mnemart.fr" class="link-label">contact@mnemart.fr</a></p>
+      </div>
+    </div>
+    <div id="contact-modal" class="modal-backdrop hidden">
+      <div class="modal-card legal-card">
+        <button type="button" class="modal-close-x" data-close="contact-modal" aria-label="Fermer" title="Fermer">✕</button>
+        <h2>Contact</h2>
+        <p>Pour toute question, suggestion ou signalement d'erreur, vous pouvez écrire à l'adresse suivante :</p>
+        <p><a href="mailto:contact@mnemart.fr" class="link-label">contact@mnemart.fr</a></p>
+      </div>
+    </div>
+
+    <!-- v15 : « Comment fonctionne l'application » (bouton ℹ️) -->
+    <div id="info-modal" class="modal-backdrop hidden">
+      <div class="modal-card legal-card info-card">
+        <button type="button" class="modal-close-x" data-close="info-modal" aria-label="Fermer" title="Fermer">✕</button>
+        <h2>Comment fonctionne l'application</h2>
+        <p>MNEMOSCIENCES aide à mémoriser les notions fondamentales des sciences et de la technologie en jouant, du CE1 à la 3e, en suivant la progression des programmes officiels. Elle fonctionne sur ordinateur, tablette et smartphone.</p>
+        <h3>Les niveaux et les trois domaines</h3>
+        <p>En haut de l'accueil, quatre onglets : CE1 – CE2, CM1 – CM2, 6e – 5e, 4e – 3e. Sous les onglets, les trois domaines du programme : <b>Matière, mouvement, énergie</b> (la physique et la chimie), <b>Le vivant</b> (les sciences de la vie et de la Terre), <b>Objets techniques et planète Terre</b> (la technologie et la Terre dans l'Univers). Chaque domaine propose des exercices, une notion à la fois, puis un <b>bilan</b> qui mélange tout, et enfin un <b>quiz de cours</b>.</p>
+        <h3>Les exercices</h3>
+        <ul>
+          <li><b>Les questions changent à chaque partie</b> : elles sont tirées au hasard au moment où l'on appuie sur « Démarrer le jeu », et certaines (thermomètres, circuits électriques…) sont fabriquées à chaque fois. On peut donc rejouer autant qu'on veut. Les questions deviennent plus difficiles au fil de la partie (niveau CE1 au début et CE2 à la fin dans l'onglet CE1 – CE2 ; de même CM1 puis CM2, 6e puis 5e, et 4e puis 3e).</li>
+          <li><b>Choisir la réponse</b> : la plupart du temps, on appuie sur le bon bouton.</li>
+          <li><b>Écrire la réponse</b> : pour une mesure (une température, une durée, une vitesse…), on la tape au clavier ou avec les touches de l'écran, puis on appuie sur « Valider » (ou sur Entrée). On peut écrire « 4,5 » ou « 4.5 ».</li>
+          <li><b>Les schémas</b> (thermomètres, circuits électriques, Soleil et Terre, chaînes alimentaires…) sont dessinés à la craie sur l'ardoise.</li>
+          <li><b>Les quiz de cours</b> : à la fin de chaque domaine, après le bilan, 12 questions de cours (définitions, mots du vocabulaire scientifique, règles à connaître), tirées d'une banque fixe. Ce sont toujours les mêmes questions qui reviennent, pour qu'on finisse par toutes les savoir par cœur.</li>
+        </ul>
+        <p>Une partie compte 10 questions (12 ou 14 pour un bilan). En cas d'erreur, on a droit à un deuxième essai ; après deux erreurs, la bonne réponse s'affiche. Le score compte les réponses trouvées du premier coup. Après chaque réponse, une explication apparaît (pourquoi c'est ainsi, une expérience à faire, une astuce pour retenir) ; la voix la lit.</p>
+        <h3>Le bandeau du haut</h3>
+        <ul>
+          <li>← revenir à la page précédente (ou fermer la fenêtre ouverte) · 🏠 retour à l'accueil · barres : volume de la voix (le bouton 🔊 sous l'ardoise fait lire la question) · ⛶ plein écran</li>
+          <li>📖 les trois fiches aide-mémoire (matière, mouvement, énergie ; le vivant ; objets techniques et Terre), à relire à tout moment · 🎨 l'ambiance (les couleurs du site)</li>
+          <li>ℹ️ cette aide · ✉️ le contact · 👤 mon compte · 🚪 quitter la session (fin de la partie et déconnexion, pour laisser la place à un autre joueur)</li>
+        </ul>
+        <h3>Le compte</h3>
+        <p>Le compte n'est pas obligatoire pour jouer, mais il garde les scores. Il est commun avec MNEMOMATHS, MNEMOGRAM et MNEMART : la même adresse e-mail et le même mot de passe servent pour les quatre sites. Un compte d'enfant est créé par un adulte. La fiche du compte contient :</p>
+        <ul>
+          <li><b>le joueur</b> : prénom, nom et, si l'on veut, une photo ;</li>
+          <li><b>des proches</b>, facultatifs (papa, maman, papi, mamie…) : lien, prénom, photo et adresse e-mail ;</li>
+          <li><b>l'option « Les sorciers encouragent le joueur »</b>, plutôt réservée aux enfants : quatre sorciers apparaissent après chaque réponse, et les prénoms servent à personnaliser leurs encouragements (« Joseph, tu es un vrai savant ! », « Ton papa Marc sera fier de toi ! ») ; décochée, seule l'explication s'affiche ;</li>
+          <li><b>l'option « Envoyer les résultats par e-mail »</b> : elle permet d'envoyer aux proches les scores (la liste des dernières parties) ou le bilan de progression (le résumé), par Gmail ou par la messagerie de l'appareil ; le message s'ouvre déjà écrit, il ne reste qu'à cliquer sur « Envoyer ».</li>
+        </ul>
+        <h3>Les scores et le bilan</h3>
+        <p>Dans 👤 Mon compte : la liste des derniers scores (chacun peut être effacé avec ✕) et le <b>bilan de progression</b>, un petit diplôme qui montre la réussite à chaque exercice, les notions bien connues et celles à revoir ; il s'imprime ou s'enregistre en PDF.</p>
+        <h3>Mes données</h3>
+        <p>En bas de Mon compte, la rubrique « Mes données » permet d'effacer soi-même tous ses scores, toutes ses données MNEMOSCIENCES, ou de supprimer son compte (pour MNEMOSCIENCES, MNEMOMATHS, MNEMOGRAM et MNEMART).</p>
+        <h3>Installer MNEMOSCIENCES comme une application</h3>
+        <p>Sur iPhone : dans Safari, bouton Partager, puis « Sur l'écran d'accueil ». Sur ordinateur, dans Chrome : l'icône d'installation à droite de la barre d'adresse.</p>
+      </div>
+    </div>
+
+    <!-- v11 : bilan de progression (diplôme imprimable / PDF), comme dans Mnemart -->
+    <div id="report-overlay" class="report-overlay hidden">
+      <div class="report-toolbar no-print">
+        <button type="button" id="report-print" class="primary-button">Imprimer / Enregistrer en PDF</button>
+        <button type="button" id="report-close" class="secondary-button">Fermer</button>
+      </div>
+      <div id="report-sheet" class="report-sheet"></div>
+      <div id="report-send" class="report-send no-print"></div>
+    </div>
+
+    <script defer src="app.js?v=1"></script>
+  </body>
+</html>

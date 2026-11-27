@@ -1,0 +1,960 @@
+/* ============================================================
+   MNEMOGRAM — feuille de style
+   Reprend l'interface de Mnemart (ambiance de base « Salon Renoir » : beige / bronze),
+   bandeau fixe en haut, mosaïque floutée à l'accueil, grille de jeu en deux colonnes.
+   ============================================================ */
+:root {
+  --ink:#24313f; --muted:#65707d; --paper:#fffdf9; --canvas:#f1eee7; --border:#ded8cc;
+  --accent:#9c7a4a; --accent-dark:#7a5c35; --cta:#6f4a30; --cta-dark:#4a2f1c;
+  --ok:#15734b; --wrong:#b3392d;
+  --nat-green:#2f8f4e; --nat-green-dark:#21693a;
+}
+* { box-sizing:border-box; }
+button, a, [role="button"] { touch-action:manipulation; }
+button, input { font:inherit; }
+body { margin:0; color:var(--ink); background:radial-gradient(circle at top right,#e7d4bd 0,transparent 32rem),var(--canvas); font-family:Georgia,"Times New Roman",serif; }
+body.in-exercise { background:linear-gradient(160deg,#efe2c6 0%,#e2cfa6 55%,#d6c08f 100%); }
+.hidden { display:none !important; }
+
+/* ---------- Mosaïque de fond (accueil) ---------- */
+.bg-mosaic { position:fixed; inset:0; z-index:0; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(3,1fr); gap:2px; overflow:hidden; }
+.bg-tile { position:relative; overflow:hidden; background:#c9c1ae; cursor:pointer; }
+.bg-tile::before { content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply; opacity:.55; z-index:1; background:#f0e6d2; transition:opacity .35s; }
+.bg-tile:nth-child(even)::before { background:#e8d078; }
+.bg-tile img { width:100%; height:100%; object-fit:cover; display:block; filter:blur(6px) grayscale(.3); opacity:.45; transform:scale(1.15); transition:filter .35s, opacity .35s, transform .35s; -webkit-user-drag:none; user-select:none; }
+.bg-tile.touched { z-index:2; box-shadow:inset 0 0 0 3px var(--accent); }
+.bg-tile.touched::before { opacity:0; }
+.bg-tile.touched img { filter:blur(0) grayscale(0); opacity:1; transform:scale(1.3); }
+@media (hover:hover) {
+  .bg-tile:hover { z-index:2; box-shadow:inset 0 0 0 3px var(--accent); }
+  .bg-tile:hover::before { opacity:0; }
+  .bg-tile:hover img { filter:blur(0) grayscale(0); opacity:1; transform:scale(1.3); }
+}
+
+/* ---------- Bandeau du haut ---------- */
+.topbar-banner { position:fixed; top:0; left:0; right:0; z-index:200; display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--paper); padding:8px 16px; box-shadow:0 2px 8px rgba(0,0,0,.1); min-height:44px; }
+.topbar-zone { flex:1 1 0; display:flex; align-items:center; gap:10px; }
+.topbar-zone-center { justify-content:center; flex:0 0 auto; gap:14px; }
+.global-topbar-button { width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--paper); font-size:.9rem; cursor:pointer; flex:0 0 auto; padding:0; }
+@media (hover:hover) { .global-topbar-button:hover { border-color:var(--accent); } }
+#global-volume-bars { display:flex; align-items:flex-end; gap:2px; height:22px; cursor:pointer; margin:0 4px; }
+.volume-bar { width:4px; border:none; padding:0; background:#ccc; cursor:pointer; }
+.volume-bar.on { background:var(--accent); }
+.global-version-badge { font-family:Arial,sans-serif; font-size:.7rem; color:#9a958b; }
+
+/* ---------- Cadre général ---------- */
+.app-shell { width:min(1600px, calc(100% - 32px)); margin:0 auto; padding:56px 0 20px; display:flex; min-height:100vh; pointer-events:none; position:relative; z-index:1; }
+.main-content { flex:1 1 0; min-width:0; display:flex; flex-direction:column; }
+.main-content > * { pointer-events:auto; }
+.eyebrow { margin:0 0 7px; font-family:Arial,sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.13em; color:var(--accent); }
+h1,h2,h3,p { margin-top:0; }
+
+/* ---------- Boutons ---------- */
+.primary-button,.secondary-button { display:inline-flex; align-items:center; justify-content:center; cursor:pointer; border-radius:5px; border:0; padding:13px 17px; text-align:center; font-family:Arial,sans-serif; font-weight:700; font-size:.95rem; transition:background .15s, transform .15s; }
+.primary-button { color:#fff; background:var(--cta); }
+.secondary-button { color:var(--accent-dark); background:transparent; border:1px solid var(--accent); }
+@media (hover:hover) {
+  .primary-button:hover { background:var(--cta-dark); transform:translateY(-1px); }
+  .secondary-button:hover { background:#fff; }
+}
+
+/* ---------- Accueil ---------- */
+.welcome-panel { max-width:640px; width:100%; margin:auto; padding:30px 46px; text-align:center; background:rgba(255,253,249,.97); border:1px solid var(--border); box-shadow:0 16px 35px rgba(54,45,31,.08); border-radius:8px; position:relative; z-index:1; }
+.welcome-panel p { color:var(--muted); line-height:1.5; font-size:1.02rem; }
+.app-brand-name { font-weight:700; letter-spacing:.12em; font-size:1.1rem; color:var(--accent) !important; margin:14px 0 4px; }
+.home-eyebrow { font-size:1rem; letter-spacing:.14em; color:var(--muted); line-height:1.6; margin-bottom:6px; }
+.home-tagline { font-weight:400; font-size:1.32rem; line-height:1.3; margin:0 0 14px; color:var(--ink); }
+.home-illustration { margin:0 0 14px; }
+.home-illustration img { display:block; width:100%; height:auto; border-radius:6px; }
+.home-illustration figcaption { margin-top:6px; font-size:.8rem; font-style:italic; color:var(--muted); }
+.intro-banner { background:#f3e6c9; color:var(--ink) !important; padding:14px 20px; border-radius:6px; font-family:Arial,sans-serif; font-size:.92rem !important; font-weight:700; line-height:1.42; text-align:justify; margin-bottom:14px; }
+.home-mode-buttons { display:grid; grid-template-columns:1fr; gap:16px; margin-top:8px; }
+.home-mode-button { padding:20px; border:1px solid var(--cta-dark); border-radius:4px; background:var(--cta); color:#fff; cursor:pointer; text-align:center; transition:background .15s; }
+@media (hover:hover) { .home-mode-button:hover { background:var(--cta-dark); } }
+.home-mode-button .label { display:block; font-family:Arial,sans-serif; font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:4px; }
+.home-mode-button .desc { display:block; font-size:.85rem; color:#f3e6c9; font-style:italic; }
+.copyright-notice { font-family:Arial,sans-serif; font-size:.75rem !important; margin:18px 0 0; }
+
+/* ---------- Jeu ---------- */
+.quiz-panel { width:100%; }
+.progress-row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:1rem; color:var(--ink); margin:8px 0 6px; }
+.quiz-reference { color:var(--accent-dark); font-weight:700; }
+.score-summary-highlight { font-family:Arial,sans-serif; font-weight:700; font-size:.9rem; }
+.progress-track { height:6px; background:rgba(255,255,255,.7); border-radius:3px; overflow:hidden; margin-bottom:22px; }
+.progress-bar { height:100%; width:0; background:var(--accent); transition:width .3s; }
+.ready-screen { text-align:center; padding:40px 20px; margin-top:16vh; }
+.ready-card { display:inline-block; background:rgba(255,253,249,.94); padding:32px 40px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.18); max-width:520px; }
+.ready-explanation { font-family:Arial,sans-serif; font-size:.92rem; color:#4a4438; line-height:1.45; text-align:left; margin:0 0 18px; }
+.ready-title { font-size:1.15rem; margin:0 0 22px; }
+#nat-start-button { padding:16px 32px; }
+
+.quiz-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(340px,.6fr); background:var(--paper); box-shadow:0 14px 35px rgba(54,45,31,.1); border-radius:8px; overflow:hidden; }
+.artwork-column { display:flex; flex-direction:column; min-width:0; }
+.artwork-card { position:relative; min-height:min(640px,72vh); margin:0; padding:22px; background:#1b1c1e; display:flex; align-items:center; justify-content:center; }
+
+/* Colonne de gauche : la phrase, écrite comme à la craie sur un tableau d'ardoise */
+.sentence-card { flex-direction:column; justify-content:flex-start; padding-top:56px; background:#22352b; background-image:radial-gradient(circle at 30% 20%, rgba(255,255,255,.06), transparent 60%); border:10px solid #7a5530; }
+.sentence { color:#f4f1e6; font-size:clamp(1.6rem,3.2vw,2.7rem); line-height:1.6; text-align:center; max-width:900px; margin:0; }
+.sentence .w { display:inline-block; padding:0 2px; border-radius:6px; }
+.sentence .w.target { color:#ffe066; animation:blink 1s ease-in-out infinite; box-shadow:0 0 0 3px rgba(255,224,102,.0); }
+.sentence .w.target.found { animation:none; color:#7fe0a0; text-decoration:underline; text-decoration-thickness:3px; text-underline-offset:6px; }
+@keyframes blink { 0%,100% { opacity:1; background:rgba(255,224,102,.18); } 50% { opacity:.25; background:transparent; } }
+.listen-button { position:absolute; left:22px; bottom:18px; font-family:Arial,sans-serif; font-size:.85rem; color:#f4f1e6; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.3); border-radius:20px; padding:7px 14px; cursor:pointer; }
+@media (hover:hover) { .listen-button:hover { background:rgba(255,255,255,.2); } }
+
+/* Personnage qui apparaît après chaque réponse */
+.character-stage { position:absolute; right:14px; bottom:0; display:flex; align-items:flex-end; gap:6px; pointer-events:none; max-width:70%; }
+.character-stage .character { height:min(460px,60vh); width:auto; animation:pop-in .45s cubic-bezier(.2,1.4,.4,1) both; transform-origin:bottom center; }
+.character-stage .bubble { align-self:flex-start; margin-top:10px; background:#fff; color:#24313f; font-family:Arial,sans-serif; font-weight:700; font-size:1.15rem; line-height:1.35; padding:12px 16px; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.3); position:relative; max-width:320px; animation:pop-in .45s .15s cubic-bezier(.2,1.4,.4,1) both; }
+.character-stage .bubble::after { content:''; position:absolute; right:-12px; top:22px; border:8px solid transparent; border-left:12px solid #fff; }
+.character-stage .bubble .who { display:block; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; margin-bottom:3px; }
+.character-stage.good .bubble .who { color:var(--ok); }
+.character-stage.bad .bubble .who { color:var(--wrong); }
+@keyframes pop-in { from { opacity:0; transform:translateY(40px) scale(.6); } to { opacity:1; transform:none; } }
+
+/* Colonne de droite : les dix natures */
+.answer-card { padding:20px 24px; }
+.answer-card h2 { font-family:Arial,sans-serif; font-weight:700; font-size:1.2rem; margin:0 0 14px; }
+.nature-group-title { font-family:Arial,sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--accent); margin:12px 0 6px; }
+.nature-buttons { display:grid; grid-template-columns:1fr; gap:5px; }
+.nature-row { display:grid; gap:5px; }
+.nature-row-2 { grid-template-columns:1fr 1fr; }
+.nature-button { display:block; width:100%; text-align:left; padding:8px 14px; border:2px solid var(--nat-green-dark); border-radius:6px; background:var(--nat-green); color:#fff; font-family:Arial,sans-serif; font-weight:700; font-size:.98rem; cursor:pointer; transition:background .15s, transform .1s, opacity .15s; }
+@media (hover:hover) { .nature-button:hover:not(:disabled) { background:var(--nat-green-dark); transform:translateX(3px); } }
+.nature-button:disabled { cursor:default; }
+.nature-button.wrong { background:var(--wrong); border-color:#8a2a22; opacity:.85; }
+.nature-button.correct { background:var(--ok); border-color:#0c4d31; box-shadow:0 0 0 3px #ffe066; }
+.nature-button.faded { opacity:.45; }
+
+.correction-details { margin-top:16px; padding:12px 14px; background:#f3e6c9; border-radius:6px; font-family:Arial,sans-serif; font-size:.9rem; line-height:1.45; color:var(--ink); }
+.correction-details strong { color:var(--accent-dark); }
+.verdict-row { display:flex; gap:12px; align-items:center; margin-top:14px; }
+.verdict-row .primary-button { flex:1; }
+.verdict-square { width:44px; height:44px; border-radius:8px; flex:0 0 auto; background:var(--border); }
+.verdict-square.correct { background:var(--ok); }
+.verdict-square.wrong { background:var(--wrong); }
+
+/* ---------- Résultats ---------- */
+.results-character { display:flex; justify-content:center; margin:6px 0 10px; }
+.results-character svg { height:300px; width:auto; }
+#results-title { font-size:1.5rem; font-weight:500; }
+.results-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+
+/* ---------- Fiche des natures ---------- */
+.modal-backdrop { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal-card { position:relative; background:var(--paper); border-radius:10px; max-width:720px; width:100%; max-height:86vh; overflow-y:auto; padding:28px 30px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.modal-card h2 { color:var(--accent-dark); font-size:1.4rem; margin:0 40px 14px 0; }
+.modal-close-x { position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%; background:var(--paper); border:1px solid var(--border); color:var(--ink); cursor:pointer; }
+@media (hover:hover) { .modal-close-x:hover { background:var(--wrong); color:#fff; border-color:var(--wrong); } }
+.fiche-group { font-family:Arial,sans-serif; font-size:.75rem; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--accent); margin:16px 0 6px; }
+.fiche-row { display:grid; grid-template-columns:200px 1fr; gap:12px; padding:9px 0; border-top:1px solid var(--border); font-family:Arial,sans-serif; font-size:.9rem; line-height:1.4; }
+.fiche-row b { color:var(--nat-green-dark); }
+.fiche-row em { color:var(--muted); }
+
+/* ---------- Tablette et smartphone ---------- */
+@media (max-width:900px) {
+  .quiz-grid { grid-template-columns:1fr; }
+  .artwork-card { min-height:auto; }
+  .sentence-card { min-height:46vh; padding:18px 14px; }
+  .sentence-card { padding-top:22px; min-height:58vh; }
+  .character-stage .character { height:min(260px,32vh); }
+  .character-stage .bubble { font-size:.95rem; max-width:210px; }
+}
+@media (max-width:640px) {
+  .bg-mosaic { grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(4,1fr); }
+  .bg-tile:hover img, .bg-tile.touched img { transform:none; }
+  .welcome-panel { padding:22px 18px; }
+  .app-shell { width:calc(100% - 16px); }
+  .answer-card { padding:18px 14px; }
+  .nature-button { font-size:.85rem; padding:10px 9px; }
+  .fiche-row { grid-template-columns:1fr; gap:2px; }
+  .progress-row { font-size:.85rem; }
+}
+
+/* ---------- Compte (repris de Mnemart) ---------- */
+.account-hub-slot { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.account-hub-slot.is-disabled { cursor:default; opacity:.6; }
+.account-slot-email { font-family:Arial,sans-serif; font-size:.72rem; color:#f3e6c9; word-break:break-all; }
+.account-connect-switch { position:relative; display:inline-flex; align-items:center; width:42px; height:22px; border-radius:11px; background:rgba(255,255,255,.35); border:1px solid rgba(255,255,255,.6); transition:background .2s, border-color .2s; flex-shrink:0; cursor:pointer; }
+.account-connect-switch.is-connected { background:var(--ok); border-color:var(--ok); }
+.account-connect-knob { position:absolute; top:1px; left:1px; width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .2s; }
+.account-connect-switch.is-connected .account-connect-knob { transform:translateX(20px); }
+.account-card { max-width:560px; }
+.account-intro { font-family:Arial,sans-serif; font-size:.88rem; color:var(--muted); line-height:1.45; margin:-4px 0 12px; }
+.account-form { display:grid; gap:12px; }
+.account-form label { display:grid; gap:5px; font-family:Arial,sans-serif; font-size:.82rem; font-weight:700; color:var(--ink); }
+.account-form input[type=text], .account-form input[type=email], .account-form input[type=password], .account-form select { width:100%; padding:10px; color:#2b2620; border:1px solid #cfc8bc; border-radius:4px; background:#fff; font-family:Arial,sans-serif; font-size:.95rem; }
+.account-form input:focus, .account-form select:focus { outline:2px solid #df947f; border-color:var(--accent); }
+.account-fieldset { border:1px solid var(--border); border-radius:6px; padding:10px 14px 14px; margin:0; display:grid; gap:10px; }
+.account-fieldset legend { font-family:Arial,sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--accent); padding:0 6px; }
+.account-fieldset .hint { font-family:Arial,sans-serif; font-size:.78rem; font-weight:400; color:var(--muted); margin:0; line-height:1.4; }
+.account-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.account-row-3 { display:grid; grid-template-columns:130px 1fr 1fr; gap:10px; }
+.account-consent { display:flex !important; grid-template-columns:none; align-items:flex-start; gap:8px !important; font-weight:400 !important; line-height:1.4; }
+.account-consent input { margin-top:3px; flex:0 0 auto; }
+.account-error { color:var(--wrong); font-family:Arial,sans-serif; font-size:.85rem; margin:0; }
+.account-notice { color:var(--ok); font-family:Arial,sans-serif; font-size:.85rem; margin:0; line-height:1.4; }
+.modal-hint { text-align:center; margin:12px 0 0; font-family:Arial,sans-serif; font-size:.85rem; color:var(--muted); }
+.link-label { background:none; border:0; padding:0; color:var(--accent-dark); text-decoration:underline; cursor:pointer; font-family:Arial,sans-serif; font-size:.88rem; }
+@media (max-width:640px) {
+  .account-row, .account-row-3 { grid-template-columns:1fr; }
+}
+
+/* ---------- v5 : proches (liste ouverte) et envoi des scores ---------- */
+.adultes-list { display:grid; gap:12px; }
+.adulte-row { position:relative; }
+.adulte-remove { position:absolute; top:-4px; right:8px; width:24px; height:24px; border-radius:50%; border:1px solid var(--border); background:var(--paper); color:var(--muted); cursor:pointer; font-size:.75rem; line-height:1; }
+@media (hover:hover) { .adulte-remove:hover { background:var(--wrong); color:#fff; border-color:var(--wrong); } }
+.add-adulte { justify-self:start; padding:9px 14px; font-size:.88rem; }
+.results-send { margin:6px auto 16px; max-width:460px; background:#f3e6c9; border-radius:8px; padding:14px 16px; text-align:left; }
+.results-send:empty { display:none; }
+.send-title { font-family:Arial,sans-serif; font-weight:700; font-size:.9rem; color:var(--ink) !important; margin:0 0 8px; }
+.send-hint { font-family:Arial,sans-serif; font-size:.88rem !important; margin:0; }
+.send-list { display:flex; flex-wrap:wrap; gap:8px 16px; margin-bottom:12px; }
+.send-person { display:flex; align-items:center; gap:6px; font-family:Arial,sans-serif; font-size:.92rem; cursor:pointer; }
+.send-buttons { display:flex; gap:10px; flex-wrap:wrap; }
+.profile-scores { margin-top:16px; }
+.profile-scores:empty { display:none; }
+.score-list { list-style:none; margin:0; padding:0; font-family:Arial,sans-serif; font-size:.85rem; }
+.score-list li { display:grid; grid-template-columns:1fr auto 60px 26px; gap:10px; align-items:center; padding:6px 0; border-top:1px solid var(--border); }
+.score-del { width:24px; height:24px; border-radius:50%; border:1px solid var(--border); background:var(--paper); color:var(--muted); cursor:pointer; font-size:.7rem; padding:0; }
+@media (hover:hover) { .score-del:hover { background:var(--wrong); color:#fff; border-color:var(--wrong); } }
+.send-howto { margin:-4px 0 10px !important; font-size:.82rem !important; }
+.score-list li strong { text-align:right; color:var(--accent-dark); }
+
+/* ---------- v7 : fiche dans un cadre, photos ---------- */
+#fiche-modal .modal-card { padding:0; overflow:hidden; display:flex; flex-direction:column; }
+.fiche-frame { width:100%; height:80vh; border:0; display:block; }
+#fiche-modal .modal-close-x { z-index:2; }
+.photo-slot { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.photo-thumb { width:64px; height:64px; border-radius:50%; overflow:hidden; background:#f3e6c9; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; }
+.photo-empty { font-size:1.8rem; opacity:.6; }
+.photo-pick { position:relative; overflow:hidden; padding:8px 12px; font-size:.85rem; cursor:pointer; }
+.photo-pick input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.bubble.has-photo { display:flex; align-items:center; gap:12px; }
+.bubble-photo { width:62px; height:62px; flex:0 0 auto; border-radius:50%; object-fit:cover; border:3px solid #ffe066; }
+.home-account-photo { width:56px; height:56px; border-radius:50%; overflow:hidden; border:2px solid #f3e6c9; }
+.home-account-photo img { width:100%; height:100%; object-fit:cover; }
+.results-character { position:relative; align-items:flex-end; gap:6px; }
+.results-photo { width:110px; height:110px; border-radius:50%; object-fit:cover; border:4px solid #ffe066; box-shadow:0 6px 16px rgba(0,0,0,.2); }
+.send-photo { width:30px; height:30px; border-radius:50%; object-fit:cover; }
+
+/* v8 : italique dans les explications */
+.correction-details em { font-style:italic; color:var(--accent-dark); }
+
+/* ---------- v9 : deux jeux côte à côte, et les petits boutons du jeu 2 ---------- */
+.home-games-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.nature-subgroup { display:grid; gap:4px; padding:6px 8px 8px; border:2px solid var(--nat-green-dark); border-radius:8px; background:#e9f4ec; }
+.nature-subtitle { font-family:Arial,sans-serif; font-weight:700; font-size:.88rem; color:var(--nat-green-dark); }
+.nature-row-7 { grid-template-columns:repeat(7, minmax(0, 1fr)); gap:4px; }
+.nature-row, .nature-subgroup, .answer-card { min-width:0; }
+.nature-button.small { min-width:0; padding:7px 2px; font-size:.74rem; line-height:1.15; text-align:center; border-width:1px; -webkit-hyphens:auto; hyphens:auto; overflow-wrap:break-word; min-height:42px; display:flex; align-items:center; justify-content:center; }
+@media (hover:hover) { .nature-button.small:hover:not(:disabled) { transform:translateY(-2px); } }
+/* le jeu 2 a besoin d'une colonne de droite un peu plus large pour ses lignes de 7 boutons */
+.game2 .quiz-grid { grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); }
+@media (max-width:900px) { .game2 .quiz-grid { grid-template-columns:1fr; } }
+@media (max-width:640px) { .home-games-row { grid-template-columns:1fr; } .nature-button.small { font-size:.62rem; padding:6px 1px; } }
+
+/* ---------- v11 : bilan de progression (repris de Mnemart) ---------- */
+/* ============================================================
+   v197 — Bilan de progression : diplôme A4 sur une seule page, imprimable / PDF
+   ============================================================ */
+.report-overlay { position:fixed; inset:0; z-index:9999; overflow:auto; background:rgba(40,32,22,.82); padding:16px 12px 40px; }
+.report-toolbar { display:flex; gap:10px; justify-content:center; margin:0 auto 14px; max-width:794px; flex-wrap:wrap; }
+.report-toolbar button { width:auto; padding:10px 18px; }
+.report-sheet { position:relative; width:794px; max-width:100%; min-height:1050px; margin:0 auto; background:#fffdf9 radial-gradient(circle at 50% 0%, #fff8e6 0, #fffdf9 60%); color:#24313f; font-family:Georgia,'Times New Roman',serif; box-shadow:0 8px 30px rgba(0,0,0,.35); box-sizing:border-box; line-height:1.4; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.rp-loading { text-align:center; font-family:Arial,sans-serif; color:#65707d; padding:60px 20px; }
+.rp-frame { position:absolute; inset:14px; border:2px solid #b08d4c; outline:1px solid #d9c08a; outline-offset:-7px; pointer-events:none; }
+.rp-corner { position:absolute; width:54px; height:54px; display:block; }
+.rp-corner svg { width:100%; height:100%; display:block; }
+.rp-tl { top:14px; left:14px; } .rp-tr { top:14px; right:14px; transform:scaleX(-1); }
+.rp-bl { bottom:14px; left:14px; transform:scaleY(-1); } .rp-br { bottom:14px; right:14px; transform:scale(-1,-1); }
+.rp-inner { position:relative; padding:40px 56px 34px; }
+.rp-header { text-align:center; margin-bottom:12px; }
+.rp-emblem { width:92px; height:92px; display:block; margin:0 auto 2px; }
+.rp-eyebrow { font-family:Arial,sans-serif; letter-spacing:.5em; font-size:.72rem; color:#9c7a4a; font-weight:700; padding-left:.5em; }
+.rp-header h2 { margin:2px 0 2px; font-size:2.15rem; font-weight:400; color:#3b2c18; letter-spacing:.02em; }
+.rp-decor { display:flex; align-items:center; justify-content:center; gap:10px; color:#b08d4c; margin:0 0 4px; }
+.rp-decor span { width:90px; height:1px; background:linear-gradient(90deg,transparent,#b08d4c,transparent); }
+.rp-award { font-style:italic; font-size:.95rem; color:#65707d; }
+.rp-name { font-size:1.9rem; color:#7a5c35; font-style:italic; line-height:1.15; margin:2px 0 2px; }
+.rp-period { font-family:Arial,sans-serif; font-size:.76rem; color:#65707d; }
+.rp-intro { font-size:.98rem; text-align:center; font-style:italic; color:#3b2c18; margin:10px 18px 12px; }
+.rp-figures { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+.rp-figures div { background:#f6efe0; border:1px solid #e4d6b4; border-radius:8px; padding:7px 4px; text-align:center; }
+.rp-figures strong { display:block; font-size:1.3rem; color:#7a5c35; font-weight:400; line-height:1.2; }
+.rp-figures span { font-family:Arial,sans-serif; font-size:.66rem; color:#65707d; }
+.rp-cards { display:flex; gap:10px; margin-bottom:12px; }
+.rp-card { flex:1 1 0; border:1px solid #e4d6b4; border-radius:8px; padding:7px 10px; text-align:center; background:#fffaf0; }
+.rp-card-title { font-family:Arial,sans-serif; font-size:.68rem; font-weight:700; color:#65707d; text-transform:uppercase; letter-spacing:.06em; }
+.rp-card-big { font-size:1.7rem; color:#3b2c18; line-height:1.1; }
+.rp-card-sub { font-family:Arial,sans-serif; font-size:.68rem; color:#65707d; }
+.rp-card-trend { font-family:Arial,sans-serif; font-size:.78rem; font-weight:700; margin-top:3px; color:#65707d; }
+.rp-card-trend span { font-weight:400; font-size:.68rem; }
+.rp-card-trend.up { color:#15734b; } .rp-card-trend.down { color:#b3392d; }
+.rp-cols { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:10px; }
+.rp-section { margin:0 0 10px; }
+.rp-section h3, .rp-col h3 { font-family:Arial,sans-serif; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:#7a5c35; margin:0 0 6px; padding-bottom:3px; border-bottom:1px solid #e4d6b4; }
+.rp-line { display:grid; grid-template-columns:104px 1fr 38px; gap:8px; align-items:center; font-family:Arial,sans-serif; font-size:.76rem; margin:3px 0; }
+.rp-bar { display:block; height:8px; background:#efe7d4; border-radius:5px; overflow:hidden; }
+.rp-bar span { display:block; height:100%; background:linear-gradient(90deg,#c9a85c,#9c7a4a); border-radius:5px; }
+.rp-line-pct { font-weight:700; text-align:right; }
+.rp-lines-2 { display:grid; grid-template-columns:1fr 1fr; gap:0 22px; }
+.rp-list { margin:0; padding-left:18px; font-size:.86rem; }
+.rp-list li { margin:0 0 3px; }
+.rp-closing { text-align:center; font-style:italic; font-size:.95rem; margin:12px 0 8px; color:#3b2c18; }
+.rp-bottom { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }
+.rp-foot { font-family:Arial,sans-serif; font-size:.66rem; color:#8a8f96; flex:1; line-height:1.35; }
+.rp-sign { text-align:right; font-family:Georgia,serif; font-style:italic; color:#65707d; font-size:.78rem; }
+.rp-sign strong { font-style:normal; letter-spacing:.2em; color:#7a5c35; }
+.rp-seal { width:70px; height:70px; display:block; flex:none; }
+@media (max-width:640px) {
+  .report-sheet { min-height:0; }
+  .rp-inner { padding:34px 26px 28px; }
+  .rp-figures { grid-template-columns:repeat(2,1fr); }
+  .rp-cards, .rp-cols, .rp-lines-2 { display:block; } .rp-card { margin-bottom:8px; } .rp-col { margin-bottom:10px; }
+}
+@media print {
+  @page { size:A4 portrait; margin:0; }
+  html, body { background:#fff !important; margin:0 !important; padding:0 !important; height:auto !important; overflow:visible !important; }
+  body > *:not(#report-overlay) { display:none !important; }
+  .report-overlay { position:static; overflow:visible; background:#fff; padding:0; }
+  .report-toolbar, .no-print { display:none !important; }
+  .report-sheet { box-shadow:none; width:210mm; height:296mm; min-height:0; max-width:none; margin:0; overflow:hidden; page-break-after:avoid; break-inside:avoid; }
+}
+
+.report-overlay { z-index:400; }
+.report-send { max-width:794px; margin:14px auto 0; background:#fffdf9; border-radius:8px; padding:14px 18px; }
+.report-send:empty { display:none; }
+.rp-empty { font-family:Arial,sans-serif; font-size:.8rem; color:#65707d; margin:4px 0; }
+.rp-line { grid-template-columns:150px 1fr 38px; }
+.profile-send { margin-top:14px; display:grid; gap:10px; }
+.profile-send:empty { display:none; }
+.bilan-button { justify-self:start; }
+
+/* ---------- v12 : options du compte, envois distincts, mentions légales ---------- */
+.account-option { display:flex !important; align-items:flex-start; gap:10px !important; font-weight:400 !important; line-height:1.45; background:#f7f1e4; border:1px solid var(--border); border-radius:6px; padding:10px 12px; }
+.account-option input { margin-top:3px; flex:0 0 auto; width:18px; height:18px; }
+.account-option b { color:var(--ink); }
+.send-block { display:grid; gap:8px; padding:12px 14px; background:#f3e6c9; border-radius:8px; }
+.send-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.send-row span { flex:1 1 190px; font-family:Arial,sans-serif; font-weight:700; font-size:.9rem; }
+.send-row button { padding:9px 13px; font-size:.86rem; }
+.legal-card { max-width:620px; font-family:Arial,sans-serif; font-size:.92rem; line-height:1.5; }
+.legal-card p { margin:0 0 10px; }
+.copyright-notice .link-label { font-size:.75rem; }
+.adultes-list.no-envoi .f-email-label { display:none; }
+
+/* ---------- v13 : Mes données ---------- */
+.mes-donnees { margin-top:16px; border-top:1px solid var(--border); padding-top:10px; font-family:Arial,sans-serif; font-size:.88rem; }
+.mes-donnees summary { cursor:pointer; color:var(--muted); }
+.mes-donnees-body { display:grid; gap:8px; margin-top:10px; }
+.mes-donnees-body .secondary-button, .mes-donnees-body .danger-button { justify-self:start; padding:9px 13px; font-size:.86rem; }
+.danger-button { display:inline-flex; align-items:center; justify-content:center; cursor:pointer; border-radius:5px; border:1px solid var(--wrong); background:#fff; color:var(--wrong); font-family:Arial,sans-serif; font-weight:700; }
+@media (hover:hover) { .danger-button:hover { background:var(--wrong); color:#fff; } }
+.data-del-account-box { display:grid; gap:8px; padding:10px 12px; background:#fdecea; border:1px solid #f0b4ac; border-radius:6px; }
+.data-del-account-box p { margin:0; color:#8a1f12; line-height:1.4; }
+.data-del-account-box input { padding:9px; border:1px solid #cfc8bc; border-radius:4px; font:inherit; }
+
+/* ============================================================
+   v14 — AMBIANCES (reprises de Mnemart : mêmes noms, mêmes couleurs, mêmes décors)
+   Salon Renoir = ambiance de base (pas d'attribut data-ambiance).
+   ============================================================ */
+.ambiance-picker { position:fixed; top:56px; left:50%; transform:translateX(-50%); z-index:310; background:#fffdf9; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.25); padding:10px 14px; font-family:Arial,sans-serif; display:grid; gap:4px; min-width:230px; }
+.ambiance-picker label { display:flex; align-items:center; gap:8px; font-size:.9rem; color:#24313f; cursor:pointer; padding:3px 0; }
+.ambiance-title { font-size:.75rem; font-weight:700; color:#65707d; margin:0 0 4px; text-transform:uppercase; letter-spacing:.06em; }
+/* les cartes claires gardent leurs couleurs claires, quelle que soit l'ambiance */
+.welcome-panel, .modal-card, .ready-card, .correction-details, .report-send, .ambiance-picker { --ink:#24313f; --muted:#65707d; --paper:#fffdf9; --border:#ded8cc; color:#24313f; }
+.welcome-panel .eyebrow, .welcome-panel .app-brand-name { color:var(--accent); }
+
+body:not([data-ambiance]).in-exercise { background:#ece0c8 url('assets/renoir-fond.jpg') center/cover no-repeat fixed; }
+
+body[data-ambiance="pitti"] { --accent:#c9a24a; --accent-dark:#8a6a24; --cta:#8a1c2c; --cta-dark:#6b1420; }
+body[data-ambiance="pitti"] .bg-tile:nth-child(odd)::before { background:#6b7f3a; }
+body[data-ambiance="pitti"] .bg-tile:nth-child(even)::before { background:#9b111e; }
+body[data-ambiance="pitti"].in-exercise { --ink:#f2ecd8; --paper:#0f4d3c; --canvas:#0c3c2f; --border:#1f6b52; background:#0c3c2f repeating-linear-gradient(45deg, #ffffff05 0 3px, transparent 3px 9px); }
+body[data-ambiance="pitti"] .primary-button, body[data-ambiance="pitti"] .home-mode-button { background:linear-gradient(160deg, #d8b866 0%, #a8842f 35%, #8a6a24 50%, #c9a24a 65%, #8a6a24 100%); border-color:#5c4718; color:#3a2c10; }
+
+body[data-ambiance="bauhaus"] { --accent:#1c4fa0; --accent-dark:#14356e; --cta:#2b2b28; --cta-dark:#1a1a18; }
+body[data-ambiance="bauhaus"] .bg-tile:nth-child(odd)::before { background:#5a5a5c; }
+body[data-ambiance="bauhaus"] .bg-tile:nth-child(even)::before { background:#e0e0e0; }
+body[data-ambiance="bauhaus"].in-exercise { --ink:#f4f1ea; --paper:#3d3d3f; --canvas:#333335; --border:#5a5a5c; background:#333335 url('assets/bauhaus-fond.jpg') center/cover no-repeat fixed; }
+body[data-ambiance="bauhaus"] .primary-button, body[data-ambiance="bauhaus"] .home-mode-button { background:#fff url('assets/bauhaus-bouton.jpg') center/cover no-repeat; color:#1a1a18; border-color:#c1272d; }
+
+body[data-ambiance="space"] { --accent:#5a9e2a; --accent-dark:#3d7018; --cta:#6a2fb5; --cta-dark:#4d1f8a; }
+body[data-ambiance="space"] .bg-tile:nth-child(odd)::before { background:#e8843c; }
+body[data-ambiance="space"] .bg-tile:nth-child(even)::before { background:#7c3aed; }
+body[data-ambiance="space"].in-exercise { --ink:#3a1f0a; --paper:#fff3e0; background:#e07a2e repeating-radial-gradient(circle at 50% 120%, transparent 0 42px, #00000022 42px 45px); }
+body[data-ambiance="space"] .primary-button, body[data-ambiance="space"] .home-mode-button { background:#5b3d8a url('assets/space-bouton.jpg') center/cover no-repeat; box-shadow:inset 0 3px 6px rgba(255,255,255,.35), inset 0 -4px 8px rgba(0,0,0,.35); border-color:#3a2560; color:#fff; }
+
+body[data-ambiance="versailles"] { --accent:#d8b25c; --accent-dark:#8a6a24; --cta:#7a1418; --cta-dark:#560e10; }
+body[data-ambiance="versailles"] .bg-tile:nth-child(odd)::before { background:#960018; }
+body[data-ambiance="versailles"] .bg-tile:nth-child(even)::before { background:#d4af37; }
+body[data-ambiance="versailles"].in-exercise { --ink:#f2ece0; --paper:#5c1015; --canvas:#4a0c11; --border:#8a2a30; background:#5c1015 url('assets/versailles-fond.jpg') center/cover no-repeat fixed; }
+body[data-ambiance="versailles"] .primary-button, body[data-ambiance="versailles"] .home-mode-button { background:#a8842f url('assets/versailles-bouton.jpg') center/cover no-repeat; border-color:#6f5320; color:#3a2c10; }
+
+body[data-ambiance="wedgwood"] { --accent:#7396b8; --accent-dark:#4a6d8f; --cta:#e8e0cf; --cta-dark:#cfc4a8; }
+body[data-ambiance="wedgwood"] .bg-tile:nth-child(odd)::before { background:#6f8ba8; }
+body[data-ambiance="wedgwood"] .bg-tile:nth-child(even)::before { background:#f8f0e0; }
+body[data-ambiance="wedgwood"].in-exercise { --ink:#2c3e4a; --paper:#c3d5e2; --canvas:#a8c0d4; --border:#f2ede0; background:#a8c0d4; }
+body[data-ambiance="wedgwood"] .primary-button, body[data-ambiance="wedgwood"] .home-mode-button { background:linear-gradient(160deg, #faf6ea 0%, #e8e0cf 50%, #d8cdb4 100%); border-color:#a8967a; color:#4a3e2c; }
+
+body[data-ambiance="ermitage"] { --accent:#d8b23c; --accent-dark:#8a6a1e; --cta:#0c2a4a; --cta-dark:#081c33; }
+body[data-ambiance="ermitage"] .bg-tile:nth-child(odd)::before { background:#00a86b; }
+body[data-ambiance="ermitage"] .bg-tile:nth-child(even)::before { background:#d4af37; }
+body[data-ambiance="ermitage"].in-exercise { --ink:#eef2ea; --paper:#0e335a; --canvas:#0a2745; --border:#2a4f78; background:#0a2745 repeating-linear-gradient(90deg, #ffffff06 0 1px, transparent 1px 40px); }
+body[data-ambiance="ermitage"] .primary-button, body[data-ambiance="ermitage"] .home-mode-button { background:linear-gradient(160deg, #f2d98a 0%, #d8b23c 40%, #8a6a1e 55%, #e8c874 70%, #8a6a1e 100%); border-color:#5c4712; color:#3a2c10; }
+
+body[data-ambiance="renaissance"] { --accent:#c17a3c; --accent-dark:#8a5424; --cta:#7a3820; --cta-dark:#5c2916; }
+body[data-ambiance="renaissance"] .bg-tile:nth-child(odd)::before { background:#faf5ea; }
+body[data-ambiance="renaissance"] .bg-tile:nth-child(even)::before { background:#4a5560; }
+body[data-ambiance="renaissance"].in-exercise { --ink:#f2e8d8; --paper:#8a4526; --canvas:#7a3820; --border:#b06a3a; background:#7a3820 url('assets/renaissance-fond.jpg') center/cover no-repeat fixed; }
+body[data-ambiance="renaissance"] .primary-button, body[data-ambiance="renaissance"] .home-mode-button { background:linear-gradient(160deg, #e8c874 0%, #c9a24a 35%, #8a6a24 50%, #d8b25c 65%, #8a6a24 100%); border-color:#5c4718; color:#3a2410; }
+
+body[data-ambiance="gothique"] { --accent:#d4af37; --accent-dark:#8a6a1e; --cta:#1830c4; --cta-dark:#0f1e80; }
+body[data-ambiance="gothique"] .bg-tile:nth-child(odd)::before { background:#d4af37; }
+body[data-ambiance="gothique"] .bg-tile:nth-child(even)::before { background:#1830c4; }
+body[data-ambiance="gothique"].in-exercise { --ink:#f2ecd8; --paper:#1830a0; --canvas:#101d70; --border:#2c4a9c; background:#101d70 url('assets/gothique-fond.jpg') center/cover no-repeat fixed; }
+body[data-ambiance="gothique"] .primary-button, body[data-ambiance="gothique"] .home-mode-button { background:#1830c4; border-color:#d4af37; color:#fff; }
+
+/* sur les boutons clairs, le texte du bouton prend la couleur du bouton (pas de beige sur or) */
+body[data-ambiance] .home-mode-button .label { color:inherit; }
+body[data-ambiance] .home-mode-button .desc { color:inherit; opacity:.85; }
+@media (hover:hover) { body[data-ambiance] .primary-button:hover, body[data-ambiance] .home-mode-button:hover { filter:brightness(1.08); } }
+/* dans un jeu, la colonne de droite suit l'ambiance ; le texte du titre reste lisible */
+.answer-card h2 { color:var(--ink); }
+.progress-row { color:var(--ink); }
+
+.info-card h3 { font-size:.95rem; color:var(--accent-dark); margin:16px 0 6px; }
+.info-card ul { margin:0 0 8px; padding-left:20px; }
+.info-card li { margin:0 0 5px; }
+@media (max-width:640px) { .topbar-zone-center { gap:6px; } .global-topbar-button { width:26px; height:26px; font-size:.8rem; } }
+/* v14 : la ligne « Question 1 / 20 » posée sur un bandeau, pour rester lisible sur tous les décors */
+.quiz-panel .progress-row { background:var(--paper); padding:7px 12px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,.12); text-shadow:none !important; }
+
+/* ============================================================
+   v15 : JEU 3 — natures (vert) puis fonctions (rouge : la couleur des fonctions)
+   ============================================================ */
+:root { --fn-red:#c0392b; --fn-red-dark:#8e2a1f; }
+.answer-columns { display:block; }
+.game3 .quiz-grid { grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); }
+.game3 .answer-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start; }
+.gone { display:none !important; }
+.fonction-title { color:var(--fn-red); }
+.fonction-column .nature-buttons { display:grid; gap:6px; }
+.nature-button.fonction-button { background:var(--fn-red); border-color:var(--fn-red-dark); }
+@media (hover:hover) { .nature-button.fonction-button:hover:not(:disabled) { background:var(--fn-red-dark); } }
+/* dans le jeu 3, une mauvaise réponse devient grise et barrée (le rouge est réservé aux fonctions) */
+.game3 .nature-button.wrong { background:#7d7d7d; border-color:#5a5a5a; text-decoration:line-through; opacity:.85; }
+.nature-button.fonction-button.correct { background:var(--fn-red); border-color:var(--fn-red-dark); box-shadow:0 0 0 3px #ffe066; }
+.fonction-column { animation:fnApparait .35s ease-out; }
+@keyframes fnApparait { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:none; } }
+.verdict-square.half { background:linear-gradient(135deg, var(--ok) 50%, var(--wrong) 50%); }
+.correction-details .fn-red { color:var(--fn-red); }
+.correction-details .formule { display:inline-block; margin:4px 0; padding:2px 8px; border-radius:4px; background:#fbe9e7; color:var(--fn-red-dark); font-weight:700; }
+
+@media (max-width:900px) { .home-games-row { grid-template-columns:1fr; } .game3 .quiz-grid { grid-template-columns:1fr; } }
+@media (max-width:520px) { .game3 .answer-columns { gap:8px; } .game3 .nature-button { font-size:.78rem; padding:9px 6px; } }
+/* les deux fiches, en onglets au-dessus de la fiche */
+.fiche-tabs { display:flex; gap:6px; padding:10px 56px 0 14px; background:var(--paper); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.fiche-tab { font:inherit; font-family:Arial,sans-serif; font-weight:700; font-size:.88rem; padding:8px 12px; border:1px solid var(--border); border-bottom:0; border-radius:6px 6px 0 0; background:#f1ece2; color:#65707d; cursor:pointer; }
+.fiche-tab.on { background:#fffdf9; color:#24313f; }
+.nature-button.fonction-button.correct::before { content:"✓ "; }
+.game3 .nature-button.fonction-button.wrong { background:#7d7d7d; border-color:#5a5a5a; }
+.game3 .verdict-square.wrong { background:#7d7d7d; }
+.game3 .verdict-square.half { background:linear-gradient(135deg, var(--ok) 50%, #7d7d7d 50%); }
+
+/* ============================================================
+   v18 : JEU 4 — le groupe nominal : le bouton clignote, on clique dans la phrase
+   ============================================================ */
+@keyframes cueBlink { 0%,100% { box-shadow:0 0 0 0 rgba(255,224,102,0); } 50% { box-shadow:0 0 0 5px #ffe066; } }
+.nature-button.cue { animation:cueBlink 1s ease-in-out infinite; }
+.nature-subgroup.cue { animation:cueBlink 1s ease-in-out infinite; border-radius:8px; }
+.nature-subgroup.cue .nature-subtitle { color:#b8860b; }
+.game4 .sentence .w { cursor:pointer; border-radius:4px; transition:background .15s; }
+@media (hover:hover) { .game4 .sentence .w:hover { background:rgba(255,255,255,.12); } }
+.sentence .w.gn-n { color:#7fe0a0; text-decoration:underline; text-decoration-thickness:3px; text-underline-offset:6px; }
+.sentence .w.gn-d { color:#ffe066; text-decoration:underline; text-decoration-thickness:3px; text-underline-offset:6px; }
+.sentence .w.gn-a { color:#9fd0ff; text-decoration:underline; text-decoration-thickness:3px; text-underline-offset:6px; }
+.sentence .w.gn-c { border-bottom:3px dotted #ff9c8f; }
+.sentence .w.gn-c:not(.gn-n):not(.gn-d):not(.gn-a) { color:#ff9c8f; }
+@keyframes gnShake { 0%,100% { transform:none; } 25% { transform:translateX(-4px); } 75% { transform:translateX(4px); } }
+.sentence .w.gn-err { animation:gnShake .3s 2; color:#bdbdbd; }
+.game4 .nature-button.wrong { background:#7d7d7d; border-color:#5a5a5a; text-decoration:line-through; }
+@keyframes gnFlash { 50% { color:var(--fn-red); } }
+#nat-instruction.gn-flash { animation:gnFlash .5s 2; }
+.game4 .answer-columns { display:block; }
+.game4 .nature-group-title { display:none; }
+.game4 #nat-buttons-variables, .game4 #nat-buttons-fonctions { display:grid; gap:10px; max-width:520px; }
+.game4 .nature-button { font-size:1.05rem; padding:12px 16px; }
+.game4 .nature-button.small { font-size:.8rem; padding:8px 2px; }
+.game4 .fonction-column { margin-top:4px; }
+.nature-button.gn-aucun { background:#eef0f3; color:#24313f; border-color:#9aa3ad; }
+@media (hover:hover) { .nature-button.gn-aucun:hover:not(:disabled) { background:#dfe3e8; } }
+.game4 .nature-button { animation:fnApparait .3s ease-out; }
+.game4 .nature-button.cue { animation:fnApparait .3s ease-out, cueBlink 1s ease-in-out .3s infinite; }
+.game4 .quiz-grid { grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); }
+@media (max-width:900px) { .game4 .quiz-grid { grid-template-columns:1fr; } }
+#global-back-button { font-weight:700; font-size:1.05rem; line-height:1; color:var(--ink); }
+/* v19 : les fenêtres s'ouvrent sous le bandeau, pour que la flèche ← reste cliquable */
+@media screen { .modal-backdrop, .report-overlay { top:var(--topbar-h, 44px); } }
+
+/* ============================================================
+   v21 : JEU 4 — on tire les étiquettes sous les mots (les mots gardent leur couleur)
+   ============================================================ */
+.game4 .sentence { line-height:1.3; word-spacing:0; display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-start; gap:14px 0; }
+.game4 .sentence .w { position:relative; display:inline-flex; flex-direction:column; align-items:center; cursor:pointer; padding:0 8px; border-radius:4px; }
+.game4 .sentence .w .lab { margin-top:8px; font-family:Arial,sans-serif; font-size:.3em; line-height:1.2; white-space:nowrap; text-align:center; background:var(--nat-green); color:#fff; padding:4px 7px; border-radius:4px; font-weight:700; pointer-events:none; box-shadow:0 2px 5px rgba(0,0,0,.3); animation:fnApparait .25s ease-out; }
+.game4 .character-stage .character { height:min(300px,40vh); }
+.game4 .character-stage .bubble { align-self:center; }
+.game4 .sentence .w .lab.rouge { background:var(--fn-red); }
+.game4 .sentence .w.survol { background:rgba(255,224,102,.28); }
+.game4 .sentence .w.gn-groupe { border-bottom:2px dashed rgba(255,156,143,.85); border-radius:0; }
+.nature-button.tirable { cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+.nature-button.tirable.arme { box-shadow:0 0 0 4px #ffe066; }
+.fantome { position:fixed; z-index:9999; pointer-events:none; transform:translate(-50%,-130%); background:var(--nat-green); color:#fff; font:700 .95rem Arial,sans-serif; padding:8px 12px; border-radius:6px; box-shadow:0 6px 16px rgba(0,0,0,.35); white-space:nowrap; }
+.fantome.rouge { background:var(--fn-red); }
+.game4 .sentence .w.gn-err { color:inherit; }
+.game4 .sentence .pn { margin-left:-6px; margin-right:2px; }
+.game4 .sentence .w .lab { font-size:max(.3em, 11px); }
+@media (max-width:640px) { .game4 .sentence { font-size:clamp(1.4rem,6.5vw,1.9rem); gap:10px 0; } .game4 .sentence .w { padding:0 5px; } }
+/* v22 : même grande taille de phrase que dans les autres jeux, et la phrase prend toute la largeur du tableau */
+.game4 .sentence { width:100%; font-size:clamp(1.6rem,2.9vw,2.6rem); }
+@media (max-width:640px) { .game4 .sentence { font-size:clamp(1.4rem,6.5vw,1.9rem); } }
+
+/* ============================================================
+   v23 : JEU 4 — boutons consignes (vert = nature, rouge = fonction) et carrés de réponse sous les mots
+   ============================================================ */
+.game4 .sentence { font-size:clamp(2rem,3.6vw,3.3rem); gap:22px 0; }
+@media (max-width:640px) { .game4 .sentence { font-size:clamp(1.6rem,7.5vw,2.2rem); } }
+.game4 .sentence .w .labs { display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:8px; }
+.game4 .sentence .w .labs .lab { margin-top:0; font-size:max(.28em, 12px); }
+.game4 #nat-instruction { color:var(--muted); font-size:1rem; text-transform:uppercase; letter-spacing:.08em; }
+.game4 #nat-buttons-variables { display:flex; flex-direction:column; gap:12px; max-width:560px; }
+.carte { border:3px solid var(--nat-green); background:#eef7f0; border-radius:10px; padding:12px 14px; animation:fnApparait .3s ease-out; }
+.carte.rouge { border-color:var(--fn-red); background:#fbecea; }
+.carte p { margin:0; font-family:Arial,sans-serif; font-weight:700; font-size:1.1rem; color:#1d4f2c; }
+.carte.rouge p { color:#8e2a1f; }
+.carte.active { box-shadow:0 0 0 4px rgba(255,224,102,.7); }
+.carte.faite { opacity:.6; padding:8px 14px; }
+.carte.faite p { font-size:.95rem; }
+.carte .nature-row, .carte .carte-choix { margin-top:10px; }
+.carte-choix { display:grid; gap:8px; }
+.carte-choix-2 { grid-template-columns:1fr 1fr; }
+.carte-choix-3 { grid-template-columns:1fr 1fr 1fr; }
+.carte .nature-button { text-align:center; animation:none; }
+.carte.gn-flash { animation:gnFlash .5s 2; }
+@media (prefers-reduced-motion:no-preference) { .carte.active { animation:fnApparait .3s ease-out, cueBlink 1.4s ease-in-out .3s 3; } }
+.game4 .sentence .pn.suite { margin-left:10px; }
+.carte-choix-1 { grid-template-columns:1fr; }
+.carte-choix-1 .nature-button { text-align:left; font-size:1rem; }
+/* v31 : « L'éléphant » : le mot avec apostrophe reste collé au suivant */
+.game4 .sentence .w.apos { padding-right:0; margin-right:-6px; }
+
+/* ============================================================
+   v32 : JEU 5 — le tableau des vingt cases
+   ============================================================ */
+.game5 .sentence { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:6px; font-size:clamp(1rem,1.5vw,1.35rem); line-height:1.2; width:100%; }
+.game5 .sentence .w.case { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; border:2px solid rgba(255,255,255,.35); border-radius:6px; padding:8px 4px 10px; min-height:7.5em; text-align:center; cursor:pointer; }
+.game5 .sentence .w.case.remplie { border-color:#7fe0a0; background:rgba(127,224,160,.10); }
+.game5 .sentence .w .labs .lab { font-size:max(.6em, 10px); white-space:normal; }
+.game5 .character-stage .character { height:min(220px,30vh); }
+@media (max-width:640px) { .game5 .sentence { font-size:.85rem; gap:3px; } .game5 .sentence .w.case { padding:4px 2px; min-height:6em; } }
+/* le sorcier se place sous le tableau (il ne doit pas cacher la dernière ligne) */
+.game5 .quiz-grid { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); }
+.game5 .sentence-card { padding-top:24px; }
+.game5 .character-stage { position:static; align-self:flex-end; margin-top:10px; min-height:0; }
+.game5 .character-stage .bubble { font-size:1rem; }
+@media (max-width:900px) { .game5 .quiz-grid { grid-template-columns:1fr; } }
+
+/* ============================================================
+   v35 : JEU 6 — le tableau sans guide
+   ============================================================ */
+.game5 .sentence .w.case.choisie { box-shadow:0 0 0 4px #ffe066; border-color:#ffe066; }
+.game5 .sentence .w.case.juste { border-color:#7fe0a0; background:rgba(127,224,160,.14); }
+.game5 .sentence .w.case.moitie { border-color:#f5b041; background:rgba(245,176,65,.14); }
+.game5 .sentence .w.case.fausse { border-color:#ff7b6b; background:rgba(255,123,107,.14); }
+.game5 .sentence .w.case .solution { margin-top:6px; font-family:Arial,sans-serif; font-size:max(.55em, 10px); line-height:1.2; color:#ffe9a8; }
+.carte .sous { margin:10px 0 0; font-size:.95rem; }
+.carte .sous.lien { color:#8e2a1f; }
+.carte .carte-choix-3 .nature-button { font-size:.9rem; padding:8px 6px; }
+.carte .nature-button.correct { box-shadow:0 0 0 3px #ffe066; }
+.nature-button.corriger { margin-top:6px; background:#24313f; border-color:#24313f; color:#fff; font-size:1.05rem; }
+/* les cartes du tableau sans guide se redessinent à chaque clic : sans animation */
+.carte.libre, .carte.libre.active { animation:none !important; box-shadow:none; }
+/* v36 : choix du texte (exercices 5 et 6) */
+.texte-choix { margin:0 0 18px; font-family:Arial,sans-serif; }
+.texte-titre { font-size:.92rem; color:#4a4438; margin:0 0 10px; text-align:left; }
+.texte-grille { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+.texte-groupe { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; align-items:center; border:1px solid rgba(0,0,0,.15); border-radius:8px; padding:6px; }
+.texte-niveau { width:100%; text-align:center; font-size:.75rem; color:#6b6252; }
+.texte-num { width:34px; height:34px; border-radius:50%; border:1px solid #8a7a5c; background:#fffaf0; color:#3a3328; font-weight:bold; cursor:pointer; position:relative; }
+.texte-num.fait::after { content:'✓'; position:absolute; top:-7px; right:-5px; font-size:.75rem; color:#2e7d32; }
+.texte-num.choisi { background:#7a1f1f; color:#fff; border-color:#7a1f1f; }
+@media (max-width:700px) { .texte-grille { grid-template-columns:repeat(2, 1fr); } }
+/* v38 : les trois parties de l'accueil */
+.home-parties { grid-template-columns:1fr 1fr 1fr; }
+.home-partie .label { font-size:1.15rem; }
+.home-section-title { font-family:Georgia,serif; text-align:center; font-size:1.4rem; margin:4px 0 14px; color:inherit; }
+.home-retour { display:block; margin:14px auto 0; }
+.home-bientot { text-align:center; }
+@media (max-width:640px) { .home-parties { grid-template-columns:1fr; } }
+/* v39 : temps et modes : un texte entier ; les formes verbales soulignées */
+.game7 .sentence { font-size:clamp(1.1rem,1.75vw,1.6rem); gap:16px 0; justify-content:flex-start; }
+.game7 .sentence .w { padding:0 4px; }
+.game7 .sentence .w.mot { cursor:default; }
+.game7 .sentence .w.mot:hover { background:none; }
+.game7 .sentence .w.pn { padding-left:0; margin-left:-4px; }
+.game7 .sentence .w.forme { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:5px; color:#ffe9a8; }
+.game7 .sentence .w.forme.choisie { background:rgba(255,224,102,.35); outline:2px solid #ffd54a; }
+.game7 .sentence .w.forme.remplie { text-decoration-color:rgba(255,255,255,.35); }
+.game7 .sentence .w .labs .lab { font-size:max(.5em, 10px); }
+.game7 .sentence .w .labs .lab.corrige { background:#e08a1e; }
+.game7 .tm-bilan { font-weight:700; }
+.game7 .quiz-grid { grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); }
+@media (max-width:900px) { .game7 .quiz-grid { grid-template-columns:1fr; } }
+.game7 .sentence .w .tx { white-space:nowrap; }
+.game7 .sentence .w.forme { text-decoration:none; }
+.game7 .sentence .w.forme .f { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:5px; }
+.game7 .sentence .w.forme.remplie .f { text-decoration-color:rgba(255,255,255,.35); }
+.game7 .character-stage { position:static; }
+.game7 .sentence-card { padding-bottom:64px; }
+/* v40 : les formes du 19e siècle à remettre dans la langue d'aujourd'hui */
+.game7 .sentence .w.trou .ancien { font-size:.6em; text-decoration:line-through; opacity:.9; line-height:1; margin-bottom:2px; }
+.game7 .sentence .w.trou .f { color:#ffe9a8; }
+.game7 .sentence .w.forme-corrigee .f { color:#ffc27a; }
+/* v109 : phrase transformée corrigée : en blanc, comme une réponse juste */
+.game7 .sentence .w.tf.remplie.forme-corrigee.ph-op .f, .game7 .sentence .w.tf.remplie.forme-corrigee.ph-op .tx { color:#fff; text-decoration-color:transparent; }
+.carte.neutre { background:#f3f1ea; border-color:#8a7a5c; }
+.carte.neutre p { color:#3a3328; }
+.nature-button.forme-button { background:#5a4a32; border-color:#3a2f1e; color:#fff; }
+/* v41 : un ou deux cadres de texte (exercice 2 : la langue du 19e siècle, puis celle d'aujourd'hui) */
+.game7 .sentence { display:block; }
+.game7 .tm-texte { display:flex; flex-wrap:wrap; align-items:flex-start; gap:16px 0; }
+.game7 .tm-cadre2 { margin-top:28px; padding-top:18px; border-top:2px dashed rgba(255,255,255,.35); }
+.game7 .tm-titre { font-family:Georgia,serif; font-size:.75em; font-weight:400; font-style:italic; color:#ffe9a8; margin:0 0 12px; }
+.game7 .sentence .w.fige { cursor:default; }
+.game7 .sentence .w.fige .f { text-decoration-color:rgba(255,255,255,.35); }
+.game7 .sentence .w.fige:hover { background:none; }
+.game7 .tm-cadre.replie .tm-texte { display:none; }
+.game7 .tm-cadre.replie .tm-titre, .game7 .tm-cadre2 ~ .tm-cadre .tm-titre { cursor:pointer; }
+.game7 .tm-cadre .tm-titre:hover { text-decoration:underline; }
+.game7 .tm-cadre.replie + .tm-cadre2 { margin-top:10px; }
+/* v42 : exercice 3 : quatre étiquettes par verbe ; un texte plus gros, plus aéré */
+.game7v .sentence { font-size:clamp(1.3rem,2.1vw,2rem); }
+.game7v .tm-texte { gap:22px 0; }
+.game7v .sentence .w .labs .lab { font-size:max(.42em, 10px); }
+.game7 .sentence .w .labs .lab.valeur { background:#e7f4ec; color:#14532d; border:1px solid #2e7d4f; white-space:normal; max-width:9em; }
+.game7 .sentence .w .labs .lab.valeur.rouge { background:#fdecea; color:#8a1f12; border-color:#b3261e; }
+.game7 .sentence .w .labs .lab.valeur.corrige { background:#ffe2bf; color:#7a3d00; border-color:#e08a1e; }
+.carte-choix-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.carte-valeur { border-style:dashed; }
+/* v43 : la flèche vers le français d'aujourd'hui */
+.suite-tm { display:block; width:100%; margin-top:12px; font-weight:700; cursor:pointer; }
+.game7 .suite-tm-texte { width:auto; margin:18px 0 0; padding:10px 18px; border-radius:10px; border:2px solid #ffd54a; background:rgba(255,213,74,.15); color:#ffe9a8; font-family:Georgia,serif; font-size:.7em; animation:gnFlash .6s 3; }
+/* v44 : l'étiquette du temps ou du mode s'allonge avec sa valeur */
+.game7 .sentence .w .labs .lab.allonge { white-space:normal; max-width:10em; line-height:1.25; }
+.game7 .sentence .w .labs .lab .morceau.corrige { background:#e08a1e; border-radius:3px; padding:0 3px; }
+/* v47 : transformer un texte : on écrit la nouvelle forme */
+.tf-form { display:flex; gap:10px; margin-top:12px; }
+.tf-input { flex:1; font-size:1.25rem; padding:10px 12px; border:2px solid #2e7d4f; border-radius:8px; font-family:Georgia,serif; min-width:0; }
+.tf-ok { white-space:nowrap; }
+.tf-retour { margin-top:10px; font-weight:700; }
+.tf-retour.juste { color:#1f7a4d; } .tf-retour.moitie { color:#a35f00; } .tf-retour.faux { color:#b3261e; }
+.game7 .sentence .w.tf .ancien:empty { display:none; }
+.game7 .sentence .w.tf .ancien { font-size:.6em; text-decoration:line-through; opacity:.9; line-height:1; margin-bottom:2px; }
+.texte-choix .texte-grille { grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }
+/* v50 : la phrase : les bandes à étirer sous le texte (bleu : syntaxe ; vert : nature des propositions) */
+.game8 .sentence { font-size:clamp(1.15rem,1.9vw,1.75rem); }
+.game8 .tm-texte { gap:10px 0; }
+.sx-texte { touch-action:none; user-select:none; -webkit-user-select:none; }
+.game8 .sentence .w.sx-mot { padding:0; cursor:pointer; align-items:stretch; }
+.game8 .sentence .w.sx-mot .tx { padding:0 .28em; text-align:left; }
+.game8 .sentence .w.sx-mot.depart .tx { background:rgba(255,213,74,.3); border-radius:4px; }
+.sx-lanes { display:flex; flex-direction:column; gap:3px; margin-top:4px; }
+.sx-lane { display:block; height:22px; font-family:Arial,sans-serif; font-size:max(.42em, 11px); line-height:22px; position:relative; }
+.sx-lane.bleu { background:#2a6fdb; } .sx-lane.vert { background:#2e7d4f; }
+.sx-lane.apercu { opacity:.55; }
+.sx-lane.faux { background:#b3261e !important; }
+.sx-lane.revele { background-image:repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 6px, transparent 6px 12px); }
+.sx-lane.debut { border-top-left-radius:6px; border-bottom-left-radius:6px; margin-left:2px; }
+.sx-lane.fin { border-top-right-radius:6px; border-bottom-right-radius:6px; margin-right:2px; }
+.sx-lane { overflow:visible; }
+.sx-etq { position:absolute; left:6px; top:0; white-space:nowrap; color:#fff; font-weight:700; z-index:2; pointer-events:none; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+.sx-palette { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px; }
+.sx-bande-btn { font:inherit; font-size:.88rem; font-weight:700; color:#fff; border:none; border-radius:999px; padding:9px 10px; cursor:pointer; text-align:center; line-height:1.2; }
+.sx-bande-btn.syn { background:#2a6fdb; } .sx-bande-btn.nat { background:#2e7d4f; }
+.sx-bande-btn.choisie { outline:3px solid #ffd54a; outline-offset:2px; box-shadow:0 0 0 6px rgba(255,213,74,.25); }
+.carte.sx-carte.bleue { border-color:#2a6fdb; background:#eef4ff; }
+.carte.sx-carte.bleue p { color:#173d7a; }
+.sx-aide { font-weight:700; }
+/* v52 : bandes vierges déjà tracées : on les touche, puis on choisit */
+.sx-texte { touch-action:auto; }
+.sx-lane { height:26px; line-height:26px; }
+.sx-lane[data-cle] { cursor:pointer; }
+.sx-lane.vide.bleu { background:rgba(42,111,219,.35); border:1px dashed rgba(170,200,255,.8); }
+.sx-lane.vide.vert { background:rgba(46,125,79,.35); border:1px dashed rgba(160,230,190,.8); }
+.sx-lane.vide.debut { border-left-style:solid; } .sx-lane.vide.fin { border-right-style:solid; }
+.sx-lane.choisie { outline:3px solid #ffd54a; outline-offset:-1px; background-color:rgba(255,213,74,.35) !important; }
+.sx-carte.eteinte { opacity:.45; }
+.sx-bande-btn:disabled { cursor:default; filter:grayscale(.3); }
+.sx-question { font-family:Georgia,serif; font-size:1.05rem; margin:0 0 10px; }
+.sx-lane.vide { border-left:none !important; border-right:none !important; }
+.sx-lane.vide.debut { border-left:1px solid rgba(255,255,255,.7) !important; }
+.sx-lane.vide.fin { border-right:1px solid rgba(255,255,255,.7) !important; }
+.sx-etq.deborde { padding:0 6px; border-radius:5px; left:0; }
+.sx-lane.bleu .sx-etq.deborde { background:#2a6fdb; } .sx-lane.vert .sx-etq.deborde { background:#2e7d4f; }
+.sx-lane.revele .sx-etq.deborde, .sx-lane.vide .sx-etq.deborde { box-shadow:0 0 0 1px rgba(255,255,255,.6); }
+/* v54 : la rangée rouge : fonction des subordonnées */
+.sx-lane.rouge { background:#b3261e; }
+.sx-lane.vide.rouge { background:rgba(179,38,30,.35); border:1px dashed rgba(255,180,170,.85); }
+.sx-lane.rouge .sx-etq.deborde { background:#b3261e; }
+.sx-bande-btn.fn { background:#b3261e; }
+.carte.sx-carte.rouge { border-color:#b3261e; background:#fdf0ee; }
+.carte.sx-carte.rouge p { color:#7a1a14; }
+.game8 .sx-palette .sx-bande-btn { font-size:.8rem; padding:8px 8px; }
+/* v54 : texte long : le panneau des bandes reste visible quand on fait défiler le texte */
+.game8 .quiz-grid { align-items:start; }
+.game8 .answer-card { position:sticky; top:52px; max-height:calc(100vh - 60px); overflow-y:auto; }
+/* v55 : étiquettes centrées dans leur bande */
+.sx-etq { text-align:center; }
+.sx-etq.serre { white-space:normal; font-size:.82em; line-height:1.05; top:1px; display:block; }
+.sx-etq.deborde { left:auto; }
+
+/* v58 : la phrase, exercice 3 : discours direct et discours indirect */
+.game9 .dr-texte { font-family:Georgia,serif; line-height:1.9; text-align:left; }
+.game9 .dr-mot { cursor:pointer; border-radius:3px; }
+.game9 .dr-mot:hover { background:rgba(255,255,255,.12); }
+.game9 .dr-seg.trouve-d { background:rgba(255,150,50,.35); box-shadow:0 0 0 2px #ff9a3c; border-radius:4px; }
+.game9 .dr-seg.trouve-i { background:rgba(80,160,255,.35); box-shadow:0 0 0 2px #5aa8ff; border-radius:4px; }
+.game9 .dr-seg.choisi { outline:3px solid #ffd54a; outline-offset:2px; border-radius:4px; }
+.game9 .dr-faux { background:rgba(230,60,60,.55) !important; transition:background .3s; }
+.game9 .dr-nouveau { display:none; }
+.game9 .dr-seg.transforme .dr-ancien { text-decoration:line-through; opacity:.55; font-size:.78em; }
+.game9 .dr-seg.transforme .dr-nouveau { display:inline; font-weight:700; margin-left:.35em; padding:0 .2em; border-radius:4px; }
+.game9 .dr-seg.transforme.juste .dr-nouveau { color:#8ef0a0; }
+.game9 .dr-seg.transforme.corrige .dr-nouveau { color:#ff8a8a; }
+.game9 .dr-choix { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.game9 .dr-option { white-space:normal; text-align:left; height:auto; min-height:44px; padding:8px 12px; line-height:1.3; font-size:.95rem; }
+.game9 .carte.dr-d { border-left:6px solid #ff9a3c; }
+.game9 .carte.dr-i { border-left:6px solid #5aa8ff; }
+.game9 .dr-rappel { opacity:.7; }
+.game9 .dr-option.faded { background:#f1f1f1; color:#777; border-color:#ddd; }
+
+/* v60 : le portail des niveaux */
+.home-classes { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; border-bottom:3px solid var(--cta-dark); }
+.classe-onglet { padding:12px 6px; border:1px solid var(--cta-dark); border-bottom:none; border-radius:8px 8px 0 0; background:rgba(255,255,255,.75); color:var(--cta-dark); font:700 1.05rem Arial,sans-serif; cursor:pointer; }
+.classe-onglet.on { background:var(--cta-dark); color:#fff; }
+@media (hover:hover) { .classe-onglet:not(.on):hover { background:#fff; } }
+.home-classes-note { margin:-8px 0 0; font-size:.9rem; font-style:italic; text-align:center; opacity:.8; }
+.home-mode-button.avenir { opacity:.45; cursor:default; filter:grayscale(.6); }
+@media (max-width:640px) { .home-classes { grid-template-columns:1fr 1fr; } }
+
+/* v65 : « trouver le verbe conjugué » : les verbes trouvés restent marqués en vert */
+.game9 .tv-mot.trouve-v { background:rgba(80,200,120,.35); box-shadow:0 0 0 2px #5fd38a; border-radius:4px; }
+
+/* v66 : les textes s'adaptent à l'ardoise ; la taille est calculée par le programme (ajusteArdoise) */
+.game7 .sentence { max-width:none; width:100%; }
+.game7 .sentence .w .labs .lab { font-size:max(.42em, 10px); }
+.home-mode-button.bilan { outline:3px solid #e8c874; outline-offset:-6px; }
+/* v66 : étiquettes plus compactes sous les formes verbales, pour laisser le texte en grand */
+.game7 .sentence .w .labs { margin-top:3px; gap:2px; }
+.game7 .sentence .w .labs .lab { padding:2px 6px; line-height:1.1; }
+.game7 .sentence { line-height:1.35; }
+
+/* v68 : un interligne généreux (lecture plus facile, notamment pour les élèves dyslexiques) */
+.game7 .sentence { line-height:1.9; }
+.game7 .sentence .w { margin-bottom:.15em; }
+.game9 .dr-texte { line-height:2.1; }
+.game8 .sentence { line-height:1.5; }
+/* la logique des douze exercices, sur chaque page de l'accueil */
+.home-etape { grid-column:1 / -1; margin:6px 0 0; font-size:.95rem; line-height:1.4; text-align:left; }
+
+/* v69 : la proposition fausse de l'élève, en attendant son deuxième essai */
+.game7 .sentence .w.essai-faux .f { color:#ff9c8f; text-decoration:underline wavy #ff6b5e; }
+/* v70 : la forme d'origine (barrée) se place dans l'interligne, au-dessus du mot, sans pousser les lignes */
+.game7 .sentence .w.tf { position:relative; }
+.game7 .sentence .w.tf .ancien { position:absolute; bottom:88%; left:50%; transform:translateX(-50%); white-space:nowrap; margin:0; line-height:1; font-size:.5em; }
+.tf-nuance { margin-top:8px; padding:8px 10px; background:#fff7e0; border-left:4px solid #e8c874; border-radius:4px; font-style:normal; }
+.game7 .sentence .w.elide { padding-right:0; margin-right:-.25em; }
+/* v75 : la phrase au CE : ce qu'il faut faire de chaque phrase (bilan « transformer les phrases ») */
+.w.tf .tf-op { display:inline-block; font-size:.5em; font-style:italic; line-height:1.2; color:#f3d27a; border:1px solid rgba(243,210,122,.6); border-radius:6px; padding:0 .35em; margin-right:.35em; vertical-align:middle; }
+.w.tf.tf-phrase { margin-right:.35em; }
+.w.tf.trou .tf-op { visibility:hidden; }
+.ponct-ajout { color:#ffd76a; font-weight:bold; }
+/* v75 : accorder phrase par phrase : un encart par mot */
+.tf-encart { margin-bottom:10px; opacity:.75; }
+.tf-encart.active { opacity:1; box-shadow:0 0 0 3px rgba(242,201,76,.55); }
+.tf-encart.faite { opacity:.9; }
+.tf-encart .tf-form { margin-top:6px; }
+.tf-phrase-n { margin:0 0 8px; font-weight:bold; }
+/* v78 : dans un onglet de niveau, les trois parties restent visibles : la partie choisie en premier et en grand,
+   les deux autres en plus petit, juste en dessous, pour changer de partie sans revenir au menu général */
+#home-parties.choisie { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+#home-parties.choisie .home-partie { min-height:0; padding:10px 8px; opacity:.85; }
+#home-parties.choisie .home-partie .label { font-size:.95rem; }
+#home-parties.choisie .home-partie.on { grid-column:1 / -1; order:-1; padding:22px 12px; opacity:1; box-shadow:0 0 0 3px rgba(255,215,106,.85); cursor:default; }
+#home-parties.choisie .home-partie.on .label { font-size:1.6rem; }
+.home-section .home-section-title, .home-section .home-retour { display:none; }
+@media (max-width:640px) { #home-parties.choisie { grid-template-columns:1fr 1fr; } }
+/* v79 : sous une phrase transformée, ses bandes : le type en bleu, la forme en vert */
+.w.tf.tf-phrase { display:inline-flex; flex-direction:column; vertical-align:top; }
+.tf-bandes { display:flex; gap:4px; margin-top:4px; font-size:.42em; line-height:1.3; font-style:normal; }
+.tf-bande { flex:1; text-align:center; border-radius:5px; padding:2px 6px; font-family:Arial,sans-serif; font-weight:bold; white-space:nowrap; }
+.tf-bande.type { background:#2f5fb3; color:#fff; }
+.tf-bande.forme { background:#2e8b57; color:#fff; }
+/* v108 : le type (bleu) et la forme (vert) nommés dans l'encart de correction */
+.tf-etiq { display:inline-block; border-radius:5px; padding:0 6px; font-weight:bold; color:#fff; white-space:nowrap; }
+.tf-etiq.type { background:#2f5fb3; }
+.tf-etiq.forme { background:#2e8b57; }
+.tm-q2 { margin:10px 0 6px; }
+
+/* v92 : le bleu pour ce qui n'est ni une nature ni une fonction (la modalisation) */
+:root { --mod-blue:#2c6aa0; --mod-blue-dark:#1d4c75; }
+.nature-button.bleu-button { background:var(--mod-blue); border-color:var(--mod-blue-dark); color:#fff; }
+@media (hover:hover) { .nature-button.bleu-button:hover:not(:disabled) { background:var(--mod-blue-dark); } }
+.nature-button.bleu-button.correct { background:var(--mod-blue); border-color:var(--mod-blue-dark); box-shadow:0 0 0 3px #ffe066; }
+.carte.bleue { border-color:var(--mod-blue); background:#e8f0f8; }
+.carte.bleue p { color:#1d4c75; }
+.game4 .sentence .w .lab.bleu, .lab.bleu { background:var(--mod-blue); }
+
+/* v94 : type, forme et voix des phrases : trois nuances de bleu (bleu nuit : type ; bleu franc : forme ; bleu ciel : voix) */
+#natures-panel.sx-bleus { --sx-b1:#1a3a7a; --sx-b2:#2a6fdb; --sx-b3:#4fa3e0; }
+#natures-panel.sx-bleus .sx-lane.bleu, #natures-panel.sx-bleus .sx-lane.bleu .sx-etq.deborde, #natures-panel.sx-bleus .sx-bande-btn.syn { background:var(--sx-b1); }
+#natures-panel.sx-bleus .sx-lane.vert, #natures-panel.sx-bleus .sx-lane.vert .sx-etq.deborde, #natures-panel.sx-bleus .sx-bande-btn.nat { background:var(--sx-b2); }
+#natures-panel.sx-bleus .sx-lane.rouge, #natures-panel.sx-bleus .sx-lane.rouge .sx-etq.deborde, #natures-panel.sx-bleus .sx-bande-btn.fn { background:var(--sx-b3); }
+#natures-panel.sx-bleus .sx-lane.vide.bleu { background:rgba(26,58,122,.45); border-color:rgba(170,190,240,.8); }
+#natures-panel.sx-bleus .sx-lane.vide.vert { background:rgba(42,111,219,.38); border-color:rgba(170,200,255,.8); }
+#natures-panel.sx-bleus .sx-lane.vide.rouge { background:rgba(79,163,224,.38); border-color:rgba(190,225,255,.85); }
+#natures-panel.sx-bleus .sx-lane.faux { background:#b3261e !important; }
+#natures-panel.sx-bleus .carte.sx-carte.bleue { border-color:var(--sx-b1); background:#e9eef8; }
+#natures-panel.sx-bleus .carte.sx-carte.bleue p { color:#1a3a7a; }
+#natures-panel.sx-bleus .carte.sx-carte.verte { border-color:var(--sx-b2); background:#eef4ff; }
+#natures-panel.sx-bleus .carte.sx-carte.verte p { color:#173d7a; }
+#natures-panel.sx-bleus .carte.sx-carte.rouge { border-color:var(--sx-b3); background:#eef7fd; }
+#natures-panel.sx-bleus .carte.sx-carte.rouge p { color:#1d5a85; }
+
+/* v98 : étiquette double : le temps ou le mode dans un cadre vert, la valeur dans un cadre bleu, sur la même ligne */
+.game7 .sentence .w .labs .lab.duo, .sentence .w .labs .lab.duo { background:none; box-shadow:none; padding:0; display:flex; gap:3px; align-items:stretch; white-space:nowrap; }
+.sentence .w .labs .lab.duo .p-vert, .sentence .w .labs .lab.duo .p-bleu { background:var(--nat-green); color:#fff; padding:2px 6px; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,.3); display:flex; align-items:center; }
+.sentence .w .labs .lab.duo .p-bleu { background:var(--mod-blue); }
+/* v98 : exercice 10 : le texte réécrit reste blanc, comme le reste du texte */
+.game7 .sentence .w.blanc.remplie:not(.forme-corrigee) .f, .game7 .sentence .w.blanc.remplie .tx { color:#fff; }
+/* v98 : homophones : la forme, et sa nature en petit dessous */
+.homo-choix { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.homo-choix strong { font-size:1.15em; }
+.homo-choix small { font-weight:400; font-size:.78em; line-height:1.15; opacity:.95; }
+/* v102 : à la correction, plus de forme barrée au-dessus : la forme juste prend place dans le texte, en blanc ;
+   seule une erreur corrigée garde sa couleur, pour que l'élève s'y arrête */
+.game7 .sentence .w.tf.remplie .ancien { display:none; }
+.game7 .sentence .w.tf.remplie:not(.forme-corrigee) .f, .game7 .sentence .w.tf.remplie:not(.forme-corrigee) .tx { color:#fff; text-decoration-color:transparent; }
+/* v102 : le participe cité par la voix dans le bilan final clignote */
+.game7 .sentence .w.tf-cite .f { animation: blink 0.9s ease-in-out infinite; border-radius:4px; outline:2px solid #ffe066; }
+.bilan-pp ul { margin:.4em 0 0 1.1em; padding:0; }
+.bilan-pp li { margin:.35em 0; }
+/* v103 : écoute continue des textes (pour le maître) */
+#ecoute { position:fixed; inset:0; z-index:9999; background:rgba(20,30,25,.85); display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 12px; }
+#ecoute .ec-boite { background:#fffdf7; color:#222; border-radius:12px; max-width:900px; width:100%; padding:20px 24px; box-shadow:0 10px 40px rgba(0,0,0,.4); }
+#ecoute h2 { margin:0 0 12px; font-size:1.3em; } #ecoute h2 small { font-weight:400; color:#777; font-size:.7em; }
+#ecoute .ec-reglages { display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin-bottom:10px; font-size:.95em; }
+#ecoute select { font-size:1em; padding:3px 6px; max-width:360px; }
+#ecoute .ec-ou { font-weight:600; color:#5a4022; margin:8px 0; }
+#ecoute .ec-texte { background:#223a2f; color:#f4f1e6; border-radius:8px; padding:16px 18px; font-family:Georgia, serif; font-size:1.25em; line-height:1.7; max-height:46vh; overflow:auto; }
+#ecoute .ec-ph { cursor:pointer; border-radius:4px; padding:1px 2px; }
+#ecoute .ec-ph:hover { background:rgba(255,255,255,.08); }
+#ecoute .ec-cur { background:#ffe066; color:#222; }
+#ecoute .ec-boutons { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 6px; }
+#ecoute .ec-aide { font-size:.88em; color:#666; margin:4px 0 8px; }
+#ecoute textarea { width:100%; box-sizing:border-box; font-size:.95em; padding:8px; border-radius:6px; border:1px solid #bbb; }
+
+/* v110 : l'illustration du texte : à côté de l'ardoise (en haut de la colonne de droite) ; au-dessus du texte sur téléphone */
+.illus { margin:0 0 14px; }
+.illus .illus-svg { display:block; width:100%; height:auto; }
+.illus-m { display:none; }
+@media (max-width:900px) {
+  .illus-d { display:none !important; }
+  .illus-m:not(.hidden) { display:block; margin:0; padding:8px 8px 0; background:var(--paper); }
+}
+
+/* ============================================================
+   MNEMOSCIENCES v1 : l'ardoise des maths, la case de réponse et son clavier, les choix,
+   les fractions, les opérations posées et le tableau des nombres.
+   ============================================================ */
+.mm-ardoise { display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; font-family:"Comic Sans MS","Chalkboard SE",cursive; }
+.mm-enonce { display:block; font-size:clamp(1.3rem,2.6vw,2.2rem); line-height:1.45; }
+.mm-enonce strong { color:#ffe066; font-weight:700; }
+.mm-pb { display:block; font-size:clamp(1.15rem,2.1vw,1.75rem); text-align:left; line-height:1.55; }
+.mm-lettres { display:inline-block; margin-top:8px; color:#ffe066; font-style:italic; }
+.mm-trou { display:inline-block; min-width:1.6em; border-bottom:3px dashed #ff9ec7; color:#ff9ec7; text-align:center; }
+.mm-figure { display:block; width:100%; }
+.mm-svg { width:min(100%,460px); height:auto; max-height:44vh; display:block; margin:0 auto; overflow:visible; }
+.mm-fleches { letter-spacing:.25em; color:#9be59b; font-weight:700; white-space:nowrap; }
+.mm-ico-txt { color:#ffe066; }
+.frac { display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1.05; margin:0 .15em; font-weight:700; }
+.frac > span:first-child { border-bottom:2px solid currentColor; padding:0 .25em 1px; }
+.frac > span:last-child { padding-top:1px; }
+/* les sorciers restent petits pour ne pas cacher la figure */
+.character-stage .character { height:min(250px,32vh); }
+.character-stage .bubble { font-size:1rem; max-width:260px; }
+
+/* la zone de réponse (à droite) */
+.mm-saisie { display:flex; align-items:center; gap:10px; }
+.mm-saisie input { flex:1; min-width:0; font:700 1.9rem Arial,sans-serif; text-align:center; padding:10px 8px; border:3px solid var(--nat-green-dark); border-radius:10px; background:#fff; color:var(--ink); }
+.mm-saisie input:focus { outline:3px solid #ffe066; outline-offset:2px; }
+.mm-saisie input.juste { border-color:var(--ok); background:#e3f6ea; color:var(--ok); }
+.mm-saisie input.montree { border-color:var(--wrong); background:#fbe9e7; color:var(--wrong); }
+.mm-unite { font:700 1.3rem Arial,sans-serif; color:var(--accent-dark); white-space:nowrap; }
+.secoue { animation:mm-secoue .4s; }
+@keyframes mm-secoue { 0%, 100% { transform:translateX(0); } 25% { transform:translateX(-9px); } 75% { transform:translateX(9px); } }
+.mm-clavier { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:14px 0 12px; }
+.mm-clavier.avec-h .mm-touche:last-child { grid-column:1 / -1; }
+.mm-touche { padding:11px 0; font:700 1.35rem Arial,sans-serif; border:2px solid var(--border); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; }
+.mm-touche:active { transform:scale(.96); }
+@media (hover:hover) { .mm-touche:hover:not(:disabled) { border-color:var(--nat-green); background:#f1faf3; } }
+.mm-touche:disabled { opacity:.5; cursor:default; }
+.mm-valider { width:100%; font-size:1.1rem; }
+.mm-indice { font-family:Arial,sans-serif; font-size:.95rem; color:var(--wrong); margin:10px 0 0; line-height:1.4; }
+.mm-choix { gap:8px; margin-top:6px; }
+.mm-choix.deux { grid-template-columns:1fr 1fr; }
+.mm-choix .nature-button { display:flex; align-items:center; gap:10px; font-size:1.08rem; padding:12px 14px; line-height:1.3; }
+.mm-choix.deux .nature-button { justify-content:center; text-align:center; }
+.mm-signe { font-size:1.7rem; min-width:1.1em; text-align:center; line-height:1; }
+.mm-petit { font-weight:400; font-size:.86em; opacity:.92; }
+.mm-ico { width:54px; height:34px; flex:0 0 auto; background:#fff; border-radius:6px; padding:2px; }
+.verdict-square.half { background:#e6a23c; }
+
+/* dans les explications : l'opération posée et le tableau des nombres */
+.op-posee { font-family:"Courier New",monospace; font-size:1.2rem; font-weight:700; border-collapse:collapse; margin:8px 0 10px; }
+.op-posee td { width:1.05em; text-align:center; padding:0 1px; }
+.op-posee .op-signe { color:var(--accent-dark); }
+.op-ret td { font-size:.72rem; color:var(--wrong); height:.9em; }
+.op-trait td { border-top:2px solid var(--ink); padding:0; height:3px; }
+.tab-num { border-collapse:collapse; margin:8px 0 10px; font-family:Arial,sans-serif; }
+.tab-num th, .tab-num td { border:1px solid var(--accent); padding:3px 9px; text-align:center; }
+.tab-num th { font-size:.72rem; font-weight:400; color:var(--muted); }
+.tab-num td { font-size:1.15rem; font-weight:700; }
+.tab-num .on { background:#ffe9a3; color:var(--ink); }
+.correction-details .frac { font-size:1.05em; }
+
+@media (max-width:900px) {
+  .mm-svg { max-height:36vh; }
+  .character-stage .character { height:min(170px,22vh); }
+}
+@media (max-width:640px) {
+  .mm-choix.deux { grid-template-columns:1fr; }
+  .mm-touche { padding:9px 0; font-size:1.2rem; }
+  .mm-saisie input { font-size:1.5rem; }
+}
+/* la mosaïque : le portrait de Luca Pacioli au centre, sur deux cases */
+.bg-tile.bg-centre { grid-column:2 / 4; grid-row:2; }
+@media (max-width:640px) { .bg-tile.bg-centre { grid-column:2; grid-row:2 / 4; } }
+
+/* v5 : quiz de cours, tableaux de proportionnalité, programmes du lutin, virgule dans le tableau des nombres */
+.mm-cours { display:block; font-size:.55em; letter-spacing:.12em; text-transform:uppercase; color:#ff9ec7; margin-bottom:8px; }
+.mm-tab { border-collapse:collapse; margin:14px auto 0; font-size:.9em; }
+.mm-tab td { border:2px solid rgba(244,241,230,.7); padding:6px 16px; min-width:2.4em; text-align:center; }
+.mm-prog { display:table; text-align:left; margin:10px auto; padding-left:1.6em; font-size:.85em; color:#9be59b; }
+.mm-prog li { margin:2px 0; }
+.tab-num .virg { border-left:4px solid var(--wrong); }
+.home-mode-button.quiz .label strong { color:#ffe066; }
